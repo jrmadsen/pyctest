@@ -1,3 +1,6 @@
 [submodule "source/python/pybind11"]
 	path = source/python/pybind11
 	url = https://github.com/pybind/pybind11.git
+[submodule "source/kitware-cmake"]
+	path = source/kitware-cmake
+	url = https://github.com/jrmadsen/CMake.git
