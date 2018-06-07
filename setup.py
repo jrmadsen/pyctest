@@ -55,6 +55,7 @@ class CMakeBuild(build_ext, Command):
     cmake_library_path = ''
     build_shared = 'ON'
     pybind11_install = 'OFF'
+    devel_install = 'ON'
 
 
     #--------------------------------------------------------------------------#
@@ -153,10 +154,23 @@ class CMakeBuild(build_ext, Command):
         #----------------------------------------------------------------------#
         devel_install_path = None
 
-        if platform.system() == "Windows":
-            self.devel_install = 'OFF'
-
-        cmake_args += [ '-DCMAKE_INSTALL_PREFIX={}'.format(extdir) ]
+        print('\n\n{}\n\n'.format(install.user_options))
+        if valid_string(self.devel_install) and str.upper(self.devel_install) != 'OFF':
+            if str.upper(self.devel_install) == 'ON':
+                if install.user_options[0][1] is None:
+                    self.devel_install = sys.prefix
+                else:
+                    self.devel_install = install.user_options[0][1]
+            devel_install_path = self.devel_install
+            if not os.path.isabs(devel_install_path):
+                devel_install_path = os.path.realpath(devel_install_path)
+            cmake_args += [ '-DCMAKE_INSTALL_PREFIX={}'.format(devel_install_path) ]
+            cmake_args += [ '-DPYBIND11_INSTALL={}'.format(str.upper(self.pybind11_install)) ]
+            cmake_args += [ '-DPYCTEST_STAGING_PREFIX={}'.format(extdir) ]
+            cmake_args += [ '-DPYCTEST_DEVELOPER_INSTALL=ON' ]
+        else:
+            cmake_args += [ '-DCMAKE_INSTALL_PREFIX={}'.format(extdir) ]
+            cmake_args += [ '-DPYCTEST_DEVELOPER_INSTALL=OFF' ]
 
         #----------------------------------------------------------------------#
         #
@@ -170,6 +184,7 @@ class CMakeBuild(build_ext, Command):
         self.cmake_library_path = self.check_env(self.cmake_library_path, compose("cmake_library_path"))
         self.build_shared = self.check_env(self.build_shared, compose("build_shared"))
         self.pybind11_install = self.check_env(self.pybind11_install, compose("pybind11_install"))
+        self.devel_install = self.check_env(self.devel_install, compose("devel_install"))
 
         _valid_type = False
         for _type in [ 'Release', 'Debug', 'RelWithDebInfo', 'MinSizeRel' ]:

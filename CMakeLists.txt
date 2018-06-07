@@ -62,7 +62,7 @@ foreach(_TYPE MAJOR MINOR PATCH)
     mark_as_advanced(PYCTEST_VERSION_${_TYPE})
 endforeach(_TYPE MAJOR MINOR PATCH)
 
-set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME development)
+set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME ignore)
 mark_as_advanced(PYCTEST_VERSION)
 
 ################################################################################
