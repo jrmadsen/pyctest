@@ -145,6 +145,15 @@ void consume_parameters(_Tp, _Args...)
 #include "cmStateTypes.h"
 #include "cmSystemTools.h"
 #include "cmTest.h"
+#include "CTest/cmCTestLaunch.h"
+#include "CTest/cmCTestScriptHandler.h"
+#include "cmCTest.h"
+#include "cmDocumentation.h"
+#include "cmSystemTools.h"
+#include "cmsys/Encoding.hxx"
+#if defined(_WIN32)
+#  include "cmsys/ConsoleBuf.hxx"
+#endif
 
 //============================================================================//
 
@@ -423,6 +432,9 @@ void generate(std::string dir = "")
     }
 
 }
+//----------------------------------------------------------------------------//
+int main_driver(int argc, char const* const* argv);
+
 //----------------------------------------------------------------------------//
 
 } // namespace test

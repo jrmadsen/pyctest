@@ -34,6 +34,14 @@ pybind11_add_module(pycmake
 target_link_libraries(pycmake PUBLIC
     ${CMAKE_PROJECT_LIBRARIES})
 
+set_target_properties(pycmake
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
+install(TARGETS pycmake DESTINATION ${PYCTEST_INSTALL_PYTHONDIR})
+
 pybind11_add_module(pyctest 
     ${CMAKE_CURRENT_LIST_DIR}/pyctest.cpp
     ${CMAKE_CURRENT_LIST_DIR}/pyctest.hpp 
@@ -41,3 +49,11 @@ pybind11_add_module(pyctest
 
 target_link_libraries(pyctest PUBLIC
     ${CTEST_PROJECT_LIBRARIES} ${CMAKE_PROJECT_LIBRARIES})
+
+set_target_properties(pyctest
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
+install(TARGETS pyctest DESTINATION ${PYCTEST_INSTALL_PYTHONDIR})

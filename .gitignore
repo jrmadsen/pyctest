@@ -1,8 +1,6 @@
 
-# QtCreator files
-/CMakeLists.txt.user
-
-# generated at build time
-/Modules
-
 *~
+/CMakeLists.txt.user
+/Modules
+/.eggs
+/build

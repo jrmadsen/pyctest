@@ -56,19 +56,19 @@ set(PYCTEST_STAGING_PREFIX ${CMAKE_INSTALL_PREFIX} CACHE PATH
 
 if(PYCTEST_SETUP_PY)
 
-    set(PYCTEST_INSTALL_PYTHONDIR ${PYCTEST_STAGING_PREFIX}/PYCTEST CACHE PATH
+    set(PYCTEST_INSTALL_PYTHONDIR ${PYCTEST_STAGING_PREFIX} CACHE PATH
         "Installation prefix of python" FORCE)
 
     set(PYCTEST_INSTALL_FULL_PYTHONDIR
-        ${CMAKE_INSTALL_PREFIX}/lib/python${PYBIND11_PYTHON_VERSION}/site-packages/PYCTEST)
+        ${CMAKE_INSTALL_PREFIX}/lib/python${PYBIND11_PYTHON_VERSION}/site-packages)
 
-    add_feature(PYCTEST_INSTALL_PYTHONDIR "PYCTEST Python installation directory")
+    add_feature(PYCTEST_INSTALL_PYTHONDIR "pyctest Python installation directory")
     add_feature(PYCTEST_STAGING_PREFIX "Installation prefix (relevant in pip staged builds)")
 
 else(PYCTEST_SETUP_PY)
 
     set(PYCTEST_INSTALL_PYTHONDIR
-        ${CMAKE_INSTALL_LIBDIR}/python${PYBIND11_PYTHON_VERSION}/site-packages/PYCTEST
+        ${CMAKE_INSTALL_LIBDIR}/python${PYBIND11_PYTHON_VERSION}/site-packages
         CACHE PATH "Installation directory for python")
 
     set(PYCTEST_INSTALL_FULL_PYTHONDIR
@@ -77,7 +77,7 @@ else(PYCTEST_SETUP_PY)
 endif(PYCTEST_SETUP_PY)
 
 set(PYCTEST_CONFIG_PYTHONDIR
-    ${CMAKE_INSTALL_LIBDIR}/python${PYBIND11_PYTHON_VERSION}/site-packages/pyctest)
+    ${CMAKE_INSTALL_LIBDIR}/python${PYBIND11_PYTHON_VERSION}/site-packages)
 
 
 ################################################################################

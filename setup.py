@@ -441,7 +441,7 @@ setup(name='pyctest',
     # extra
     install_requires=[ ],
     setup_requires=[ 'setuptools', 'disttools' ],
-    packages=[ 'pyctest' ],
+    packages=[ ],
     keywords=get_keywords(),
     classifiers=get_classifiers(),
     python_requires='>=2.6',

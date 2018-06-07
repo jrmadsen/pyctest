@@ -16,7 +16,7 @@ else(WIN32)
     set(CMAKE_CXX_STANDARD 11 CACHE STRING "C++ STL standard")
 endif(WIN32)
 
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+#set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(PYCTEST_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX} CACHE PATH "pyctest installation prefix")
 
 add_feature(CMAKE_C_FLAGS_${_CONFIG} "C compiler build type flags")

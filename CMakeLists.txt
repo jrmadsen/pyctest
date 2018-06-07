@@ -79,12 +79,12 @@ include(Packages)
 #   pyctest source
 ################################################################################
 
-configure_file(${PROJECT_SOURCE_DIR}/source/kitware-cmake/Modules/CMakeParseArguments.cmake
-    ${PROJECT_SOURCE_DIR}/Modules/CMakeParseArguments.cmake COPYONLY)
 set(BUILD_CursesDialog OFF CACHE BOOL "Disable building curses dialog" FORCE)
 set(BUILD_QtDialog OFF CACHE BOOL "Disable building Qt dialog" FORCE)
 set(CTEST_TEST_CPACK OFF CACHE BOOL "Disable CTest testing of CPack" FORCE)
 set(CTEST_TEST_CTEST OFF CACHE BOOL "Disable CTest testing of CTest" FORCE)
+set(CMAKE_RUN_LONG_TESTS OFF CACHE BOOL "Disable CMake long tests" FORCE)
+
 add_subdirectory(source)
 
 ################################################################################
@@ -96,5 +96,6 @@ include(PackageConfigure)
 ################################################################################
 #   Testing
 ################################################################################
-
+enable_testing()
+include(CTest)
 include(Testing)
