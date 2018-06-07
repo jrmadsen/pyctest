@@ -4,3 +4,5 @@
 /Modules
 /.eggs
 /build
+/pyctest.egg-info
+/dist
