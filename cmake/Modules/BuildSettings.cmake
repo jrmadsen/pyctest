@@ -58,6 +58,14 @@ endif(CMAKE_CXX_COMPILER_IS_GNU)
 # used by configure_package_*
 set(LIBNAME pyctest)
 
+# set the output directory (critical on Windows)
+# if PYCTEST_OUTPUT_DIR is not defined, set to CMAKE_BINARY_DIR
+if(NOT DEFINED PYCTEST_OUTPUT_DIR OR "${PYCTEST_OUTPUT_DIR}" STREQUAL "")
+    set(PYCTEST_OUTPUT_DIR ${CMAKE_BINARY_DIR})
+endif(NOT DEFINED PYCTEST_OUTPUT_DIR OR "${PYCTEST_OUTPUT_DIR}" STREQUAL "")
+# set the CMAKE_RUNTIME_OUTPUT_DIRECTORY variable
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PYCTEST_OUTPUT_DIR}/bin)
+
 ############
 #   other
 ############

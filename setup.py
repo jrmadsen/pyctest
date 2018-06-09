@@ -23,6 +23,8 @@ elif platform.system() == "Linux":
     os.environ["CC"] = "/usr/bin/gcc"
     os.environ["CXX"] = "/usr/bin/g++"
 
+installation_files = [ ]
+
 # ---------------------------------------------------------------------------- #
 def get_project_version():
     # open ".version.txt"
@@ -53,7 +55,6 @@ class CMakeBuild(build_ext, Command):
     cmake_prefix_path = ''
     cmake_include_path = ''
     cmake_library_path = ''
-    build_shared = 'ON'
     pybind11_install = 'OFF'
     devel_install = 'ON'
 
@@ -149,31 +150,6 @@ class CMakeBuild(build_ext, Command):
 
         #----------------------------------------------------------------------#
         #
-        #   Developer installation processing
-        #
-        #----------------------------------------------------------------------#
-        devel_install_path = None
-
-        print('\n\n{}\n\n'.format(install.user_options))
-        if valid_string(self.devel_install) and str.upper(self.devel_install) != 'OFF':
-            if str.upper(self.devel_install) == 'ON':
-                if install.user_options[0][1] is None:
-                    self.devel_install = sys.prefix
-                else:
-                    self.devel_install = install.user_options[0][1]
-            devel_install_path = self.devel_install
-            if not os.path.isabs(devel_install_path):
-                devel_install_path = os.path.realpath(devel_install_path)
-            cmake_args += [ '-DCMAKE_INSTALL_PREFIX={}'.format(devel_install_path) ]
-            cmake_args += [ '-DPYBIND11_INSTALL={}'.format(str.upper(self.pybind11_install)) ]
-            cmake_args += [ '-DPYCTEST_STAGING_PREFIX={}'.format(extdir) ]
-            cmake_args += [ '-DPYCTEST_DEVELOPER_INSTALL=ON' ]
-        else:
-            cmake_args += [ '-DCMAKE_INSTALL_PREFIX={}'.format(extdir) ]
-            cmake_args += [ '-DPYCTEST_DEVELOPER_INSTALL=OFF' ]
-
-        #----------------------------------------------------------------------#
-        #
         #   Process options
         #
         #----------------------------------------------------------------------#
@@ -182,7 +158,6 @@ class CMakeBuild(build_ext, Command):
         self.cmake_prefix_path = self.check_env(self.cmake_prefix_path, compose("cmake_prefix_path"))
         self.cmake_include_path = self.check_env(self.cmake_include_path, compose("cmake_include_path"))
         self.cmake_library_path = self.check_env(self.cmake_library_path, compose("cmake_library_path"))
-        self.build_shared = self.check_env(self.build_shared, compose("build_shared"))
         self.pybind11_install = self.check_env(self.pybind11_install, compose("pybind11_install"))
         self.devel_install = self.check_env(self.devel_install, compose("devel_install"))
 
@@ -196,12 +171,6 @@ class CMakeBuild(build_ext, Command):
             self.build_type = 'Release'
 
         cmake_args += [ '-DCMAKE_BUILD_TYPE={}'.format(self.build_type) ]
-
-        # Windows has some shared library issues
-        if str.upper(self.build_shared) == 'PLATFORM-DEFAULT':
-            cmake_args += [ '-DBUILD_SHARED_LIBS=ON' ]
-        else:
-            cmake_args += [ '-DBUILD_SHARED_LIBS={}'.format(str.upper(self.build_shared)) ]
 
         _cxxstd = int(self.cxx_standard)
         if _cxxstd < 14 and platform.system() != "Windows":
@@ -219,6 +188,11 @@ class CMakeBuild(build_ext, Command):
         if valid_string(self.cmake_include_path):
             cmake_args += [ '-DCMAKE_INCLUDE_PATH={}'.format(self.cmake_include_path) ]
 
+        cmake_args += [ '-DCMAKE_INSTALL_PREFIX={}'.format(extdir) ]
+        cmake_args += [ '-DPYBIND11_INSTALL={}'.format(str.upper(self.pybind11_install)) ]
+        cmake_args += [ '-DPYCTEST_STAGING_PREFIX={}'.format(extdir) ]
+        cmake_args += [ '-DPYCTEST_DEVELOPER_INSTALL=ON' ]
+
         build_args = [ '--config', self.build_type ]
         install_args = [ '-DBUILD_TYPE={}'.format(self.build_type),
                          '-P', 'cmake_install.cmake' ]
@@ -231,14 +205,13 @@ class CMakeBuild(build_ext, Command):
             nproc = '-j4'
             try:
                 import multiprocessing as mp
-                nproc = '-j{}'.format(mp.cpu_count())
+                nproc = '-j{}'.format(mp.cpu_count()+1)
             except:
                 pass
             build_args += [ '--', nproc ]
 
         env = os.environ.copy()
-        env['CXXFLAGS'] = '{}'.format(
-            env.get('CXXFLAGS', ''))
+        env['CXXFLAGS'] = '{}'.format(env.get('CXXFLAGS', ''))
 
         # make directory if not exist
         if not os.path.exists(self.build_temp):
@@ -267,8 +240,7 @@ class CMakeBuild(build_ext, Command):
                               cwd=self.build_temp, env=env)
 
         # install the development
-        if devel_install_path is not None:
-            subprocess.check_call(['cmake', '-DCOMPONENT=development' ] + install_args,
+        subprocess.check_call(['cmake', '-DCOMPONENT=development' ] + install_args,
                               cwd=self.build_temp, env=env)
 
         CMakeInstallEggInfo.dirs[self.build_temp] = extdir
@@ -460,5 +432,6 @@ setup(name='pyctest',
     keywords=get_keywords(),
     classifiers=get_classifiers(),
     python_requires='>=2.6',
+    data_files=installation_files,
 )
 

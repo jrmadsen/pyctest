@@ -26,6 +26,16 @@
 
 //============================================================================//
 
+// define helper macros
+#define pyobj_cast(_var, _type, _pyobject) _type * _var = _pyobject.cast< _type * >()
+
+//============================================================================//
+
+typedef std::vector<std::string>    strvec_t;
+typedef std::vector<char*>          charvec_t;
+
+//============================================================================//
+
 static const char* cmDocumentationName[][2] =
 {
     { nullptr, "  cmake - Cross-Platform Makefile Generator." },
@@ -188,41 +198,6 @@ void pycm::cmakemainProgressCallback(const char* m, float prog,
 
 //============================================================================//
 
-int pycm::cmake_main(int ac, char const* const* av)
-{
-#if defined(_WIN32)
-    // Replace streambuf so we can output Unicode to console
-    cmsys::ConsoleBuf::Manager consoleOut(std::cout);
-    consoleOut.SetUTF8Pipes();
-    cmsys::ConsoleBuf::Manager consoleErr(std::cerr, true);
-    consoleErr.SetUTF8Pipes();
-#endif
-
-    cmsys::Encoding::CommandLineArguments args =
-            cmsys::Encoding::CommandLineArguments::Main(ac, av);
-    ac = args.argc();
-    av = args.argv();
-
-    cmSystemTools::EnableMSVCDebugHook();
-    cmSystemTools::InitializeLibUV();
-    cmSystemTools::FindCMakeResources(av[0]);
-    if (ac > 1)
-    {
-        if (strcmp(av[1], "--build") == 0)
-            return do_build(ac, av);
-        if (strcmp(av[1], "--open") == 0)
-            return do_open(ac, av);
-        if (strcmp(av[1], "-E") == 0)
-            return do_command(ac, av);
-    }
-    int ret = do_cmake(ac, av);
-    cmDynamicLoader::FlushCache();
-    uv_loop_close(uv_default_loop());
-    return ret;
-}
-
-//============================================================================//
-
 int pycm::do_cmake(int ac, char const* const* av)
 {
     if (cmSystemTools::GetCurrentWorkingDirectory().empty())
@@ -237,7 +212,8 @@ int pycm::do_cmake(int ac, char const* const* av)
     if (doc.CheckOptions(ac, av))
     {
         // Construct and print requested documentation.
-        cmake hcm(cmake::RoleInternal);
+        pycm::cmake_role() = cmake::RoleInternal;
+        cmake& hcm = *pycm::cmake_instance();
         hcm.SetHomeDirectory("");
         hcm.SetHomeOutputDirectory("");
         hcm.AddCMakePaths();
@@ -319,7 +295,8 @@ int pycm::do_cmake(int ac, char const* const* av)
     }
     if (sysinfo)
     {
-        cmake cm(cmake::RoleProject);
+        pycm::cmake_role() = cmake::RoleProject;
+        cmake& cm = *pycm::cmake_instance();
         cm.SetHomeDirectory("");
         cm.SetHomeOutputDirectory("");
         int ret = cm.GetSystemInformation(args);
@@ -327,7 +304,9 @@ int pycm::do_cmake(int ac, char const* const* av)
     }
     cmake::Role const role = workingMode == cmake::SCRIPT_MODE
                              ? cmake::RoleScript : cmake::RoleProject;
-    cmake cm(role);
+    pycm::cmake_role() = role;
+    cmake& cm = *pycm::cmake_instance();
+
     cm.SetHomeDirectory("");
     cm.SetHomeOutputDirectory("");
     cmSystemTools::SetMessageCallback(cmakemainMessageCallback, &cm);
@@ -366,13 +345,9 @@ int pycm::do_cmake(int ac, char const* const* av)
         }
     }
 
-    // Always return a non-negative value.  Windows tools do not always
-    // interpret negative return values as errors.
-    if (res != 0)
-    {
-        return 1;
-    }
-    return 0;
+    // Always return a non-negative value if non-zero "res".
+    // Windows tools do not always interpret negative return values as errors.
+    return (res != 0) ? 1 : 0;
 }
 
 //============================================================================//
@@ -566,16 +541,208 @@ int pycm::do_open(int ac, char const* const* av)
     return cm.Open(dir, false) ? 0 : 1;
 }
 
+
+//============================================================================//
+
+int pycm::do_finalize()
+{
+    cmDynamicLoader::FlushCache();
+    uv_loop_close(uv_default_loop());
+}
+
+//============================================================================//
+
+int pycm::cmake_main_driver(int ac, char const* const* av)
+{
+#if defined(_WIN32)
+    // Replace streambuf so we can output Unicode to console
+    cmsys::ConsoleBuf::Manager consoleOut(std::cout);
+    consoleOut.SetUTF8Pipes();
+    cmsys::ConsoleBuf::Manager consoleErr(std::cerr, true);
+    consoleErr.SetUTF8Pipes();
+#endif
+
+    std::cout << "argv[0] = " << av[0] << std::endl;
+    cmsys::Encoding::CommandLineArguments args =
+            cmsys::Encoding::CommandLineArguments::Main(ac, av);
+    ac = args.argc();
+    av = args.argv();
+
+    cmSystemTools::EnableMSVCDebugHook();
+    cmSystemTools::InitializeLibUV();
+    cmSystemTools::FindCMakeResources(av[0]);
+    if (ac > 1)
+    {
+        if (strcmp(av[1], "--build") == 0)
+            return do_build(ac, av);
+        if (strcmp(av[1], "--open") == 0)
+            return do_open(ac, av);
+        if (strcmp(av[1], "-E") == 0)
+            return do_command(ac, av);
+    }
+    int ret = do_cmake(ac, av);
+    return ret;
+}
+
 //============================================================================//
 
 PYBIND11_MODULE(pycmake, cm)
 {
     py::add_ostream_redirect(cm, "ostream_redirect");
-    py::class_<cmake, pycm::unique_cm_t> _cm(cm, "cmake");
 
-    auto cm_init = [=] () { return pycm::cmake_instance(); };
+    //------------------------------------------------------------------------//
+    auto exe_path = [=] ()
+    {
+        std::string _pycmake_file = cm.attr("__file__").cast<std::string>();
+        auto locals = py::dict("_pycmake_file"_a = _pycmake_file);
+        py::exec(R"(
+                 import os
+                 _cmake_path = os.path.join(os.path.dirname(_pycmake_file),
+                                            os.path.join("bin", "cmake"))
+                 if not os.path.exists(_cmake_path):
+                     print("Warning! Executable not found @ '{}'".format(_cmake_path))
+                 else:
+                     print("CMake executable: '{}'".format(_cmake_path))
+                 )",
+                 py::globals(), locals);
+        return locals["_cmake_path"].cast<std::string>();
+    };
+    //------------------------------------------------------------------------//
+    auto s2char_convert = [] (const std::string& _str)
+    {
+        //std::string _str = _obj.cast<std::string>();
+        char* pc = new char[_str.size()+1];
+        std::strcpy(pc, _str.c_str());
+        pc[_str.size()] = '\0';
+        return pc;
+    };
+    //------------------------------------------------------------------------//
+    auto run = [=] (std::vector<std::string> pargs, std::string working_dir)
+    {
+        charvec_t cargs;
+        // convert list elements to char*
+        for(auto itr : pargs)
+            cargs.push_back(s2char_convert(itr));
+        // print
+        for(auto itr : pargs)
+            std::cout << itr << std::endl;
 
-    _cm.def(py::init(cm_init), "CMake instance");
+        // structures passed
+        int argc = pargs.size() + 1;
+        char** argv = new char*[argc];
+
+        // cmake executable
+        auto _exe = exe_path();
+        std::cout << "exe: " << _exe << std::endl;
+        argv[0] = s2char_convert(_exe);
+
+        // fill argv
+        for(unsigned i = 1; i < argc; ++i)
+            argv[i] = cargs[i-1];
+        // print
+        for(unsigned i = 0; i < argc; ++i)
+            std::cout << argv[i] << " ";
+        std::cout << std::endl;
+
+        // change working directory
+        auto locals = py::dict("working_dir"_a = working_dir);
+        py::exec(R"(
+                 import os
+
+                 print("--> Current working directory: {}".format(os.getcwd()))
+                 origwd = os.getcwd()
+                 if len(working_dir) > 0:
+                     if not os.path.exists(working_dir):
+                         os.makedirs(working_dir)
+                     os.chdir(working_dir)
+                 print("--> Current working directory: {}".format(os.getcwd()))
+                 )",
+                 py::globals(), locals);
+
+        std::string origwd = locals["origwd"].cast<std::string>();
+        int ret = pycm::cmake_main_driver(argc, argv);
+
+        locals = py::dict("working_dir"_a = origwd);
+        py::exec(R"(
+                 import os
+
+                 print("Current working directory: {}".format(os.getcwd()))
+                 os.chdir(working_dir)
+                 print("Current working directory: {}".format(os.getcwd()))
+                 )",
+                 py::globals(), locals);
+
+        if(ret > 0)
+            std::cerr << "Error! Non-zero exit code: " << ret << std::endl;
+    };
+    //------------------------------------------------------------------------//
+    // create a new test and add to test list
+    auto cmake_init = [=] (std::string working_dir, std::string prjname)
+    {
+        // change working directory
+        auto locals = py::dict("working_dir"_a = working_dir,
+                               "project_name"_a = prjname);
+        py::exec(R"(
+                 import os
+
+                 print("--> Current working directory: {}".format(os.getcwd()))
+                 origwd = os.getcwd()
+                 if len(working_dir) > 0:
+                     if not os.path.exists(working_dir):
+                         os.makedirs(working_dir)
+                     os.chdir(working_dir)
+                 print("--> Current working directory: {}".format(os.getcwd()))
+
+                 _path = os.path.join(os.getcwd(), 'CMakeLists.txt')
+                 if not os.path.exists(_path):
+                     contents =  "{}\n{}\n{}\n{}\n{}\n{}\n".format(
+                         'cmake_minimum_required(VERSION 2.8.12)',
+                         'set(CMAKE_C_COMPILER_WORKS 1)',
+                         'set(CMAKE_MODULE_PATH ${CMAKE_ROOT}/Modules)',
+                         'project({} LANGUAGES C)'.format(project_name),
+                         'enable_testing()',
+                         'include(CTest)')
+                     f = open(_path, 'w')
+                     f.write(contents)
+                     f.close()
+                 )",
+                 py::globals(), locals);
+
+        std::string origwd = locals["origwd"].cast<std::string>();
+        int argc = 2;
+        char** argv = new char*[argc];
+        auto _exe = exe_path();
+        std::cout << "exe: " << _exe << std::endl;
+        argv[0] = s2char_convert(_exe);
+        argv[1] = s2char_convert(".");
+        pycm::cmake_main_driver(argc, argv);
+        cmake* _cmake = pycm::cmake_instance(false);
+
+        locals = py::dict("working_dir"_a = origwd);
+        py::exec(R"(
+                 import os
+
+                 print("--> Current working directory: {}".format(os.getcwd()))
+                 os.chdir(working_dir)
+                 print("--> Current working directory: {}".format(os.getcwd()))
+                 )",
+                 py::globals(), locals);
+
+        return new pycm::cmakeWrapper(_cmake);
+    };
+    //------------------------------------------------------------------------//
+
+    py::class_<pycm::cmakeWrapper> _cmake(cm, "cmake");
+
+    _cmake.def(py::init(cmake_init), "Initialize CMake",
+               py::arg("working_dir") = "pycm",
+               py::arg("project_name") = "PyCMake");
+
+    cm.def("exe_path", exe_path, "Path to cmake executable");
+    cm.def("run", run, "Run CMake",
+           py::arg("args") = py::list(),
+           py::arg("working_directory") = "");
+
 }
 
 //============================================================================//

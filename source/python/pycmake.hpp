@@ -99,29 +99,91 @@ using namespace std::placeholders;  // for _1, _2, _3...
 namespace pycm
 {
 
-int do_command(int ac, char const* const* av);
-cmMakefile* cmakemainGetMakefile(void* clientdata);
-std::string cmakemainGetStack(void* clientdata);
-void cmakemainMessageCallback(const char* m, const char*,
-                              bool&, void* clientdata);
-void cmakemainProgressCallback(const char* m, float prog,
-                               void* clientdata);
-int cmake_main(int ac, char const* const* av);
-int do_cmake(int ac, char const* const* av);
-int do_build(int ac, char const* const* av);
-int do_open(int ac, char const* const* av);
+//----------------------------------------------------------------------------//
+// typedefs
+typedef cmake::Role role_t;
+typedef std::unique_ptr<cmake, py::nodelete> unique_cm_t;
 
-cmake* cmake_instance()
+//----------------------------------------------------------------------------//
+// forward declarations
+cmMakefile* cmakemainGetMakefile        (void* clientdata);
+std::string cmakemainGetStack           (void* clientdata);
+int         do_command                  (int ac, char const* const* av);
+int         do_cmake                    (int ac, char const* const* av);
+int         do_build                    (int ac, char const* const* av);
+int         do_open                     (int ac, char const* const* av);
+int         do_finalize                 ();
+int         cmake_main_driver           (int ac, char const* const* av);
+void        cmakemainMessageCallback    (const char* m, const char*, bool&, void* clientdata);
+void        cmakemainProgressCallback   (const char* m, float prog, void* clientdata);
+
+//----------------------------------------------------------------------------//
+
+role_t& cmake_role()
 {
-    static cmake* _instance = nullptr;
-    if(_instance)
-        _instance = new cmake(cmake::Role::RoleProject);
+    static role_t _instance = role_t::RoleProject;
     return _instance;
 }
 
-typedef std::unique_ptr<cmake, py::nodelete> unique_cm_t;
+//----------------------------------------------------------------------------//
 
+cmake*& cmake_instance(bool _create = true)
+{
+    static cmake* _instance = nullptr;
+    static role_t _role_type = cmake_role();
+
+    // if the role changed
+    if(_role_type != cmake_role())
+    {
+        delete _instance;
+        _instance = nullptr;
+        _role_type = cmake_role();
+    }
+
+    // create a cmake instance;
+    if(_create && !_instance)
+    {
+        switch (_role_type)
+        {
+            case role_t::RoleProject:
+                std::cout << "Running cmake with project role" << std::endl;
+                break;
+            case role_t::RoleInternal:
+                std::cout << "Running cmake with internal role" << std::endl;
+                break;
+            case role_t::RoleScript:
+                std::cout << "Running cmake with script role" << std::endl;
+                break;
+            default:
+                break;
+        }
+        _instance = new cmake(_role_type);
+    }
+    return _instance;
 }
+
+//----------------------------------------------------------------------------//
+
+class cmakeWrapper
+{
+public:
+    cmakeWrapper(cmake* obj)
+    : m_cmake(obj)
+    { }
+
+    ~cmakeWrapper()
+    { }
+
+    operator cmake*() { return m_cmake; }
+    cmake* get() const { return m_cmake; }
+
+protected:
+    cmake* m_cmake;
+};
+
+//----------------------------------------------------------------------------//
+
+} // namespace pycm
 
 //----------------------------------------------------------------------------//
 

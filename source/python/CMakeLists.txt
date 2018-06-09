@@ -29,6 +29,8 @@ file(GLOB_RECURSE pybind_headers ${CMAKE_CURRENT_LIST_DIR}/pybind11/include/*.h)
 pybind11_add_module(pycmake
     ${CMAKE_CURRENT_LIST_DIR}/pycmake.cpp
     ${CMAKE_CURRENT_LIST_DIR}/pycmake.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/cmcmd.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/cmcmd.cpp
     ${pybind_headers})
 
 target_link_libraries(pycmake PUBLIC
@@ -40,7 +42,8 @@ set_target_properties(pycmake
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-install(TARGETS pycmake DESTINATION ${PYCTEST_INSTALL_PYTHONDIR})
+install(TARGETS pycmake DESTINATION ${PYCTEST_INSTALL_PYTHONDIR}
+    COMPONENT python)
 
 pybind11_add_module(pyctest 
     ${CMAKE_CURRENT_LIST_DIR}/pyctest.cpp

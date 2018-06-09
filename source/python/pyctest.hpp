@@ -198,21 +198,19 @@ inline int makedir(std::string _dir, int umask = DEFAULT_UMASK)
 }
 
 //============================================================================//
+//
+//  pyct namespace -- [pyct]est
+//
+//============================================================================//
 
 namespace pyct
-{
-
-//----------------------------------------------------------------------------//
-//      test namespace
-//----------------------------------------------------------------------------//
-
-namespace test
 {
 
 //----------------------------------------------------------------------------//
 // forward declarations
 class pycmTest;
 class pycmTestGenerator;
+int ctest_main_driver(int argc, char const* const* argv);
 //----------------------------------------------------------------------------//
 // typedefs
 typedef std::vector<std::string> strvec_t;
@@ -413,8 +411,6 @@ void generate(std::string dir = "")
         {
             std::cout << "Writing CTest test file: \"" << fname << "\"..."
                       << std::endl;
-            //strvec_t configs
-            //        = { "Release", "RelWithDebInfo", "Debug", "MinSizeRel" };
             strvec_t configs(0, "");
             for(auto itr : *test_list)
                 generator_list.push_back(new pycmTestGenerator(itr));
@@ -432,13 +428,6 @@ void generate(std::string dir = "")
     }
 
 }
-//----------------------------------------------------------------------------//
-int main_driver(int argc, char const* const* argv);
-
-//----------------------------------------------------------------------------//
-
-} // namespace test
-
 //----------------------------------------------------------------------------//
 
 } // namespace pycm

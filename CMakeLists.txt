@@ -99,3 +99,5 @@ include(PackageConfigure)
 enable_testing()
 include(CTest)
 include(Testing)
+
+print_features()

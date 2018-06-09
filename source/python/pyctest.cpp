@@ -24,8 +24,17 @@
 
 #include "pyctest.hpp"
 
+//============================================================================//
+
 // define helper macros
 #define pyobj_cast(_var, _type, _pyobject) _type * _var = _pyobject.cast< _type * >()
+
+//============================================================================//
+
+typedef std::vector<std::string>    strvec_t;
+typedef std::vector<char*>          charvec_t;
+
+//============================================================================//
 
 static const char* cmDocumentationName[][2] =
 {
@@ -33,11 +42,15 @@ static const char* cmDocumentationName[][2] =
     { nullptr, nullptr }
 };
 
+//============================================================================//
+
 static const char* cmDocumentationUsage[][2] =
 {
     { nullptr, "  ctest [options]" },
     { nullptr, nullptr }
 };
+
+//============================================================================//
 
 static const char* cmDocumentationOptions[][2] =
 {
@@ -151,101 +164,10 @@ static const char* cmDocumentationOptions[][2] =
     { nullptr, nullptr }
 };
 
-
 //============================================================================//
 
 namespace pyct
 {
-
-//============================================================================//
-
-namespace test
-{
-
-// this is a test driver program for cmCTest.
-int main_driver(int argc, char const* const* argv)
-{
-#if defined(_WIN32)
-    // Replace streambuf so we can output Unicode to console
-    cmsys::ConsoleBuf::Manager consoleOut(std::cout);
-    consoleOut.SetUTF8Pipes();
-    cmsys::ConsoleBuf::Manager consoleErr(std::cerr, true);
-    consoleErr.SetUTF8Pipes();
-#endif
-
-    cmsys::Encoding::CommandLineArguments encoding_args =
-            cmsys::Encoding::CommandLineArguments::Main(argc, argv);
-    argc = encoding_args.argc();
-    argv = encoding_args.argv();
-
-    cmSystemTools::DoNotInheritStdPipes();
-    cmSystemTools::EnableMSVCDebugHook();
-    cmSystemTools::InitializeLibUV();
-    cmSystemTools::FindCMakeResources(argv[0]);
-
-    // Dispatch 'ctest --launch' mode directly.
-    if (argc >= 2 && strcmp(argv[1], "--launch") == 0)
-    {
-        return cmCTestLaunch::Main(argc, argv);
-    }
-
-    cmCTest inst;
-
-    if (cmSystemTools::GetCurrentWorkingDirectory().empty())
-    {
-        cmCTestLog(&inst, ERROR_MESSAGE,
-                   "Current working directory cannot be established."
-                   << std::endl);
-        return 1;
-    }
-
-    // If there is a testing input file, check for documentation options
-    // only if there are actually arguments.  We want running without
-    // arguments to run tests.
-    if (argc > 1 ||
-        !(cmSystemTools::FileExists("CTestTestfile.cmake") ||
-          cmSystemTools::FileExists("DartTestfile.txt")))
-    {
-        if (argc == 1)
-        {
-            cmCTestLog(&inst, ERROR_MESSAGE,
-                       "*********************************"
-                       << std::endl
-                       << "No test configuration file found!" << std::endl
-                       << "*********************************" << std::endl);
-        }
-        cmDocumentation doc;
-        doc.addCTestStandardDocSections();
-        if (doc.CheckOptions(argc, argv))
-        {
-            // Construct and print requested documentation.
-            cmCTestScriptHandler* ch =
-                    static_cast<cmCTestScriptHandler*>(inst.GetHandler("script"));
-            ch->CreateCMake();
-
-            doc.SetShowGenerators(false);
-            doc.SetName("ctest");
-            doc.SetSection("Name", cmDocumentationName);
-            doc.SetSection("Usage", cmDocumentationUsage);
-            doc.PrependSection("Options", cmDocumentationOptions);
-            return doc.PrintRequestedDocumentation(std::cout) ? 0 : 1;
-        }
-    }
-
-    // copy the args to a vector
-    std::vector<std::string> args;
-    args.reserve(argc);
-    for (int i = 0; i < argc; ++i)
-    {
-        args.push_back(argv[i]);
-    }
-    // run ctest
-    std::string output;
-    int res = inst.Run(args, &output);
-    cmCTestLog(&inst, OUTPUT, output);
-
-    return res;
-}
 
 //============================================================================//
 
@@ -373,9 +295,90 @@ void pycmTestGenerator::GenerateOldStyle(std::ostream& fout, Indent indent)
     }
 }
 
-//============================================================================//
+// this is a test driver program for cmCTest.
+int ctest_main_driver(int argc, char const* const* argv)
+{
+#if defined(_WIN32)
+    // Replace streambuf so we can output Unicode to console
+    cmsys::ConsoleBuf::Manager consoleOut(std::cout);
+    consoleOut.SetUTF8Pipes();
+    cmsys::ConsoleBuf::Manager consoleErr(std::cerr, true);
+    consoleErr.SetUTF8Pipes();
+#endif
 
-} // namespace test
+    cmsys::Encoding::CommandLineArguments encoding_args =
+            cmsys::Encoding::CommandLineArguments::Main(argc, argv);
+    argc = encoding_args.argc();
+    argv = encoding_args.argv();
+
+    cmSystemTools::DoNotInheritStdPipes();
+    cmSystemTools::EnableMSVCDebugHook();
+    cmSystemTools::InitializeLibUV();
+    cmSystemTools::FindCMakeResources(argv[0]);
+
+    // Dispatch 'ctest --launch' mode directly.
+    if (argc >= 2 && strcmp(argv[1], "--launch") == 0)
+    {
+        return cmCTestLaunch::Main(argc, argv);
+    }
+
+    cmCTest inst;
+
+    if (cmSystemTools::GetCurrentWorkingDirectory().empty())
+    {
+        cmCTestLog(&inst, ERROR_MESSAGE,
+                   "Current working directory cannot be established."
+                   << std::endl);
+        return 1;
+    }
+
+    // If there is a testing input file, check for documentation options
+    // only if there are actually arguments.  We want running without
+    // arguments to run tests.
+    if (argc > 1 ||
+        !(cmSystemTools::FileExists("CTestTestfile.cmake") ||
+          cmSystemTools::FileExists("DartTestfile.txt")))
+    {
+        if (argc == 1)
+        {
+            cmCTestLog(&inst, ERROR_MESSAGE,
+                       "*********************************"
+                       << std::endl
+                       << "No test configuration file found!" << std::endl
+                       << "*********************************" << std::endl);
+        }
+        cmDocumentation doc;
+        doc.addCTestStandardDocSections();
+        if (doc.CheckOptions(argc, argv))
+        {
+            // Construct and print requested documentation.
+            cmCTestScriptHandler* ch =
+                    static_cast<cmCTestScriptHandler*>(inst.GetHandler("script"));
+            ch->CreateCMake();
+
+            doc.SetShowGenerators(false);
+            doc.SetName("ctest");
+            doc.SetSection("Name", cmDocumentationName);
+            doc.SetSection("Usage", cmDocumentationUsage);
+            doc.PrependSection("Options", cmDocumentationOptions);
+            return doc.PrintRequestedDocumentation(std::cout) ? 0 : 1;
+        }
+    }
+
+    // copy the args to a vector
+    std::vector<std::string> args;
+    args.reserve(argc);
+    for (int i = 0; i < argc; ++i)
+    {
+        args.push_back(argv[i]);
+    }
+    // run ctest
+    std::string output;
+    int res = inst.Run(args, &output);
+    cmCTestLog(&inst, OUTPUT, output);
+
+    return res;
+}
 
 //============================================================================//
 
@@ -391,15 +394,15 @@ PYBIND11_MODULE(pyctest, ct)
     // create a new test and add to test list
     auto test_init = [=] ()
     {
-        auto obj = new pyct::test::pycmTest();
-        pyct::test::get_test_list()->push_back(obj);
-        return new pyct::test::pycmTestWrapper(obj);
+        auto obj = new pyct::pycmTest();
+        pyct::get_test_list()->push_back(obj);
+        return new pyct::pycmTestWrapper(obj);
     };
     //------------------------------------------------------------------------//
     auto test_add = [=] (py::object obj)
     {
-        pyobj_cast(_obj, pyct::test::pycmTestWrapper, obj);
-        pyct::test::test_list_t* test_list = pyct::test::get_test_list();
+        pyobj_cast(_obj, pyct::pycmTestWrapper, obj);
+        pyct::test_list_t* test_list = pyct::get_test_list();
         if(test_list)
         {
             auto itr = std::find(test_list->begin(), test_list->end(), _obj->get());
@@ -410,8 +413,8 @@ PYBIND11_MODULE(pyctest, ct)
     //------------------------------------------------------------------------//
     auto test_remove = [=] (py::object obj)
     {
-        pyobj_cast(_obj, pyct::test::pycmTestWrapper, obj);
-        pyct::test::test_list_t* test_list = pyct::test::get_test_list();
+        pyobj_cast(_obj, pyct::pycmTestWrapper, obj);
+        pyct::test_list_t* test_list = pyct::get_test_list();
         if(test_list)
         {
             auto itr = std::find(test_list->begin(), test_list->end(), _obj->get());
@@ -422,34 +425,120 @@ PYBIND11_MODULE(pyctest, ct)
     //------------------------------------------------------------------------//
     auto test_find = [=] (std::string test_name)
     {
-        pyct::test::test_list_t* test_list = pyct::test::get_test_list();
-        pyct::test::pycmTestWrapper* test = nullptr;
+        pyct::test_list_t* test_list = pyct::get_test_list();
+        pyct::pycmTestWrapper* test = nullptr;
         if(test_list)
         {
             for(auto itr : *test_list)
                 if(itr->GetName() == test_name)
-                    return new pyct::test::pycmTestWrapper(itr);
+                    return new pyct::pycmTestWrapper(itr);
         }
         return test;
     };
     //------------------------------------------------------------------------//
+    auto exe_path = [=] ()
+    {
+        std::string _pyctest_file = ct.attr("__file__").cast<std::string>();
+        auto locals = py::dict("_pyctest_file"_a = _pyctest_file);
+        py::exec(R"(
+                 import os
+                 _ctest_path = os.path.join(os.path.dirname(_pyctest_file),
+                                            os.path.join("bin", "ctest"))
+                 if not os.path.exists(_ctest_path):
+                     print("Warning! Executable not found @ '{}'".format(_ctest_path))
+                 else:
+                     print("CTest executable: '{}'".format(_ctest_path))
+                 )",
+                 py::globals(), locals);
+        return locals["_ctest_path"].cast<std::string>();
+    };
+    //------------------------------------------------------------------------//
+    auto run = [=] (std::vector<std::string> pargs, std::string working_dir)
+    {
+        auto s2char_convert = [] (const std::string& _str)
+        {
+            //std::string _str = _obj.cast<std::string>();
+            char* pc = new char[_str.size()+1];
+            std::strcpy(pc, _str.c_str());
+            return pc;
+        };
 
-    py::class_<pyct::test::pycmTestWrapper> _test(ct, "test");
+        charvec_t cargs;
+        // convert list elements to char*
+        for(auto itr : pargs)
+            cargs.push_back(s2char_convert(itr));
+        // print
+        for(auto itr : pargs)
+            std::cout << itr << std::endl;
+
+        // structures passed
+        int argc = pargs.size() + 1;
+        char** argv = new char*[argc];
+
+        // ctest executable
+        argv[0] = (char*) exe_path().c_str();
+
+        // fill argv
+        for(unsigned i = 1; i < argc; ++i)
+            argv[i] = cargs[i-1];
+        // print
+        for(unsigned i = 0; i < argc; ++i)
+            std::cout << argv[i] << " ";
+        std::cout << std::endl;
+
+        // change working directory
+        auto locals = py::dict("working_dir"_a = working_dir);
+        py::exec(R"(
+                 import os
+
+                 print("--> Current working directory: {}".format(os.getcwd()))
+                 origwd = os.getcwd()
+                 if len(working_dir) > 0:
+                     if not os.path.exists(working_dir):
+                         os.makedirs(working_dir)
+                     os.chdir(working_dir)
+                 print("--> Current working directory: {}".format(os.getcwd()))
+                 )",
+                 py::globals(), locals);
+
+        std::string origwd = locals["origwd"].cast<std::string>();
+        int ret = pyct::ctest_main_driver(argc, argv);
+
+        locals = py::dict("working_dir"_a = origwd);
+        py::exec(R"(
+                 import os
+
+                 print("--> Current working directory: {}".format(os.getcwd()))
+                 os.chdir(working_dir)
+                 print("--> Current working directory: {}".format(os.getcwd()))
+                 )",
+                 py::globals(), locals);
+
+        if(ret > 0)
+            std::cerr << "Error! Non-zero exit code: " << ret << std::endl;
+    };
+    //------------------------------------------------------------------------//
+
+    py::class_<pyct::pycmTestWrapper> _test(ct, "test");
 
     ct.def("add_test", test_add, "Add a test");
     ct.def("remove_test", test_remove, "Remove a test");
     ct.def("find_test", test_find, "Find a test by name");
-    ct.def("generate", &pyct::test::generate, "Generate a CTestTestfile.cmake",
+    ct.def("generate", &pyct::generate, "Generate a CTestTestfile.cmake",
            py::arg("output_dir") = "");
+    ct.def("exe_path", exe_path, "Path to ctest executable");
+    ct.def("run", run, "Run CTest",
+           py::arg("args") = py::list(),
+           py::arg("working_directory") = "");
 
     _test.def(py::init(test_init), "Test for CTest");
-    _test.def("SetName", &pyct::test::set_name, "Set test name");
-    _test.def("GetName", &pyct::test::get_name, "Get test name");
-    _test.def("SetCommand", &pyct::test::set_command, "Set the command for the test");
-    _test.def("GetCommand", &pyct::test::get_command, "Get the command for the test");
-    _test.def("SetProperty", &pyct::test::set_property, "Set a test property");
-    _test.def("GetProperty", &pyct::test::get_property, "Get a test property");
-    _test.def("GetPropertyAsBool", &pyct::test::get_property_as_bool, "Get property as boolean");
+    _test.def("SetName", &pyct::set_name, "Set test name");
+    _test.def("GetName", &pyct::get_name, "Get test name");
+    _test.def("SetCommand", &pyct::set_command, "Set the command for the test");
+    _test.def("GetCommand", &pyct::get_command, "Get the command for the test");
+    _test.def("SetProperty", &pyct::set_property, "Set a test property");
+    _test.def("GetProperty", &pyct::get_property, "Get a test property");
+    _test.def("GetPropertyAsBool", &pyct::get_property_as_bool, "Get property as boolean");
 
 }
 
