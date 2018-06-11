@@ -31,7 +31,8 @@
 
 //============================================================================//
 
-typedef std::vector<std::string>    strvec_t;
+typedef std::string                 string_t;
+typedef std::vector<string_t>       strvec_t;
 typedef std::vector<char*>          charvec_t;
 
 //============================================================================//
@@ -172,7 +173,7 @@ namespace pyct
 //============================================================================//
 
 pycmTestGenerator::pycmTestGenerator(pycmTest* test)
-: cmScriptGenerator("CTEST_CONFIGURATION_TYPE", std::vector<std::string>()),
+: cmScriptGenerator("CTEST_CONFIGURATION_TYPE", std::vector<string_t>()),
   m_test(test),
   m_test_generated(false)
 { }
@@ -184,7 +185,7 @@ pycmTestGenerator::~pycmTestGenerator()
 
 //============================================================================//
 
-bool pycmTestGenerator::TestsForConfig(const std::string& config)
+bool pycmTestGenerator::TestsForConfig(const string_t& config)
 {
     return this->GeneratesForConfig(config);
 }
@@ -226,7 +227,7 @@ void pycmTestGenerator::GenerateScriptActions(std::ostream& os, Indent indent)
 //============================================================================//
 
 void pycmTestGenerator::GenerateScriptForConfig(std::ostream& os,
-                                              const std::string&,
+                                              const string_t&,
                                               Indent indent)
 {
     GenerateOldStyle(os, indent);
@@ -256,15 +257,15 @@ void pycmTestGenerator::GenerateOldStyle(std::ostream& fout, Indent indent)
     m_test_generated = true;
 
     // Get the test command line to be executed.
-    std::vector<std::string> const& command = m_test->GetCommand();
+    std::vector<string_t> const& command = m_test->GetCommand();
 
-    std::string exe = command[0];
+    string_t exe = command[0];
     cmSystemTools::ConvertToUnixSlashes(exe);
     fout << indent;
     fout << "add_test(";
     fout << m_test->GetName() << " \"" << exe << "\"";
 
-    for (std::vector<std::string>::const_iterator argit = command.begin() + 1;
+    for (std::vector<string_t>::const_iterator argit = command.begin() + 1;
          argit != command.end(); ++argit) {
         // Just double-quote all arguments so they are re-parsed
         // correctly by the test system.
@@ -366,14 +367,14 @@ int ctest_main_driver(int argc, char const* const* argv)
     }
 
     // copy the args to a vector
-    std::vector<std::string> args;
+    std::vector<string_t> args;
     args.reserve(argc);
     for (int i = 0; i < argc; ++i)
     {
         args.push_back(argv[i]);
     }
     // run ctest
-    std::string output;
+    string_t output;
     int res = inst.Run(args, &output);
     cmCTestLog(&inst, OUTPUT, output);
 
@@ -390,6 +391,33 @@ PYBIND11_MODULE(pyctest, ct)
 {
     py::add_ostream_redirect(ct, "ostream_redirect");
 
+    // attributes that should be filled by user
+    std::vector<string_t> blank_attr =
+    {
+        "CHECKOUT_COMMAND",
+        "UPDATE_COMMAND",
+        "CONFIGURE_COMMAND",
+        "BUILD_COMMAND",
+        "COVERAGE_COMMAND",
+        "MEMORYCHECK_COMMAND",
+        "GENERATOR",
+        "GENERATOR_PLATFORM",
+        "MODEL",
+        "SOURCE_DIRECTORY",
+        "BINARY_DIRECTORY",
+        "TRIGGER",
+        "CUSTOM_MAXIMUM_NUMBER_OF_ERRORS",
+        "CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS",
+        "CUSTOM_MAXIMUM_PASSED_TEST_OUTPUT_SIZE",
+        "CUSTOM_COVERAGE_EXCLUDE"
+    };
+    //------------------------------------------------------------------------//
+    auto upperstr = [] (string_t tmp)
+    {
+        for(auto& itr : tmp)
+            itr = toupper(itr);
+        return tmp;
+    };
     //------------------------------------------------------------------------//
     // create a new test and add to test list
     auto test_init = [=] ()
@@ -423,7 +451,7 @@ PYBIND11_MODULE(pyctest, ct)
         }
     };
     //------------------------------------------------------------------------//
-    auto test_find = [=] (std::string test_name)
+    auto test_find = [=] (string_t test_name)
     {
         pyct::test_list_t* test_list = pyct::get_test_list();
         pyct::pycmTestWrapper* test = nullptr;
@@ -436,9 +464,24 @@ PYBIND11_MODULE(pyctest, ct)
         return test;
     };
     //------------------------------------------------------------------------//
+    // create a new test and add to test list
+    auto var_init = [=] (string_t var, string_t val,
+                    pyct::pycmVariable::cache_t cache,
+                    string_t doc, bool force)
+    {
+        auto obj = new pyct::pycmVariable(var, val, cache, doc, force);
+        if(var.length() == 0)
+            std::cerr << "Warning! Variable name must be longer than zero. "
+                      << "This variable will not be added to output."
+                      << std::endl;
+        else
+            pyct::get_test_variables()->push_back(obj);
+        return new pyct::pycmVariableWrapper(obj);
+    };
+    //------------------------------------------------------------------------//
     auto exe_path = [=] ()
     {
-        std::string _pyctest_file = ct.attr("__file__").cast<std::string>();
+        string_t _pyctest_file = ct.attr("__file__").cast<string_t>();
         auto locals = py::dict("_pyctest_file"_a = _pyctest_file);
         py::exec(R"(
                  import os
@@ -450,23 +493,24 @@ PYBIND11_MODULE(pyctest, ct)
                      print("CTest executable: '{}'".format(_ctest_path))
                  )",
                  py::globals(), locals);
-        return locals["_ctest_path"].cast<std::string>();
+        return locals["_ctest_path"].cast<string_t>();
     };
     //------------------------------------------------------------------------//
-    auto run = [=] (std::vector<std::string> pargs, std::string working_dir)
+    auto str2char_convert = [] (const string_t& _str)
     {
-        auto s2char_convert = [] (const std::string& _str)
-        {
-            //std::string _str = _obj.cast<std::string>();
-            char* pc = new char[_str.size()+1];
-            std::strcpy(pc, _str.c_str());
-            return pc;
-        };
-
+        char* pc = new char[_str.size()+1];
+        std::strcpy(pc, _str.c_str());
+        pc[_str.size()] = '\0';
+        return pc;
+    };
+    //------------------------------------------------------------------------//
+    auto run = [=] (std::vector<string_t> pargs, string_t working_dir)
+    {
         charvec_t cargs;
         // convert list elements to char*
         for(auto itr : pargs)
-            cargs.push_back(s2char_convert(itr));
+            cargs.push_back(str2char_convert(itr));
+
         // print
         for(auto itr : pargs)
             std::cout << itr << std::endl;
@@ -476,11 +520,14 @@ PYBIND11_MODULE(pyctest, ct)
         char** argv = new char*[argc];
 
         // ctest executable
-        argv[0] = (char*) exe_path().c_str();
+        auto _exe = exe_path();
+        std::cout << "exe: " << _exe << std::endl;
+        argv[0] = str2char_convert(_exe);
 
         // fill argv
         for(unsigned i = 1; i < argc; ++i)
             argv[i] = cargs[i-1];
+
         // print
         for(unsigned i = 0; i < argc; ++i)
             std::cout << argv[i] << " ";
@@ -501,7 +548,7 @@ PYBIND11_MODULE(pyctest, ct)
                  )",
                  py::globals(), locals);
 
-        std::string origwd = locals["origwd"].cast<std::string>();
+        string_t origwd = locals["origwd"].cast<string_t>();
         int ret = pyct::ctest_main_driver(argc, argv);
 
         locals = py::dict("working_dir"_a = origwd);
@@ -518,14 +565,193 @@ PYBIND11_MODULE(pyctest, ct)
             std::cerr << "Error! Non-zero exit code: " << ret << std::endl;
     };
     //------------------------------------------------------------------------//
+    auto copy_cdash = [=] (string_t dir)
+    {
+        string_t _pyctest_file = ct.attr("__file__").cast<string_t>();
+        auto locals = py::dict("_pyctest_file"_a = _pyctest_file,
+                               "_dir"_a = dir);
+        py::exec(R"(
+                 import os
+                 from shutil import copyfile
+
+                 _cdash_path = os.path.join(os.path.dirname(_pyctest_file),
+                                            "cdash")
+                 _dir = os.path.realpath(_dir)
+                 if not os.path.exists(_dir):
+                     os.makedirs(_dir)
+                 if not os.path.exists(_cdash_path):
+                     print("Warning! CDash directory not found @ '{}'".format(_cdash_path))
+                 else:
+                     for f in [ "Build", "Coverage", "Glob", "Init", "MemCheck", "Stages", "Submit", "Test"]:
+                         fsrc = os.path.join(_cdash_path, "{}.cmake".format(f))
+                         fdst = os.path.join(_dir, "{}.cmake".format(f))
+                         copyfile(fsrc, fdst)
+                 )",
+                 py::globals(), locals);
+    };
+    //------------------------------------------------------------------------//
+    auto generate_ctest_config = [=] (string_t dir)
+    {
+        string_t fname = "CTestConfig.cmake";
+        pyct::configure_filepath(dir, fname);
+
+        std::stringstream ssfs;
+        for(const auto& itr : pyct::get_config_attributes())
+        {
+            string_t attr_var = "CTEST_" + itr;
+            string_t attr_val = ct.attr(itr.c_str()).cast<string_t>();
+            pyct::pycmVariable _pyvar(attr_var, attr_val);
+            if(attr_val.length() == 0)
+                ssfs << "# ";
+            ssfs << _pyvar << std::endl;
+        }
+
+        std::ofstream ofs(fname.c_str());
+        if(!ofs)
+        {
+            std::cerr << "pyct::generate_config -- Error opening " << fname
+                      << "!!!" << std::endl;
+            std::cout << ssfs.str() << std::endl;
+        }
+        else
+        {
+            ofs << ssfs.str() << std::endl;
+        }
+        ofs.close();
+
+    };
+    //------------------------------------------------------------------------//
+    auto generate_custom_config = [=] (string_t dir)
+    {
+        string_t fname = "CTestCustom.cmake";
+        pyct::configure_filepath(dir, fname);
+
+        std::stringstream ssfs;
+        for(const auto& itr : pyct::get_custom_attributes())
+        {
+            string_t attr_var = "CTEST_" + itr;
+            string_t attr_val = ct.attr(itr.c_str()).cast<string_t>();
+            pyct::pycmVariable _pyvar(attr_var, attr_val);
+            if(attr_val.length() == 0)
+                ssfs << "# ";
+            ssfs << _pyvar << std::endl;
+        }
+
+        for(const auto& itr : *pyct::get_test_variables())
+            ssfs << *itr << std::endl;
+
+        std::ofstream ofs(fname.c_str());
+        if(!ofs)
+        {
+            std::cerr << "pyct::generate_config -- Error opening " << fname
+                      << "!!!" << std::endl;
+            std::cout << ssfs.str() << std::endl;
+        }
+        else
+        {
+            ofs << ssfs.str() << std::endl;
+        }
+        ofs.close();
+    };
+    //------------------------------------------------------------------------//
+    auto generate_config = [=] (string_t dir)
+    {
+        generate_ctest_config(dir);
+        generate_custom_config(dir);
+        copy_cdash(dir);
+    };
+    //------------------------------------------------------------------------//
+    auto add_note = [=] (string_t dir, string_t file, bool clobber)
+    {
+        string_t fname = "CTestNotes.cmake";
+        pyct::configure_filepath(dir, fname);
+
+        std::ofstream ofs;
+        if(clobber)
+            ofs.open(fname.c_str());
+        else
+            ofs.open(fname.c_str(),
+                     std::ios_base::out | std::ios_base::app);
+
+        if(ofs)
+        {
+            std::stringstream ssfs;
+            string_t quote = "\"";
+            ssfs << "\nlist(APPEND CTEST_NOTES_FILES " << quote << file << quote
+                 << ")" << std::endl;
+            ofs << ssfs.str() << std::endl;
+        }
+    };
+    //------------------------------------------------------------------------//
+    auto add_presubmit_command = [=] (string_t dir, py::list cmd, bool clobber)
+    {
+        string_t fname = "CTestPreSubmitScript.cmake";
+        pyct::configure_filepath(dir, fname);
+
+        std::ofstream ofs;
+        if(clobber)
+            ofs.open(fname.c_str());
+        else
+            ofs.open(fname.c_str(),
+                     std::ios_base::out | std::ios_base::app);
+
+        if(ofs)
+        {
+            std::stringstream ssfs;
+            ssfs << "\nexecute_process(COMMAND ";
+            string_t quote = "\"";
+            for(const auto& itr : cmd)
+                ssfs << quote << itr << quote << " ";
+            ssfs << "\n";
+            ssfs << "WORKING_DIRECTORY " << dir
+                 << ")";
+            ofs << ssfs.str() << std::endl;
+        }
+    };
+    //------------------------------------------------------------------------//
 
     py::class_<pyct::pycmTestWrapper> _test(ct, "test");
+    py::class_<pyct::pycmVariableWrapper> _var(ct, "set");
+
+    py::enum_<pyct::pycmVariable::cache_t> _cache(ct, "cache",
+                                                  py::arithmetic(),
+                                                  "Cache types");
+    _cache.value    ("NONE",      pyct::pycmVariable::cache_t::NONE)
+            .value  ("BOOL",      pyct::pycmVariable::cache_t::BOOL)
+            .value  ("FILEPATH",  pyct::pycmVariable::cache_t::FILEPATH)
+            .value  ("PATH",      pyct::pycmVariable::cache_t::PATH)
+            .value  ("STRING",    pyct::pycmVariable::cache_t::STRING)
+            .value  ("INTERNAL",  pyct::pycmVariable::cache_t::INTERNAL);
+
+    ct.attr("PROJECT_NAME") = "";
+    ct.attr("NIGHTLY_START_TIME") = "01:00:00 UTC";
+    ct.attr("DROP_METHOD") = "https";
+    ct.attr("DROP_SITE") = "cdash.nersc.gov";
+    ct.attr("DROP_LOCATION") = "/submit.php?project=${CTEST_PROJECT_NAME}";
+    ct.attr("CDASH_VERSION") = "1.6";
+    ct.attr("CDASH_QUERY_VERSION") = "TRUE";
+    ct.attr("TIMEOUT") = "7200";
+
+    for(const auto& itr : blank_attr)
+        ct.attr(upperstr(itr).c_str()) = "";
 
     ct.def("add_test", test_add, "Add a test");
     ct.def("remove_test", test_remove, "Remove a test");
     ct.def("find_test", test_find, "Find a test by name");
-    ct.def("generate", &pyct::generate, "Generate a CTestTestfile.cmake",
+    ct.def("generate_test_file", &pyct::generate_test_file,
+           "Generate a CTestTestfile.cmake",
            py::arg("output_dir") = "");
+    ct.def("generate_config", generate_config,
+           "Generate PyCTestConfig.cmake file",
+           py::arg("output_dir") = "");
+    ct.def("add_presubmit_command", add_presubmit_command,
+           "Add a command to be executed before submission",
+           py::arg("dir") = "", py::arg("cmd") = py::list(),
+           py::arg("clobber") = false);
+    ct.def("add_note", add_note,
+           "Add a note to the dashboard",
+           py::arg("dir") = "", py::arg("file") = "",
+           py::arg("clobber") = false);
     ct.def("exe_path", exe_path, "Path to ctest executable");
     ct.def("run", run, "Run CTest",
            py::arg("args") = py::list(),
@@ -540,6 +766,12 @@ PYBIND11_MODULE(pyctest, ct)
     _test.def("GetProperty", &pyct::get_property, "Get a test property");
     _test.def("GetPropertyAsBool", &pyct::get_property_as_bool, "Get property as boolean");
 
+    _var.def(py::init(var_init), "Set a variable in CTestInit.cmake",
+             py::arg("variable") = "",
+             py::arg("value") = "",
+             py::arg("cache") = pyct::pycmVariable::cache_t::NONE,
+             py::arg("doc") = "",
+             py::arg("force") = false);
 }
 
 //============================================================================//

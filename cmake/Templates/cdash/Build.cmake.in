@@ -1,13 +1,18 @@
 
-if(NOT "${DASHBOARD_LABEL}" STREQUAL "")
-    set_property(GLOBAL PROPERTY Label "${DASHBOARD_LABEL}")
-else(NOT "${DASHBOARD_LABEL}" STREQUAL "")
-    set_property(GLOBAL PROPERTY Label "Build")
-endif(NOT "${DASHBOARD_LABEL}" STREQUAL "")
+if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/PyCTestPreInit.cmake")
+    include("${CMAKE_CURRENT_LIST_DIR}/PyCTestPreInit.cmake")
+endif(EXISTS "${CMAKE_CURRENT_LIST_DIR}/PyCTestPreInit.cmake")
 
-include("${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
+if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
 
-setup(Build)
-submit(Build)
+    include("${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
+    include_if("PyCTestPostInit.cmake")
 
-message(" -- Finished ${MODEL} Build - ${CTEST_BUILD_NAME} --")
+    message(STATUS " -- Starting ${MODEL} Build - ${CTEST_BUILD_NAME} --")
+    
+    setup(Build)
+    submit(Build)
+    
+    message(STATUS " -- Finished ${MODEL} Build - ${CTEST_BUILD_NAME} --")
+
+endif(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")

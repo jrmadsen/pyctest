@@ -210,17 +210,33 @@ namespace pyct
 // forward declarations
 class pycmTest;
 class pycmTestGenerator;
+class pycmVariable;
 int ctest_main_driver(int argc, char const* const* argv);
 //----------------------------------------------------------------------------//
 // typedefs
-typedef std::vector<std::string> strvec_t;
-typedef std::vector<pycmTest*> test_list_t;
+typedef std::string                     string_t;
+typedef std::vector<string_t>           strvec_t;
+typedef std::vector<pycmTest*>          test_list_t;
+typedef std::vector<pycmVariable*>      test_variable_list_t;
 typedef std::vector<pycmTestGenerator*> test_generator_list_t;
+//----------------------------------------------------------------------------//
+template <typename _Tp>
+class pycmWrapper
+{
+public:
+    pycmWrapper(_Tp* _type) : m_type(_type) {}
+    ~pycmWrapper() { }
+    operator _Tp*() { return m_type; }
+    _Tp* get() const { return m_type; }
+
+protected:
+    _Tp*    m_type;
+};
 //----------------------------------------------------------------------------//
 class pycmTest
 {
 public:
-    pycmTest(std::string name = "", strvec_t cmd = strvec_t())
+    pycmTest(string_t name = "", strvec_t cmd = strvec_t())
     : m_name(name), m_command(cmd)
     {
         if(m_name.length() > 0)
@@ -238,31 +254,31 @@ public:
     }
 
     // name
-    void SetName(const std::string& name) { m_name = name; }
-    std::string GetName() const { return m_name; }
+    void SetName(const string_t& name) { m_name = name; }
+    string_t GetName() const { return m_name; }
 
     // command
-    void SetCommand(std::vector<std::string> const& command)
+    void SetCommand(std::vector<string_t> const& command)
     {
         m_command = command;
     }
-    std::vector<std::string> const& GetCommand() const { return m_command; }
+    std::vector<string_t> const& GetCommand() const { return m_command; }
 
     // properties
-    void SetProperty(const std::string& prop, const char* value)
+    void SetProperty(const string_t& prop, const char* value)
     {
         m_properties.SetProperty(prop, value);
     }
-    void AppendProperty(const std::string& prop, const char* value,
+    void AppendProperty(const string_t& prop, const char* value,
                         bool asString = false)
     {
         m_properties.AppendProperty(prop, value, asString);
     }
-    const char* GetProperty(const std::string& prop) const
+    const char* GetProperty(const string_t& prop) const
     {
         return m_properties.GetPropertyValue(prop);
     }
-    bool GetPropertyAsBool(const std::string& prop) const
+    bool GetPropertyAsBool(const string_t& prop) const
     {
         return cmSystemTools::IsOn(this->GetProperty(prop));
     }
@@ -270,30 +286,19 @@ public:
 
 private:
     cmPropertyMap m_properties;
-    std::string m_name;
-    std::vector<std::string> m_command;
+    string_t m_name;
+    std::vector<string_t> m_command;
 };
 //----------------------------------------------------------------------------//
-class pycmTestWrapper
+class pycmTestWrapper : public pycmWrapper<pycmTest>
 {
 public:
-    pycmTestWrapper(std::string name = "", strvec_t cmd = strvec_t())
-    : m_test(new pycmTest(name, cmd))
-    { }
+    typedef pycmWrapper<pycmTest>   wrapper_t;
 
+public:
     pycmTestWrapper(pycmTest* test)
-    : m_test(test)
+    : wrapper_t(test)
     { }
-
-    ~pycmTestWrapper()
-    { }
-
-    operator pycmTest*() { return m_test; }
-
-    pycmTest* get() const { return m_test; }
-
-protected:
-    pycmTest* m_test;
 };
 //----------------------------------------------------------------------------//
 class pycmTestGenerator : public cmScriptGenerator
@@ -303,14 +308,14 @@ public:
     ~pycmTestGenerator();
 
     /** Test if this generator installs the test for a given configuration.  */
-    bool TestsForConfig(const std::string& config);
+    bool TestsForConfig(const string_t& config);
 
     pycmTest* GetTest() const;
 
 protected:
     void GenerateScriptConfigs(std::ostream& os, Indent indent);
     void GenerateScriptActions(std::ostream& os, Indent indent);
-    void GenerateScriptForConfig(std::ostream& os, const std::string& config,
+    void GenerateScriptForConfig(std::ostream& os, const string_t& config,
                                  Indent indent);
     void GenerateScriptNoConfig(std::ostream& os, Indent indent);
     bool NeedsScriptNoConfig() const;
@@ -320,6 +325,137 @@ protected:
     bool m_test_generated;
 };
 //----------------------------------------------------------------------------//
+class pycmVariable
+{
+public:
+    enum class cache_t
+    {
+        NONE,
+        BOOL,
+        FILEPATH,
+        PATH,
+        STRING,
+        INTERNAL
+    };
+
+public:
+    pycmVariable(const string_t& var, const string_t& val)
+    : m_var(var), m_val(val), m_cache(cache_t::NONE), m_doc(""), m_force(false)
+    { }
+
+    pycmVariable(const string_t& var, const string_t& val, cache_t type,
+                 const string_t& doc, bool force)
+    : m_var(var), m_val(val), m_cache(type), m_doc(doc), m_force(force)
+    { }
+
+    const string_t& variable() const { return m_var; }
+    const string_t& value() const { return m_val; }
+    const cache_t& cache_type() const { return m_cache; }
+    const string_t& doc_string() const { return m_doc; }
+    const bool& force() const { return m_force; }
+
+    friend std::ostream& operator<<(std::ostream& os, const pycmVariable& var)
+    {
+        os << var.as_string();
+        return os;
+    }
+
+    string_t as_string() const
+    {
+        enum strbool
+        {
+            NON_BOOL,
+            BOOL_TRUE,
+            BOOL_FALSE
+        };
+
+        auto string_to_int = [] (string_t _str2)
+        {
+            std::stringstream ss;
+            ss << _str2;
+            int val;
+            ss >> val;
+            return val;
+        };
+
+        auto string_is_bool = [=] (string_t _str)
+        {
+            if(_str.length() == 0)
+                return NON_BOOL;
+            for(auto& itr : _str)
+                itr = tolower(itr);
+
+            if(_str.find("0123456789") != string_t::npos && _str.length() == 1)
+            {
+                if(_str.find_first_not_of("0123456789") == string_t::npos)
+                    return (string_to_int(_str) == 0) ? BOOL_FALSE : BOOL_TRUE;
+            }
+            else if(_str == "on" || _str == "true")
+                return BOOL_TRUE;
+            else if(_str == "off" || _str == "false")
+                return BOOL_FALSE;
+            return NON_BOOL;
+        };
+        std::stringstream ss;
+        // don't quote ON/OFF/TRUE/FALSE/{0..9}
+        string_t quote = (string_is_bool(m_val) == NON_BOOL)
+                         ? "\"" : "" ;
+
+        ss << "set(" << m_var << " " << quote << m_val << quote;
+
+        if(m_cache == cache_t::NONE)
+            ss << ")";
+        else
+        {
+            ss << " ";
+            switch (m_cache)
+            {
+                case cache_t::BOOL:
+                    ss << "BOOL";
+                    break;
+                case cache_t::FILEPATH:
+                    ss << "FILEPATH";
+                    break;
+                case cache_t::PATH:
+                    ss << "PATH";
+                    break;
+                case cache_t::STRING:
+                    ss << "STRING";
+                    break;
+                case cache_t::INTERNAL:
+                    ss << "INTERNAL";
+                    break;
+                case cache_t::NONE:
+                default:
+                    break;
+            }
+            ss << " " << quote << m_doc << quote;
+            if(m_force)
+                ss << " FORCE";
+            ss << ")";
+        }
+        return ss.str();
+    }
+
+protected:
+    string_t    m_var;
+    string_t    m_val;
+    cache_t     m_cache;
+    string_t    m_doc;
+    bool        m_force;
+};
+//----------------------------------------------------------------------------//
+class pycmVariableWrapper: public pycmWrapper<pycmVariable>
+{
+public:
+    typedef pycmWrapper<pycmVariable>   wrapper_t;
+
+public:
+    pycmVariableWrapper(pycmVariable* _variable)
+    : wrapper_t(_variable)
+    { }
+};
+//----------------------------------------------------------------------------//
 test_list_t* get_test_list()
 {
     typedef std::shared_ptr<test_list_t> ptr_t;
@@ -327,13 +463,62 @@ test_list_t* get_test_list()
     return _instance.get();
 }
 //----------------------------------------------------------------------------//
-void set_name(py::object self, std::string name)
+test_variable_list_t* get_test_variables()
+{
+    typedef std::shared_ptr<test_variable_list_t> ptr_t;
+    static ptr_t _instance = ptr_t(new test_variable_list_t());
+    return _instance.get();
+}
+//----------------------------------------------------------------------------//
+strvec_t& get_config_attributes()
+{
+    static strvec_t _instance =
+    {
+        "PROJECT_NAME",
+        "NIGHTLY_START_TIME",
+        "DROP_METHOD",
+        "DROP_SITE",
+        "DROP_LOCATION",
+        "CDASH_VERSION",
+        "CDASH_QUERY_VERSION",
+    };
+    return _instance;
+}
+//----------------------------------------------------------------------------//
+strvec_t& get_custom_attributes()
+{
+    static strvec_t _instance =
+    {
+        "CHECKOUT_COMMAND",
+        "UPDATE_COMMAND",
+        "CONFIGURE_COMMAND",
+        "BUILD_COMMAND",
+        "COVERAGE_COMMAND",
+        "MEMORYCHECK_COMMAND",
+        "GENERATOR",
+        "GENERATOR_PLATFORM",
+        "MODEL",
+        "SOURCE_DIRECTORY",
+        "BINARY_DIRECTORY",
+        "TIMEOUT",
+        "TRIGGER",
+        "BUILD_NAME",
+        "SITE",
+        "CUSTOM_MAXIMUM_NUMBER_OF_ERRORS",
+        "CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS",
+        "CUSTOM_MAXIMUM_PASSED_TEST_OUTPUT_SIZE",
+        "CUSTOM_COVERAGE_EXCLUDE"
+    };
+    return _instance;
+}
+//----------------------------------------------------------------------------//
+void set_name(py::object self, string_t name)
 {
     pyobj_cast(_self, pycmTestWrapper, self);
     _self->get()->SetName(name);
 }
 //----------------------------------------------------------------------------//
-std::string get_name(py::object self)
+string_t get_name(py::object self)
 {
     pyobj_cast(_self, pycmTestWrapper, self);
     return _self->get()->GetName();
@@ -355,35 +540,33 @@ py::list get_command(py::object self)
     return pycmd;
 }
 //----------------------------------------------------------------------------//
-void set_property(py::object self, std::string prop, std::string value)
+void set_property(py::object self, string_t prop, string_t value)
 {
     pyobj_cast(_self, pycmTestWrapper, self);
     _self->get()->SetProperty(prop, value.c_str());
 }
 //----------------------------------------------------------------------------//
-std::string get_property(py::object self, std::string prop)
+string_t get_property(py::object self, string_t prop)
 {
     pyobj_cast(_self, pycmTestWrapper, self);
-    return std::string(_self->get()->GetProperty(prop));
+    return string_t(_self->get()->GetProperty(prop));
 }
 //----------------------------------------------------------------------------//
-bool get_property_as_bool(py::object self, std::string prop)
+bool get_property_as_bool(py::object self, string_t prop)
 {
     pyobj_cast(_self, pycmTestWrapper, self);
     return _self->get()->GetPropertyAsBool(prop);
 }
 //----------------------------------------------------------------------------//
-void generate(std::string dir = "")
+void configure_filepath(string_t& dir, string_t& fname)
 {
-    std::string fname = "CTestTestfile.cmake";
-
     if(dir.length() > 0)
     {
-        const std::string double_backslash = "\\\\";
-        const std::string single_baskslash = "\\";
-        auto replace_all = [=] (std::string& var, const std::string& val)
+        const string_t double_backslash = "\\\\";
+        const string_t single_baskslash = "\\";
+        auto replace_all = [=] (string_t& var, const string_t& val)
         {
-            while(var.find(val) != std::string::npos)
+            while(var.find(val) != string_t::npos)
                 var.replace(var.find(val), val.length(), "/");
         };
         replace_all(dir, double_backslash);
@@ -396,6 +579,12 @@ void generate(std::string dir = "")
 
         fname = dir + "/" + fname;
     }
+}
+//----------------------------------------------------------------------------//
+void generate_test_file(string_t dir = "")
+{
+    string_t fname = "CTestTestfile.cmake";
+    configure_filepath(dir, fname);
 
     auto test_list = get_test_list();
     if(!test_list || (test_list && test_list->size() == 0))

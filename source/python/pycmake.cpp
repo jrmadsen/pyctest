@@ -548,6 +548,7 @@ int pycm::do_finalize()
 {
     cmDynamicLoader::FlushCache();
     uv_loop_close(uv_default_loop());
+    return 0;
 }
 
 //============================================================================//
@@ -608,9 +609,8 @@ PYBIND11_MODULE(pycmake, cm)
         return locals["_cmake_path"].cast<std::string>();
     };
     //------------------------------------------------------------------------//
-    auto s2char_convert = [] (const std::string& _str)
+    auto str2char_convert = [] (const std::string& _str)
     {
-        //std::string _str = _obj.cast<std::string>();
         char* pc = new char[_str.size()+1];
         std::strcpy(pc, _str.c_str());
         pc[_str.size()] = '\0';
@@ -622,7 +622,8 @@ PYBIND11_MODULE(pycmake, cm)
         charvec_t cargs;
         // convert list elements to char*
         for(auto itr : pargs)
-            cargs.push_back(s2char_convert(itr));
+            cargs.push_back(str2char_convert(itr));
+
         // print
         for(auto itr : pargs)
             std::cout << itr << std::endl;
@@ -634,11 +635,12 @@ PYBIND11_MODULE(pycmake, cm)
         // cmake executable
         auto _exe = exe_path();
         std::cout << "exe: " << _exe << std::endl;
-        argv[0] = s2char_convert(_exe);
+        argv[0] = str2char_convert(_exe);
 
         // fill argv
         for(unsigned i = 1; i < argc; ++i)
             argv[i] = cargs[i-1];
+
         // print
         for(unsigned i = 0; i < argc; ++i)
             std::cout << argv[i] << " ";
@@ -713,8 +715,8 @@ PYBIND11_MODULE(pycmake, cm)
         char** argv = new char*[argc];
         auto _exe = exe_path();
         std::cout << "exe: " << _exe << std::endl;
-        argv[0] = s2char_convert(_exe);
-        argv[1] = s2char_convert(".");
+        argv[0] = str2char_convert(_exe);
+        argv[1] = str2char_convert(".");
         pycm::cmake_main_driver(argc, argv);
         cmake* _cmake = pycm::cmake_instance(false);
 

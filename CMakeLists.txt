@@ -100,4 +100,6 @@ enable_testing()
 include(CTest)
 include(Testing)
 
+add_subdirectory(examples)
+
 print_features()
