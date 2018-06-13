@@ -104,6 +104,9 @@
 #   include <sys/types.h>
 #elif defined(_WINDOWS)
 #   include <direct.h>
+#   ifndef NOMINMAX
+#       define NOMINMAX
+#   endif
 #endif
 
 //============================================================================//
@@ -202,6 +205,8 @@ inline int makedir(std::string _dir, int umask = DEFAULT_UMASK)
 //  pyct namespace -- [pyct]est
 //
 //============================================================================//
+
+#include "pycmExecuteProcessCommand.hpp"
 
 namespace pyct
 {
@@ -620,6 +625,9 @@ void generate_test_file(string_t dir = "")
 //----------------------------------------------------------------------------//
 
 } // namespace pycm
+
+//============================================================================//
+
 
 //============================================================================//
 

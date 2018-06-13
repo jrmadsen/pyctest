@@ -48,6 +48,8 @@ install(TARGETS pycmake DESTINATION ${PYCTEST_INSTALL_PYTHONDIR}
 pybind11_add_module(pyctest 
     ${CMAKE_CURRENT_LIST_DIR}/pyctest.cpp
     ${CMAKE_CURRENT_LIST_DIR}/pyctest.hpp 
+    ${CMAKE_CURRENT_LIST_DIR}/pycmExecuteProcessCommand.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/pycmExecuteProcessCommand.hpp
     ${pybind_headers})
 
 target_link_libraries(pyctest PUBLIC

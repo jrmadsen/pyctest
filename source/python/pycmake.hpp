@@ -44,7 +44,10 @@
 
 #include "cmsys/Encoding.hxx"
 #if defined(_WIN32)
-#  include "cmsys/ConsoleBuf.hxx"
+#   include "cmsys/ConsoleBuf.hxx"
+#   ifndef NOMINMAX
+#       define NOMINMAX
+#   endif
 #endif
 
 //============================================================================//

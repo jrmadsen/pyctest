@@ -3,6 +3,12 @@
 #ifndef _cmcmd_hpp
 #define _cmcmd_hpp
 
+#if defined(_WIN32)
+#   ifndef NOMINMAX
+#       define NOMINMAX
+#   endif
+#endif
+
 #include "cmConfigure.h" // IWYU pragma: keep
 #include "cmCryptoHash.h"
 

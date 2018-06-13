@@ -31,9 +31,10 @@
 
 //============================================================================//
 
-typedef std::string                 string_t;
-typedef std::vector<string_t>       strvec_t;
-typedef std::vector<char*>          charvec_t;
+typedef std::string                         string_t;
+typedef std::vector<string_t>               strvec_t;
+typedef std::vector<char*>                  charvec_t;
+typedef pyct::pycmExecuteProcessCommand     execProcCmd_t;
 
 //============================================================================//
 
@@ -391,6 +392,48 @@ PYBIND11_MODULE(pyctest, ct)
 {
     py::add_ostream_redirect(ct, "ostream_redirect");
 
+    //------------------------------------------------------------------------//
+    //
+    //      Initializers
+    //
+    //------------------------------------------------------------------------//
+    // create a new test and add to test list
+    auto test_init = [=] ()
+    {
+        auto obj = new pyct::pycmTest();
+        pyct::get_test_list()->push_back(obj);
+        return new pyct::pycmTestWrapper(obj);
+    };
+    //------------------------------------------------------------------------//
+    // create a new test and add to test list
+    auto var_init = [=] (string_t var, string_t val,
+                    pyct::pycmVariable::cache_t cache,
+                    string_t doc, bool force)
+    {
+        auto obj = new pyct::pycmVariable(var, val, cache, doc, force);
+        if(var.length() == 0)
+            std::cerr << "Warning! Variable name must be longer than zero. "
+                      << "This variable will not be added to output."
+                      << std::endl;
+        else
+            pyct::get_test_variables()->push_back(obj);
+        return new pyct::pycmVariableWrapper(obj);
+    };
+    //------------------------------------------------------------------------//
+    auto proc_init = [=] (py::list cmd)
+    {
+        pyct::strvec_t _cmd;
+        for(const auto& itr : cmd)
+            _cmd.push_back(itr.cast<string_t>());
+        return new pyct::pycmExecuteProcessCommand(_cmd);
+    };
+    //------------------------------------------------------------------------//
+
+    //------------------------------------------------------------------------//
+    //
+    //      Helpers
+    //
+    //------------------------------------------------------------------------//
     // attributes that should be filled by user
     std::vector<string_t> blank_attr =
     {
@@ -418,14 +461,11 @@ PYBIND11_MODULE(pyctest, ct)
             itr = toupper(itr);
         return tmp;
     };
+
     //------------------------------------------------------------------------//
-    // create a new test and add to test list
-    auto test_init = [=] ()
-    {
-        auto obj = new pyct::pycmTest();
-        pyct::get_test_list()->push_back(obj);
-        return new pyct::pycmTestWrapper(obj);
-    };
+    //
+    //      Binding functions
+    //
     //------------------------------------------------------------------------//
     auto test_add = [=] (py::object obj)
     {
@@ -464,19 +504,129 @@ PYBIND11_MODULE(pyctest, ct)
         return test;
     };
     //------------------------------------------------------------------------//
-    // create a new test and add to test list
-    auto var_init = [=] (string_t var, string_t val,
-                    pyct::pycmVariable::cache_t cache,
-                    string_t doc, bool force)
+    auto proc_exec = [=] (py::object obj, py::list args)
     {
-        auto obj = new pyct::pycmVariable(var, val, cache, doc, force);
-        if(var.length() == 0)
-            std::cerr << "Warning! Variable name must be longer than zero. "
-                      << "This variable will not be added to output."
-                      << std::endl;
+        pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
+        bool ret = true;
+        if(args.size() > 0)
+        {
+            pyct::strvec_t _args;
+            for(const auto& itr : args)
+                _args.push_back(itr.cast<string_t>());
+            ret = (*_obj)(_args);
+        }
         else
-            pyct::get_test_variables()->push_back(obj);
-        return new pyct::pycmVariableWrapper(obj);
+            ret = (*_obj)();
+
+        if(!ret)
+        {
+            std::stringstream ss;
+            ss << "Error running command!\n" << std::endl;
+            ss << _obj->command_string() << std::endl;
+            ss << "Result code: " << _obj->result() << std::endl;
+            ss << "Output: " << _obj->output() << std::endl;
+            ss << "Error: " << _obj->error() << std::endl;
+            throw std::runtime_error(ss.str().c_str());
+        }
+    };
+    //------------------------------------------------------------------------//
+    auto proc_cmd = [=] (py::object obj)
+    {
+        pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
+        return _obj->command_string();
+    };
+    //------------------------------------------------------------------------//
+    auto proc_out = [=] (py::object obj)
+    {
+        pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
+        return _obj->output();
+    };
+    //------------------------------------------------------------------------//
+    auto proc_err = [=] (py::object obj)
+    {
+        pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
+        return _obj->error();
+    };
+    //------------------------------------------------------------------------//
+    auto proc_ret = [=] (py::object obj)
+    {
+        pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
+        return _obj->result();
+    };
+    //------------------------------------------------------------------------//
+    auto proc_rets = [=] (py::object obj)
+    {
+        pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
+        return _obj->results();
+    };
+    //------------------------------------------------------------------------//
+    auto proc_cmd_add = [=] (py::object obj, py::list args)
+    {
+        pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
+        pyct::strvec_t _args;
+        for(const auto& itr : args)
+            _args.push_back(itr.cast<string_t>());
+        _obj->add_command(_args);
+    };
+    //------------------------------------------------------------------------//
+    auto proc_dir_set = [=] (py::object obj, string_t val)
+    {
+        pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
+        _obj->working_directory(val);
+    };
+    //------------------------------------------------------------------------//
+    auto proc_timeout_set = [=] (py::object obj, string_t val)
+    {
+        pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
+        _obj->timeout(val);
+    };
+    //------------------------------------------------------------------------//
+    auto proc_inpf_set = [=] (py::object obj, string_t val)
+    {
+        pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
+        _obj->input_file(val);
+    };
+    //------------------------------------------------------------------------//
+    auto proc_outf_set = [=] (py::object obj, string_t val)
+    {
+        pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
+        _obj->output_file(val);
+    };
+    //------------------------------------------------------------------------//
+    auto proc_errf_set = [=] (py::object obj, string_t val)
+    {
+        pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
+        _obj->error_file(val);
+    };
+    //------------------------------------------------------------------------//
+    auto proc_out_quiet_set = [=] (py::object obj, bool val)
+    {
+        pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
+        _obj->output_quiet(val);
+    };
+    //------------------------------------------------------------------------//
+    auto proc_err_quiet_set = [=] (py::object obj, bool val)
+    {
+        pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
+        _obj->error_quiet(val);
+    };
+    //------------------------------------------------------------------------//
+    auto proc_out_strip_set = [=] (py::object obj, bool val)
+    {
+        pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
+        _obj->strip_output(val);
+    };
+    //------------------------------------------------------------------------//
+    auto proc_err_strip_set = [=] (py::object obj, bool val)
+    {
+        pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
+        _obj->strip_error(val);
+    };
+    //------------------------------------------------------------------------//
+    auto proc_encoding_set = [=] (py::object obj, execProcCmd_t::encoding_t val)
+    {
+        pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
+        _obj->encoding(val);
     };
     //------------------------------------------------------------------------//
     auto exe_path = [=] ()
@@ -609,7 +759,7 @@ PYBIND11_MODULE(pyctest, ct)
         std::ofstream ofs(fname.c_str());
         if(!ofs)
         {
-            std::cerr << "pyct::generate_config -- Error opening " << fname
+            std::cerr << "pyct::generate_ctest_config -- Error opening " << fname
                       << "!!!" << std::endl;
             std::cout << ssfs.str() << std::endl;
         }
@@ -643,7 +793,7 @@ PYBIND11_MODULE(pyctest, ct)
         std::ofstream ofs(fname.c_str());
         if(!ofs)
         {
-            std::cerr << "pyct::generate_config -- Error opening " << fname
+            std::cerr << "pyct::generate_custom_config -- Error opening " << fname
                       << "!!!" << std::endl;
             std::cout << ssfs.str() << std::endl;
         }
@@ -710,18 +860,29 @@ PYBIND11_MODULE(pyctest, ct)
     };
     //------------------------------------------------------------------------//
 
-    py::class_<pyct::pycmTestWrapper> _test(ct, "test");
-    py::class_<pyct::pycmVariableWrapper> _var(ct, "set");
+    py::class_<pyct::pycmTestWrapper>           _test   (ct,    "test",
+                                                         "CTest test object -- works like add_test(...)");
+    py::class_<pyct::pycmVariableWrapper>       _var    (ct,    "set",
+                                                         "Set a variable -- works like set(...)");
+    py::class_<pyct::pycmExecuteProcessCommand> _cmd    (ct,    "command",
+                                                         "Run a command -- works like execute_process(...)");
+    py::enum_<pyct::pycmVariable::cache_t>      _cache  (ct, "cache", py::arithmetic(),
+                                                         "Cache types");
+    py::enum_<execProcCmd_t::encoding_t>        _encode (ct, "encoding", py::arithmetic(),
+                                                         "Encoding types");
 
-    py::enum_<pyct::pycmVariable::cache_t> _cache(ct, "cache",
-                                                  py::arithmetic(),
-                                                  "Cache types");
-    _cache.value    ("NONE",      pyct::pycmVariable::cache_t::NONE)
-            .value  ("BOOL",      pyct::pycmVariable::cache_t::BOOL)
-            .value  ("FILEPATH",  pyct::pycmVariable::cache_t::FILEPATH)
-            .value  ("PATH",      pyct::pycmVariable::cache_t::PATH)
-            .value  ("STRING",    pyct::pycmVariable::cache_t::STRING)
-            .value  ("INTERNAL",  pyct::pycmVariable::cache_t::INTERNAL);
+    _cache.value    ("NONE",        pyct::pycmVariable::cache_t::NONE)
+            .value  ("BOOL",        pyct::pycmVariable::cache_t::BOOL)
+            .value  ("FILEPATH",    pyct::pycmVariable::cache_t::FILEPATH)
+            .value  ("PATH",        pyct::pycmVariable::cache_t::PATH)
+            .value  ("STRING",      pyct::pycmVariable::cache_t::STRING)
+            .value  ("INTERNAL",    pyct::pycmVariable::cache_t::INTERNAL);
+
+    _encode.value   ("None",        cmProcessOutput::Encoding::None)
+            .value  ("Auto",        cmProcessOutput::Encoding::Auto)
+            .value  ("UTF8",        cmProcessOutput::Encoding::UTF8)
+            .value  ("ANSI",        cmProcessOutput::Encoding::ANSI)
+            .value  ("OEM",         cmProcessOutput::Encoding::OEM);
 
     ct.attr("PROJECT_NAME") = "";
     ct.attr("NIGHTLY_START_TIME") = "01:00:00 UTC";
@@ -772,6 +933,62 @@ PYBIND11_MODULE(pyctest, ct)
              py::arg("cache") = pyct::pycmVariable::cache_t::NONE,
              py::arg("doc") = "",
              py::arg("force") = false);
+
+    _cmd.def(py::init(proc_init), "Object to execute a process",
+             py::arg("args") = py::list());
+    _cmd.def("Exec", proc_exec, "Execute (i.e. run)",
+             py::arg("args") = py::list());
+    _cmd.def("Execute", proc_exec, "Execute (i.e. run)",
+             py::arg("args") = py::list());
+    _cmd.def("Command", proc_cmd, "Get the argument list");
+    _cmd.def("Output", proc_out, "Get the output string");
+    _cmd.def("Error", proc_err, "Get the error string");
+    _cmd.def("Result", proc_ret, "Get the result (return code) string");
+    _cmd.def("Results", proc_rets, "Get the results");
+    _cmd.def("AddCommand", proc_cmd_add, "Add a command");
+
+    _cmd.def("SetWorkingDirectory", proc_dir_set, "Set the working directory");
+    _cmd.def("SetTimeout", proc_timeout_set, "Set the process timeout");
+    _cmd.def("SetInputFile", proc_inpf_set, "Set the input file");
+    _cmd.def("SetOutputFile", proc_outf_set, "Set the output file");
+    _cmd.def("SetErrorFile", proc_errf_set, "Set the error file");
+    _cmd.def("SetOutputQuiet", proc_out_quiet_set, "Suppress output");
+    _cmd.def("SetErrorQuiet", proc_err_quiet_set, "Suppress error");
+    _cmd.def("SetOutputStripTrailingWhitespace", proc_out_strip_set, "Strip trailing whitespace from output");
+    _cmd.def("SetErrorStripTrailingWhitespace", proc_err_strip_set, "Strip trailing whitespace from error");
+    _cmd.def("SetEncoding", proc_encoding_set, "Set the process encoding");
+
+    //------------------------------------------------------------------------//
+    auto get_git_branch = [=] (string_t dir)
+    {
+        auto locals = py::dict("_dir"_a = dir);
+        locals["pyctest"] = ct;
+        auto globals = py::globals();
+        py::exec(R"(
+                 import os
+                 from shutil import copyfile
+
+                 if _dir is None:
+                     _dir = os.getcwd()
+                 cmd = pyctest.command(["git", "rev-parse", "--abbrev-ref", "HEAD"])
+                 cmd.SetWorkingDirectory(_dir)
+                 cmd.SetOutputStripTrailingWhitespace(True)
+                 cmd.Execute()
+                 _branch = cmd.Output()
+                 print("Command: {}".format(cmd.Command()))
+                 print("Output: {}".format(cmd.Output()))
+                 print("Error: {}".format(cmd.Error()))
+                 print("Result: {}".format(cmd.Result()))
+                 print("Results: {}".format(cmd.Results()))
+                 )",
+                 globals, locals);
+        string_t _branch = locals["_branch"].cast<string_t>();
+        std::cout << "Git branch: " << _branch << std::endl;
+        return _branch;
+    };
+
+    ct.def("GetGitBranch", get_git_branch, "Get the branch name of a git repo",
+           py::arg("dir") = py::none());
 }
 
 //============================================================================//
