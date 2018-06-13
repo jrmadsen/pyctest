@@ -158,9 +158,7 @@ def run_pyctest():
             home = os.path.join(home_d, home_p)
     if home is not None:
         pyctest.set("CTEST_TOKEN_FILE",
-                    os.path.join(home,
-                                 os.path.join(".tokens",
-                                              "nersc-tomopy")))
+                    os.path.join(home, os.path.join(".tokens", "nersc-tomopy")))
 
     #--------------------------------------------------------------------------#
     # run CMake to generate DartConfiguration.tcl
@@ -170,32 +168,55 @@ def run_pyctest():
     # create a CTest that wraps "nosetest"
     test = pyctest.test()
     test.SetName("nosetests")
-    test.SetCommand(["nosetests", "test", "--with-coverage", "--cover-xml",
-                     "--cover-xml-file=cover.xml", "--nocapture"])
+    test.SetCommand(["nosetests", "test",
+                     "--with-coverage",
+                     # "--cover-xml", "--cover-xml-file=cover.xml",
+                     "--nocapture"])
     # set directory to run test
     test.SetProperty("WORKING_DIRECTORY", binary_dir)
 
+    # phantoms to test
+    phantoms = [ "shepp3d", "baboon", "cameraman",
+                 "barbara", "checkerboard", "lena", "peppers" ]
     # the algorithms to test
     algorithms = [ 'gridrec', 'art', 'fbp', 'bart', 'mlem', 'osem', 'sirt',
                    'ospml_hybrid', 'ospml_quad', 'pml_hybrid', 'pml_quad' ]
 
-    # loop over algorithms and create tests for each
-    for algorithm in algorithms:
-        # algorithms
-        test = pyctest.test()
-        name = "{}".format(algorithm)
-        test.SetName(name)
-        test.SetCommand(["./run_tomopy.py", "-a", algorithm,
-            "-s", "128", "-A", "360", "-f", "jpeg", "-S", "2", "-c", "8"])
-        test.SetProperty("WORKING_DIRECTORY", binary_dir)
+    # loop over phantoms
+    for phantom in phantoms:
+        nsize = "128"
+        if phantom != "shepp3d":
+            nsize = "512"
+        else:
+            # for shepp3d only
+            # loop over algorithms and create tests for each
+            for algorithm in algorithms:
+                # algorithms
+                test = pyctest.test()
+                name = "{}_{}".format(phantom, algorithm)
+                test.SetName(name)
+                test.SetProperty("WORKING_DIRECTORY", binary_dir)
+                test.SetCommand(["./run_tomopy.py",
+                                 "-a", algorithm,
+                                 "-p", phantom,
+                                 "-s", nsize,
+                                 "-A", "360",
+                                 "-f", "jpeg",
+                                 "-S", "2",
+                                 "-c", "8"])
 
-    # create a test comparing all the algorithms
-    test = pyctest.test()
-    name = "{}".format("comparison")
-    test.SetName(name)
-    test.SetCommand(["./run_tomopy.py", "--compare", "all",
-        "-s", "128", "-A", "360", "-f", "jpeg", "-S", "1"])
-    test.SetProperty("WORKING_DIRECTORY", binary_dir)
+        # create a test comparing all the algorithms
+        test = pyctest.test()
+        name = "{}_{}".format(phantom, "comparison")
+        test.SetName(name)
+        test.SetProperty("WORKING_DIRECTORY", binary_dir)
+        test.SetCommand(["./run_tomopy.py",
+                         "--compare", "all",
+                         "-p", phantom,
+                         "-s", nsize,
+                         "-A", "360",
+                         "-f", "jpeg",
+                         "-S", "1"])
 
     # generate the CTestConfig.cmake and CTestCustom.cmake
     # configuration files, copy over

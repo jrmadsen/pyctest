@@ -103,12 +103,16 @@ def rescale_image(rec, nimages, scale, transform=True):
 
 #------------------------------------------------------------------------------#
 @timemory.util.auto_timer()
-def output_images(rec, nimages, full_basename, format="jpeg", scale=1, ncol=1):
+def output_images(rec, fpath, format="jpeg", scale=1, ncol=1):
 
     imgs = []
     nitr = 0
+    nimages = rec.shape[0]
     rec_i = None
-    fname = "{}".format(full_basename)
+    fname = "{}".format(fpath)
+
+    if nimages < ncol:
+        ncol = nimages
 
     rec_n = rec.copy()
     if scale > 1:
@@ -127,7 +131,7 @@ def output_images(rec, nimages, full_basename, format="jpeg", scale=1, ncol=1):
     for i in range(nimages):
         nitr += 1;
 
-        _f = "{}{}".format(full_basename, i)
+        _f = "{}{}".format(fpath, i)
         _fimg = "{}.{}".format(_f, format)
 
         if rec_i is None:
@@ -140,7 +144,7 @@ def output_images(rec, nimages, full_basename, format="jpeg", scale=1, ncol=1):
             output_image(rec_i, fname)
             imgs.append(fname)
             rec_i = None
-            fname = "{}".format(full_basename)
+            fname = "{}".format(fpath)
         else:
             fname = "{}{}_".format(fname, i)
 
@@ -149,32 +153,36 @@ def output_images(rec, nimages, full_basename, format="jpeg", scale=1, ncol=1):
 
 #------------------------------------------------------------------------------#
 @timemory.util.auto_timer()
-def generate(nsize = 512, nangles = 360):
+def generate(phantom = "shepp3d", nsize = 512, nangles = 360):
 
-    with timemory.util.auto_timer("[tomopy.shepp3d]"):
-        obj = tomopy.shepp3d(size=nsize)
+    with timemory.util.auto_timer("[tomopy.misc.phantom.{}]".format(phantom)):
+        obj = getattr(tomopy.misc.phantom, phantom)(size=nsize)
     with timemory.util.auto_timer("[tomopy.angles]"):
         ang = tomopy.angles(nangles)
     with timemory.util.auto_timer("[tomopy.project]"):
         prj = tomopy.project(obj, ang)
 
-    np.save('projection.npy', prj)
-    np.save('angles.npy', ang)
+    #np.save('projection.npy', prj)
+    #np.save('angles.npy', ang)
 
     return [ prj, ang, obj ]
 
 
 #------------------------------------------------------------------------------#
 @timemory.util.auto_timer()
-def run(algorithm, size, nangles, ncores, format, scale, ncol, get_recon = False):
+def run(phantom, algorithm, size, nangles, ncores, format, scale, ncol, get_recon = False):
 
     nitr = size
     ndigits = 6
     imgs = []
-    bname = os.path.join(algorithm, "stack_{}_".format(algorithm))
-    bname = os.path.join(os.getcwd(), bname)
+    fname = os.path.join(os.getcwd(), phantom)
+    fname = os.path.join(fname, algorithm)
+    fname = os.path.join(fname, "stack_{}_".format(algorithm))
 
-    prj, ang, obj = generate(size, nangles)
+    prj, ang, obj = generate(phantom, size, nangles)
+
+    if nitr != prj.shape[0]:
+        nitr = prj.shape[0]
 
     with timemory.util.auto_timer("[tomopy.recon(algorithm='{}')]".format(algorithm)):
         rec = tomopy.recon(prj, ang, algorithm=algorithm, ncore=ncores)
@@ -182,7 +190,7 @@ def run(algorithm, size, nangles, ncores, format, scale, ncol, get_recon = False
     if get_recon is True:
         return rec
 
-    imgs.extend(output_images(rec, nitr, bname, format, scale, ncol))
+    imgs.extend(output_images(rec, fname, format, scale, ncol))
 
     return imgs
 
@@ -196,7 +204,8 @@ def main(args):
     if len(args.compare) > 0:
         algorithm = "comparison"
 
-    print('\nArguments:\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n'.format(
+    print('\nArguments:\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n'.format(
+        "\tPhantom", args.phantom,
         "\tAlgorithm", algorithm,
         "\tSize", args.size,
         "\tAngles", args.angles,
@@ -220,15 +229,16 @@ def main(args):
                 seq = "{}".format(alg)
             else:
                 seq = "{}-{}".format(seq, alg)
-            tmp = run(alg, args.size, args.angles, args.ncores,
-                      args.format, args.scale, args.ncol, get_recon=True)
+            tmp = run(args.phantom, alg, args.size, args.angles,
+                      args.ncores, args.format, args.scale, args.ncol,
+                      get_recon=True)
             tmp = rescale_image(tmp, args.size, args.scale, transform=False)
             _nrow = tmp[0].shape[0]
             _ncol = tmp[0].shape[1]
             if arr is None:
                 _nrows = _nrow
                 _ncols = _ncol * len(args.compare)
-                arr = np.ndarray([args.size, _nrows, _ncols], dtype=float)
+                arr = np.ndarray([tmp.shape[0], _nrows, _ncols], dtype=float)
             _b = (_ncol*_nitr)
             _nitr += 1
             _e = (_ncol*_nitr)
@@ -239,28 +249,30 @@ def main(args):
             arr[0].shape[1],
             arr.shape[0]))
 
-        fname = os.path.join(algorithm, "stack_{}_".format(seq))
-        fname = os.path.join(os.getcwd(), fname)
-        imgs = output_images(arr, args.size, fname,
+        fname = os.path.join(os.getcwd(), args.phantom)
+        fname = os.path.join(fname, algorithm)
+        fname = os.path.join(fname, "stack_{}_".format(seq))
+        imgs = output_images(arr, fname,
                              args.format, args.scale, args.ncol)
     else:
         print("Reconstructing with {}...".format(args.algorithm))
-        imgs = run(args.algorithm, args.size, args.angles, args.ncores,
-                   args.format, args.scale, args.ncol)
+        imgs = run(args.phantom, args.algorithm, args.size, args.angles,
+                   args.ncores, args.format, args.scale, args.ncol)
 
 
     # timing report to stdout
     print('{}'.format(manager))
 
-    timemory.options.output_dir = "./{}".format(algorithm)
-    timemory.options.set_report("run_tomopy_{}.out".format(algorithm))
-    timemory.options.set_serial("run_tomopy_{}.json".format(algorithm))
+    timemory.options.output_dir = "./{}".format(os.path.join(args.phantom, algorithm))
+    timemory.options.set_report("run_tomopy.out")
+    timemory.options.set_serial("run_tomopy.json")
     manager.report()
 
     #------------------------------------------------------------------#
     # provide timing plots
     try:
-        timemory.plotting.plot(files=[timemory.options.serial_filename], echo_dart=True)
+        timemory.plotting.plot(files=[timemory.options.serial_filename], echo_dart=True,
+                               output_dir=timemory.options.output_dir)
     except Exception as e:
         print("Exception - {}".format(e))
 
@@ -268,7 +280,7 @@ def main(args):
     # provide results to dashboard
     try:
         for i in range(0, len(imgs)):
-            img_base = "{}_stack_".format(algorithm, i)
+            img_base = "{}_{}_stack_".format(args.phantom, algorithm, i)
             img_name = os.path.basename(imgs[i]).replace(
                 ".{}".format(args.format), "").replace(
                 "stack_{}_".format(algorithm), img_base)
@@ -281,23 +293,10 @@ def main(args):
     #------------------------------------------------------------------#
     # provide ASCII results
     try:
-        notes = manager.write_ctest_notes(directory="{}".format(algorithm))
+        notes = manager.write_ctest_notes(directory="{}/{}".format(args.phantom, algorithm))
         print('"{}" wrote CTest notes file : {}'.format(__file__, notes))
     except Exception as e:
         print("Exception - {}".format(e))
-
-    modu_len = args.size % args.ncol
-    real_len = len(imgs)
-    if modu_len > 0:
-        expt_len = (args.size / args.ncol) + 1
-    else:
-        expt_len = (args.size / args.ncol)
-    if real_len != expt_len:
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        traceback.print_exception(exc_type, exc_value, exc_traceback, limit=5)
-        msg = "Error! number of images ({}) does not match the expected total ({})!".format(
-          expt_len, real_len)
-        raise Exception(msg)
 
 
 #------------------------------------------------------------------------------#
@@ -308,22 +307,24 @@ if __name__ == "__main__":
     import multiprocessing as mp
     ncores = mp.cpu_count()
 
+    parser.add_argument("-p", "--phantom", help="Phantom to use",
+                        default="shepp3d", type=str)
     parser.add_argument("-a", "--algorithm", help="Select the algorithm",
-        default="gridrec", choices=algorithms, type=str)
+                        default="gridrec", choices=algorithms, type=str)
     parser.add_argument("-A", "--angles", help="number of angles",
-        default=360, type=int)
+                        default=360, type=int)
     parser.add_argument("-s", "--size", help="size of image",
-        default=512, type=int)
+                        default=512, type=int)
     parser.add_argument("-n", "--ncores", help="number of cores",
-        default=ncores, type=int)
+                        default=ncores, type=int)
     parser.add_argument("-f", "--format", help="output image format",
-        default="jpeg", type=str)
+                        default="jpeg", type=str)
     parser.add_argument("-S", "--scale", help="scale image by a positive factor",
-        default=1, type=int)
+                        default=1, type=int)
     parser.add_argument("-c", "--ncol", help="Number of images per row",
-        default=1, type=int)
+                        default=1, type=int)
     parser.add_argument("--compare", help="Generate comparison",
-        nargs='*', default=["none"], type=str)
+                        nargs='*', default=["none"], type=str)
 
     args = timemory.options.add_args_and_parse_known(parser)
 
@@ -332,20 +333,32 @@ if __name__ == "__main__":
     elif len(args.compare) == 1:
         args.compare = []
 
+    pdir = os.path.join(os.getcwd(), args.phantom)
+    if not os.path.exists(pdir):
+        os.makedirs(pdir)
+
+    alg = args.algorithm
+    if len(args.compare) > 0:
+        alg = "comparison"
+
+    adir = os.path.join(pdir, alg)
+    if not os.path.exists(adir):
+        os.makedirs(adir)
+
     if len(args.compare) == 0:
         try:
             import shutil
-            dir = os.path.join(os.getcwd(), args.algorithm)
-            shutil.rmtree(dir)
-            os.makedirs(dir)
+            if os.path.exists(adir):
+                shutil.rmtree(adir)
+                os.makedirs(adir)
         except:
             pass
     else:
         try:
             import shutil
-            dir = os.path.join(os.getcwd(), "comparison")
-            shutil.rmtree(dir)
-            os.makedirs(dir)
+            if os.path.exists(adir):
+                shutil.rmtree(adir)
+                os.makedirs(adir)
         except:
             pass
 
