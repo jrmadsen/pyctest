@@ -8,18 +8,22 @@ build:
   detect_binary_files_with_prefix: False
 
 source:
-  git_rev: 5efca17f4aef7adeb23d8b01e9c2bf4b0381a0d3
+  git_rev: 4003891d4d493d8695bdd3854f510d0eaec4e01a
   git_url: https://github.com/jrmadsen/pyctest.git
 
 requirements:
+  build:
+  - cmake
+  - setuptools
+  - openssl
   host:
   - python
-  - setuptools
-  - cmake
+  - openssl
+  run:
+  - openssl
 
 test:
   imports:
-  - pyctest
   - pyctest.pyctest
   - pyctest.pycmake
 
