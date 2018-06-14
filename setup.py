@@ -266,6 +266,18 @@ class CMakeBuild(build_ext, Command):
 
         CMakeInstallEggInfo.dirs[self.build_temp] = extdir
 
+        pyctestdir = os.path.join(extdir, "pyctest")
+        initpath = os.path.join(pyctestdir, "__init__.py")
+        if not os.path.exists(initpath):
+            f = open(initpath, "w")
+            if os.path.exists(".license.py"):
+                lic = open(".license.py")
+                contents = lic.read()
+                f.write(contents)
+            else:
+                f.write("#\n#")
+            f.close()
+
         print()  # Add an empty line for cleaner output
 
 
