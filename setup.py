@@ -8,10 +8,8 @@ import platform
 import subprocess
 import shutil
 
-from distutils.version import LooseVersion
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
-from setuptools.command.install import install
 from setuptools import Command
 from setuptools.command.test import test as TestCommand
 from setuptools.command.install_egg_info import install_egg_info
@@ -24,6 +22,26 @@ elif platform.system() == "Linux":
     os.environ["CXX"] = "/usr/bin/g++"
 
 installation_files = [ ]
+
+
+# ---------------------------------------------------------------------------- #
+#   work around to avoid using disttools.LooseVersion
+def get_integer_version(version_string):
+    version_array = version_string.split('.')
+    # if more than 3 version numbers
+    while len(version_array) > 3:
+        version_array.pop()
+    # if less than 3 version numbers
+    while len(version_array) < 3:
+        version_array.append('0')
+    integer_version = 0
+    factors = [ 100000, 1000, 1 ]
+    for i in range(0, len(factors)):
+        integer_version += factors[i] * int(version_array[i])
+    #print('Integer version of "{}" is "{}"'.format(version_string,
+    #                                               integer_version))
+    return integer_version
+
 
 # ---------------------------------------------------------------------------- #
 def get_project_version():
@@ -48,8 +66,8 @@ class CMakeExtension(Extension):
 # ---------------------------------------------------------------------------- #
 class CMakeBuild(build_ext, Command):
 
-    cmake_version = '2.7.12'
-    cmake_min_version = '2.8.12'
+    cmake_version = get_integer_version('2.7.12')
+    cmake_min_version = get_integer_version('2.8.12')
     build_type = 'Release'
     cxx_standard = 11
     cmake_prefix_path = ''
@@ -87,10 +105,10 @@ class CMakeBuild(build_ext, Command):
     def init_cmake(self):
         """
         Ensure cmake is in PATH
-        """        
+        """
         try:
             out = subprocess.check_output(['cmake', '--version'])
-            CMakeBuild.cmake_version = LooseVersion(
+            CMakeBuild.cmake_version = get_integer_version(
                 re.search(r'version\s*([\d.]+)', out.decode()).group(1))
         except OSError:
             # if fail, try the module
@@ -258,8 +276,8 @@ class CMakeTest(TestCommand):
     lib tests.
     """
 
-    ctest_version = '2.7.12'
-    ctest_min_version = '2.8.12'
+    cmake_version = get_integer_version('2.7.12')
+    cmake_min_version = get_integer_version('2.8.12')
 
 
     #--------------------------------------------------------------------------#
@@ -283,7 +301,7 @@ class CMakeTest(TestCommand):
         """
         try:
             out = subprocess.check_output(['ctest', '--version'])
-            CMakeTest.ctest_version = LooseVersion(
+            CMakeBuild.cmake_version = get_integer_version(
                 re.search(r'version\s*([\d.]+)', out.decode()).group(1))
         except OSError:
             # if fail, try the module
@@ -350,7 +368,7 @@ class CMakeInstallEggInfo(install_egg_info):
                     f = os.path.join(self.install_dir, b)
                     print ('Adding "{}"...'.format(f))
                     self.outputs.append(f)
-        
+
 
 # ---------------------------------------------------------------------------- #
 def get_long_description():
