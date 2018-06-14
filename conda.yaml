@@ -16,6 +16,7 @@ requirements:
   host:
   - python
   - setuptools
+  - cmake
   - openssl
   run:
   - python
