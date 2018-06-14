@@ -27,6 +27,8 @@
 
 //============================================================================//
 
+#include "cm_uv.h"
+
 #include "cmAlgorithms.h"
 #include "cmDocumentationEntry.h"
 #include "cmGlobalGenerator.h"
@@ -40,11 +42,10 @@
 #include "cmDocumentation.h"
 #include "cmDynamicLoader.h"
 
-#include "cm_uv.h"
-
 #include "cmsys/Encoding.hxx"
 #if defined(_WIN32)
-#  include "cmsys/ConsoleBuf.hxx"
+#   include "cmsys/ConsoleBuf.hxx"
+#   define NOMINMAX
 #endif
 
 //============================================================================//

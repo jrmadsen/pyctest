@@ -62,8 +62,12 @@ foreach(_TYPE MAJOR MINOR PATCH)
     mark_as_advanced(PYCTEST_VERSION_${_TYPE})
 endforeach(_TYPE MAJOR MINOR PATCH)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON CACHE BOOL "Compile as PIC" FORCE)
 set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME ignore)
 mark_as_advanced(PYCTEST_VERSION)
+if(WIN32)
+    add_definitions(-DNOMINMAX)
+endif(WIN32)
 
 ################################################################################
 
