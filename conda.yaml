@@ -6,7 +6,7 @@ build:
   number: 0
 
 source:
-  git_rev: 80c9f300bb48748936fc7b6374064dfc5565fe65
+  git_rev: f9c41cb722048523d72706062a6c4c404d879ab8
   git_url: https://github.com/jrmadsen/pyctest.git
 
 requirements:
