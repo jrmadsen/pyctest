@@ -3,7 +3,9 @@ package:
   version: '0.0.1'
 
 build:
-  number: 0
+  ignore_prefix_files: True
+  #binary_relocation: False
+  detect_binary_files_with_prefix: False
 
 source:
   git_rev: 5efca17f4aef7adeb23d8b01e9c2bf4b0381a0d3
