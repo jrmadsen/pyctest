@@ -171,10 +171,13 @@ class CMakeBuild(build_ext, Command):
             self.build_type = 'Release'
 
         cmake_args += [ '-DCMAKE_BUILD_TYPE={}'.format(self.build_type) ]
+        cmake_args += [ '-DBUILD_SHARED_LIBS=OFF' ]
 
         _cxxstd = int(self.cxx_standard)
-        if _cxxstd < 14 and platform.system() != "Windows":
+        if _cxxstd < 14 and platform.system() == "Windows":
+            # unique_ptr support
             _cxxstd = 14
+            self.cxx_standard = '{}'.format(_cxxstd)
 
         if _cxxstd == 11 or _cxxstd == 14 or _cxxstd == 17:
             cmake_args += [ '-DCMAKE_CXX_STANDARD={}'.format(self.cxx_standard) ]
