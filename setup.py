@@ -426,11 +426,13 @@ setup(name='pyctest',
     # add extension module
     ext_modules=[CMakeExtension('pyctest')],
     # add custom build_ext command
-    cmdclass=dict(build_ext=CMakeBuild, test=CMakeTest, install_egg_info=CMakeInstallEggInfo),
+    cmdclass=dict(build_ext=CMakeBuild,
+                  test=CMakeTest,
+                  install_egg_info=CMakeInstallEggInfo),
     zip_safe=False,
     # extra
     install_requires=[ ],
-    setup_requires=[ 'setuptools', 'disttools' ],
+    setup_requires=[ ],
     packages=[ ],
     keywords=get_keywords(),
     classifiers=get_classifiers(),
