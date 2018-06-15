@@ -892,18 +892,18 @@ macro(include_guard)
     if(_GLOBAL)
         get_property(_PROP
             GLOBAL
-            PROPERTY ${_VARNAME_}
+            PROPERTY ${_VARNAME}
             SET
         )
         if(_PROP)
             return()
         endif()
-        set_property(GLOBAL PROPERTY ${_VARNAME_} TRUE)
+        set_property(GLOBAL PROPERTY ${_VARNAME} TRUE)
 
     elseif(_DIRECTORY)
         get_property(_PROP
             DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-            PROPERTY ${_VARNAME_}
+            PROPERTY ${_VARNAME}
             SET
         )
 
@@ -912,12 +912,12 @@ macro(include_guard)
         endif()
 
         set_property(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-            PROPERTY ${_VARNAME_} TRUE)
+            PROPERTY ${_VARNAME} TRUE)
 
     elseif(_VARIABLE)
         get_property(_PROP
             VARIABLE
-            PROPERTY ${_VARNAME_}
+            PROPERTY ${_VARNAME}
             SET
         )
 
@@ -925,7 +925,7 @@ macro(include_guard)
             return()
         endif()
 
-        set_property(PROPERTY ${_VARNAME_} TRUE)
+        set_property(PROPERTY ${_VARNAME} TRUE)
     endif()
 
 endmacro(include_guard)
