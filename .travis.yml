@@ -448,7 +448,6 @@ install:
     #
     # Python installation
     #
-    - cd ${SOURCE_DIR}
     - python${TRAVIS_PYTHON_VERSION} setup.py install
 
 
