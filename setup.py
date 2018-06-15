@@ -403,22 +403,14 @@ def get_keywords():
 # ---------------------------------------------------------------------------- #
 def get_classifiers():
     return [
-        # no longer beta
-        'Development Status :: 2 - Pre-Alpha',
-        #'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Topic :: Utilities',
-        # written in English
         'Natural Language :: English',
-        # MIT license
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.1',
-        'Programming Language :: Python :: 3.2',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
