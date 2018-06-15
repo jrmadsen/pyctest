@@ -14,22 +14,34 @@ from setuptools import Command
 from setuptools.command.test import test as TestCommand
 from setuptools.command.install_egg_info import install_egg_info
 
+
+# ---------------------------------------------------------------------------- #
+#   Setup the compilers
+#
 if platform.system() == "Darwin":
     # force Clang on macOS
     os.environ["CC"] = "/usr/bin/clang"
     os.environ["CXX"] = "/usr/bin/clang++"
+
 elif platform.system() == "Linux":
-    # choose GCC is not set
+    # choose GCC if not set
     if os.environ.get("CC") is None and os.path.exists("/usr/bin/gcc"):
         os.environ["CC"] = "/usr/bin/gcc"
     if os.environ.get("CXX") is None and os.path.exists("/usr/bin/g++"):
         os.environ["CXX"] = "/usr/bin/g++"
-
-installation_files = [ ]
+    # make sure we don't use clang
+    if os.environ.get("CC") is not None:
+        if re.search(r'clang', os.environ.get("CC")) is not None:
+            os.environ["CC"] = "/usr/bin/gcc"
+    # make sure we don't use clang++
+    if os.environ.get("CXX") is not None:
+        if re.search(r'clang', os.environ.get("CXX")) is not None:
+            os.environ["CC"] = "/usr/bin/g++"
 
 
 # ---------------------------------------------------------------------------- #
 #   work around to avoid using disttools.LooseVersion
+#
 def get_integer_version(version_string):
     version_array = version_string.split('.')
     # if more than 3 version numbers
@@ -42,12 +54,21 @@ def get_integer_version(version_string):
     factors = [ 100000, 1000, 1 ]
     for i in range(0, len(factors)):
         integer_version += factors[i] * int(version_array[i])
-    #print('Integer version of "{}" is "{}"'.format(version_string,
-    #                                               integer_version))
     return integer_version
 
 
 # ---------------------------------------------------------------------------- #
+#   work around to avoid using disttools.LooseVersion
+#
+def get_string_version(version_integer):
+    major_ver = "{}".format(int(version_integer / 100000))
+    minor_ver = "{}".format(int((version_integer % 100000) / 1000))
+    patch_ver = "{}".format(int(version_integer % 1000))
+    return "{}.{}.{}".format(major_ver, minor_ver, patch_ver)
+
+
+# ---------------------------------------------------------------------------- #
+#
 def get_project_version():
     # open ".version.txt"
     with open(os.path.join(os.getcwd(), 'VERSION'), 'r') as f:
@@ -60,6 +81,7 @@ def get_project_version():
 
 
 # ---------------------------------------------------------------------------- #
+#
 class CMakeExtension(Extension):
 
     def __init__(self, name, sourcedir=''):
@@ -68,6 +90,7 @@ class CMakeExtension(Extension):
 
 
 # ---------------------------------------------------------------------------- #
+#
 class CMakeBuild(build_ext, Command):
 
     cmake_version = get_integer_version('2.7.12')
@@ -98,7 +121,7 @@ class CMakeBuild(build_ext, Command):
         """
         ma = 'Error finding/putting cmake in path. Either no CMake found or no cmake module.'
         mb = 'This error can commonly be resolved with "{}"'.format("pip install -U pip cmake")
-        mc = 'CMake version found: {}'.format(CMakeBuild.cmake_version)
+        mc = 'CMake version found: {}'.format(get_string_version(CMakeBuild.cmake_version))
         md = "CMake must be installed to build the following extensions: " + \
         ", ".join(e.name for e in self.extensions)
         mt = '\n\n\t{}\n\t{}\n\t{}\n\t{}\n\n'.format(ma, mb, mc, md)
@@ -135,11 +158,13 @@ class CMakeBuild(build_ext, Command):
     def run(self):
         self.init_cmake()
 
-        print ('Using CMake version {}...'.format(CMakeBuild.cmake_version))
+        print ('Using CMake version {}...'.format(
+            get_string_version(CMakeBuild.cmake_version)))
 
         if CMakeBuild.cmake_version < CMakeBuild.cmake_min_version:
             raise RuntimeError("CMake >= {} is required. Found CMake version {}".format(
-                               CMakeBuild.cmake_min_version, CMakeBuild.cmake_version))
+                               get_string_version(CMakeBuild.cmake_min_version),
+                               get_string_version(CMakeBuild.cmake_version)))
 
         for ext in self.extensions:
             self.build_extension(ext)
@@ -287,6 +312,7 @@ class CMakeBuild(build_ext, Command):
 
 
 # ---------------------------------------------------------------------------- #
+#
 class CMakeTest(TestCommand):
     """
     A custom test runner to execute both Python unittest tests and C++ Catch-
@@ -304,7 +330,7 @@ class CMakeTest(TestCommand):
         """
         ma = 'Error finding/putting ctest in path. Either no CMake found or no cmake module.'
         mb = 'This error can commonly be resolved with "{}"'.format("pip install -U pip cmake")
-        mc = 'CMake version found: {}'.format(CMakeTest.ctest_version)
+        mc = 'CMake version found: {}'.format(get_string_version(CMakeTest.ctest_version))
         md = "CMake must be installed to build the following extensions: " + \
         ", ".join(e.name for e in self.extensions)
         mt = '\n\n\t{}\n\t{}\n\t{}\n\t{}\n\n'.format(ma, mb, mc, md)
@@ -355,11 +381,11 @@ class CMakeTest(TestCommand):
 
 
 # ---------------------------------------------------------------------------- #
+#
 class CMakeInstallEggInfo(install_egg_info):
 
     dirs = {}
     files = []
-
 
     #--------------------------------------------------------------------------#
     def run(self):
@@ -388,6 +414,7 @@ class CMakeInstallEggInfo(install_egg_info):
 
 
 # ---------------------------------------------------------------------------- #
+#
 def get_long_description():
     long_descript = ''
     try:
@@ -398,16 +425,21 @@ def get_long_description():
 
 
 # ---------------------------------------------------------------------------- #
+#
 def get_short_description():
-    return "{}".format("Wrappers for generating CTest files")
+    part_a = "Python wrappers for generating CTest and submitting to CDash"
+    part_b = "without a CMake build system"
+    return "{} {}".format(part_a, part_b)
 
 
 # ---------------------------------------------------------------------------- #
+#
 def get_keywords():
     return [ 'cmake', 'ctest', 'pybind11' ]
 
 
 # ---------------------------------------------------------------------------- #
+#
 def get_classifiers():
     return [
         'Development Status :: 4 - Beta',
@@ -427,17 +459,20 @@ def get_classifiers():
 
 
 # ---------------------------------------------------------------------------- #
+#
 def get_name():
     return 'Jonathan R. Madsen'
 
 
 # ---------------------------------------------------------------------------- #
+#
 def get_email():
     return 'jonrobm.programming@gmail.com'
 
 
 # ---------------------------------------------------------------------------- #
 # calls the setup and declare package
+#
 setup(name='pyctest',
     version=get_project_version(),
     author=get_name(),
@@ -464,6 +499,6 @@ setup(name='pyctest',
     keywords=get_keywords(),
     classifiers=get_classifiers(),
     python_requires='>=2.6',
-    data_files=installation_files,
+    data_files=[ ],
 )
 

@@ -327,11 +327,11 @@ install:
     - conda install anaconda anaconda-client
     - python setup.py build
     - if [[ "${CONDA_UPLOAD}" -gt 0 ]]; then
-          conda config --set anaconda_upload yes
-          anaconda login --username jrmadsen --password ${ANACONDA_PASSWD}
-          conda-build --user jrmadsen --token ${ANACONDA_TOKEN} .
+          conda config --set anaconda_upload yes ;
+          anaconda login --username jrmadsen --password ${ANACONDA_PASSWD} ;
+          conda-build --user jrmadsen --token ${ANACONDA_TOKEN} . ;
       else
-          conda-build .
+          conda-build . ;
       fi
 
 script:
