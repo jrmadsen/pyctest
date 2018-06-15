@@ -448,6 +448,9 @@ install:
     - eval "${MATRIX_EVAL}"
     - export CC=${CC}
     - export CXX=${CXX}
+    - env
+    - echo "CC = ${CC} $(${CC} -dumpversion)"
+    - echo "CXX = ${CXX} $(${CXX} -dumpversion)"
     - python${TRAVIS_PYTHON_VERSION} setup.py install
 
 

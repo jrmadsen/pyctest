@@ -15,11 +15,15 @@ from setuptools.command.test import test as TestCommand
 from setuptools.command.install_egg_info import install_egg_info
 
 if platform.system() == "Darwin":
+    # force Clang on macOS
     os.environ["CC"] = "/usr/bin/clang"
     os.environ["CXX"] = "/usr/bin/clang++"
 elif platform.system() == "Linux":
-    os.environ["CC"] = "/usr/bin/gcc"
-    os.environ["CXX"] = "/usr/bin/g++"
+    # choose GCC is not set
+    if os.environ.get("CC") is None and os.path.exists("/usr/bin/gcc"):
+        os.environ["CC"] = "/usr/bin/gcc"
+    if os.environ.get("CXX") is None and os.path.exists("/usr/bin/g++"):
+        os.environ["CXX"] = "/usr/bin/g++"
 
 installation_files = [ ]
 

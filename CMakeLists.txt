@@ -50,9 +50,9 @@ endif(GOOD_CMAKE)
 message(STATUS "${PROJECT_NAME} version ${PYCTEST_VERSION}")
 
 set(CMAKE_MODULE_PATH 
-    ${CMAKE_CURRENT_LIST_DIR}/cmake/Modules 
-    ${CMAKE_CURRENT_LIST_DIR}/source/kitware-cmake/Modules
-    ${CMAKE_MODULE_PATH})
+    ${CMAKE_MODULE_PATH}
+    ${CMAKE_CURRENT_LIST_DIR}/cmake/Modules
+    ${CMAKE_CURRENT_LIST_DIR}/source/kitware-cmake/Modules)
 
 foreach(_TYPE MAJOR MINOR PATCH)
     set(PYCTEST_VERSION_${_TYPE} ${PROJECT_VERSION_${_TYPE}} CACHE STRING "${PROJECT_NAME} ${_TYPE} version" FORCE)
