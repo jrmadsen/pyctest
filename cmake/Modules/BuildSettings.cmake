@@ -68,3 +68,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PYCTEST_OUTPUT_DIR}/pyctest/bin)
 if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     add_definitions(-DNDEBUG)
 endif(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+
+if(WIN32)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:strictStrings-")
+endif(WIN32)
