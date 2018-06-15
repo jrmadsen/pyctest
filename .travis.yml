@@ -445,9 +445,9 @@ before_install:
 
 
 install:
-    #
-    # Python installation
-    #
+    - eval "${MATRIX_EVAL}"
+    - export CC=${CC}
+    - export CXX=${CXX}
     - python${TRAVIS_PYTHON_VERSION} setup.py install
 
 
