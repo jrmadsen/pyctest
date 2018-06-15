@@ -48,7 +48,7 @@ matrix:
             - build-essential
             - cmake
       env:
-        - MATRIX_EVAL="CC=$(which gcc-5) && CXX=$(which g++-5) && BUILD_TYPE=MinSizeRel"
+        - MATRIX_EVAL="CC=$(which gcc-5) && CXX=$(which g++-5) && BUILD_TYPE=MinSizeRel && CONDA_UPLOAD=0"
     # GCC 6
     - os: linux
       dist: trusty
@@ -64,7 +64,7 @@ matrix:
             - build-essential
             - cmake
       env:
-        - MATRIX_EVAL="CC=$(which gcc-6) && CXX=$(which g++-6) && BUILD_TYPE=Debug"
+        - MATRIX_EVAL="CC=$(which gcc-6) && CXX=$(which g++-6) && BUILD_TYPE=Debug && CONDA_UPLOAD=0"
     # GCC 7
     - os: linux
       dist: trusty
@@ -80,7 +80,7 @@ matrix:
             - build-essential
             - cmake
       env:
-        - MATRIX_EVAL="CC=$(which gcc-7) && CXX=$(which g++-7) && BUILD_TYPE=Release"
+        - MATRIX_EVAL="CC=$(which gcc-7) && CXX=$(which g++-7) && BUILD_TYPE=Release && CONDA_UPLOAD=0"
     # ------------------------------------------------------------------------ #
     #
     #   Python 3.4
@@ -117,7 +117,7 @@ matrix:
             - build-essential
             - cmake3
       env:
-        - MATRIX_EVAL="CC=$(which gcc-5) && CXX=$(which g++-5) && BUILD_TYPE=Release"
+        - MATRIX_EVAL="CC=$(which gcc-5) && CXX=$(which g++-5) && BUILD_TYPE=Release && CONDA_UPLOAD=0"
     # GCC 6
     - os: linux
       dist: trusty
@@ -133,7 +133,7 @@ matrix:
             - build-essential
             - cmake3
       env:
-        - MATRIX_EVAL="CC=$(which gcc-6) && CXX=$(which g++-6) && BUILD_TYPE=Debug"
+        - MATRIX_EVAL="CC=$(which gcc-6) && CXX=$(which g++-6) && BUILD_TYPE=Debug && CONDA_UPLOAD=0"
     # GCC 7
     - os: linux
       dist: trusty
@@ -149,7 +149,7 @@ matrix:
             - build-essential
             - cmake3
       env:
-        - MATRIX_EVAL="CC=$(which gcc-7) && CXX=$(which g++-7) && BUILD_TYPE=MinSizeRel"
+        - MATRIX_EVAL="CC=$(which gcc-7) && CXX=$(which g++-7) && BUILD_TYPE=MinSizeRel && CONDA_UPLOAD=0"
     # ------------------------------------------------------------------------ #
     #
     #   Python 3.5
@@ -186,7 +186,7 @@ matrix:
             - build-essential
             - cmake3
       env:
-        - MATRIX_EVAL="CC=$(which gcc-5) && CXX=$(which g++-5) && BUILD_TYPE=MinSizeRel"
+        - MATRIX_EVAL="CC=$(which gcc-5) && CXX=$(which g++-5) && BUILD_TYPE=MinSizeRel && CONDA_UPLOAD=0"
     # GCC 6
     - os: linux
       dist: trusty
@@ -202,7 +202,7 @@ matrix:
             - build-essential
             - cmake3
       env:
-        - MATRIX_EVAL="CC=$(which gcc-6) && CXX=$(which g++-6) && BUILD_TYPE=Debug"
+        - MATRIX_EVAL="CC=$(which gcc-6) && CXX=$(which g++-6) && BUILD_TYPE=Debug && CONDA_UPLOAD=0"
     # GCC 7
     - os: linux
       dist: trusty
@@ -218,7 +218,7 @@ matrix:
             - build-essential
             - cmake3
       env:
-        - MATRIX_EVAL="CC=$(which gcc-7) && CXX=$(which g++-7) && BUILD_TYPE=Release"
+        - MATRIX_EVAL="CC=$(which gcc-7) && CXX=$(which g++-7) && BUILD_TYPE=Release && CONDA_UPLOAD=0"
     # ------------------------------------------------------------------------ #
     #
     #   Python 3.6
@@ -255,7 +255,7 @@ matrix:
             - build-essential
             - cmake
       env:
-        - MATRIX_EVAL="CC=$(which gcc-5) && CXX=$(which g++-5) && BUILD_TYPE=Release"
+        - MATRIX_EVAL="CC=$(which gcc-5) && CXX=$(which g++-5) && BUILD_TYPE=Release && CONDA_UPLOAD=0"
     # GCC 6
     - os: linux
       dist: trusty
@@ -271,7 +271,7 @@ matrix:
             - build-essential
             - cmake
       env:
-        - MATRIX_EVAL="CC=$(which gcc-6) && CXX=$(which g++-6) && BUILD_TYPE=Debug"
+        - MATRIX_EVAL="CC=$(which gcc-6) && CXX=$(which g++-6) && BUILD_TYPE=Debug && CONDA_UPLOAD=0"
     # GCC 7
     - os: linux
       dist: trusty
@@ -287,7 +287,7 @@ matrix:
             - build-essential
             - cmake
       env:
-        - MATRIX_EVAL="CC=$(which gcc-7) && CXX=$(which g++-7) && BUILD_TYPE=MinSizeRel"
+        - MATRIX_EVAL="CC=$(which gcc-7) && CXX=$(which g++-7) && BUILD_TYPE=MinSizeRel && CONDA_UPLOAD=0"
     # ------------------------------------------------------------------------ #
 
 
@@ -300,6 +300,7 @@ before_install:
     - export PATH=${PYBINPATH}:${PATH}
     - export CMAKE_PREFIX_PATH=${PYROOTPATH}:${CMAKE_PREFIX_PATH}
     - export PYTHON_VERSION="$(python --version | awk '{print $NF}')"
+    - export PYCTEST_BUILD_TYPE=${BUILD_TYPE}
     - echo "CC = ${CC} $(${CC} -dumpversion)"
     - echo "CXX = ${CXX} $(${CXX} -dumpversion)"
     - echo "Python = $(which python) [version ${PYTHON_VERSION}]"
@@ -310,7 +311,6 @@ before_install:
 
 install:
     - eval "${MATRIX_EVAL}"
-    - : ${CONDA_UPLOAD:=0}
     - export CONDA_UPLOAD
     - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
           wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
