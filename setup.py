@@ -228,7 +228,10 @@ class CMakeBuild(build_ext, Command):
             nproc = '-j4'
             try:
                 import multiprocessing as mp
-                nproc = '-j{}'.format(mp.cpu_count()+1)
+                ncpu = mp.cpu_count()
+                if ncpu > 8:
+                    ncpu = 8
+                nproc = '-j{}'.format(ncpu+1)
             except:
                 pass
             build_args += [ '--', nproc ]
