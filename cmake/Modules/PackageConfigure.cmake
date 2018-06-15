@@ -1,34 +1,36 @@
-
 ################################################################################
 #
-#        PYCTEST Package installation
+#        Set up the package installation
 #
 ################################################################################
 
-include(CMakePackageConfigHelpers)
+## -- CTest Config
+if(EXISTS "${CMAKE_SOURCE_DIR}/CTestConfig.cmake")
+    configure_file(${CMAKE_SOURCE_DIR}/CTestConfig.cmake
+        ${CMAKE_BINARY_DIR}/CTestConfig.cmake @ONLY)
+endif(EXISTS "${CMAKE_SOURCE_DIR}/CTestConfig.cmake")
 
-set(PYTHON_INSTALL_DIR      ${PYCTEST_CONFIG_PYTHONDIR})
-set(INCLUDE_INSTALL_DIR     ${CMAKE_INSTALL_INCLUDEDIR})
-set(LIB_INSTALL_DIR         ${CMAKE_INSTALL_LIBDIR})
+set(_SOURCE ${CMAKE_SOURCE_DIR}/cmake/Templates/cdash)
+set(_BINARY ${CMAKE_BINARY_DIR}/pyctest/cdash)
+set(cdash_templates Init Build Test Submit Glob Stages Coverage MemCheck)
 
-set(_INSTALL_PREFIX ${PYCTEST_INSTALL_PREFIX})
-execute_process(COMMAND
-    ${PYTHON_EXECUTABLE} -c "import sys; print('{}'.format(sys.prefix))"
-    OUTPUT_VARIABLE _INSTALL_PREFIX
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+foreach(_type ${cdash_templates})
+    ## -- CTest Setup
+    if(EXISTS "${_SOURCE}/${_type}.cmake.in")
+        configure_file(${_SOURCE}/${_type}.cmake.in ${_BINARY}/${_type}.cmake @ONLY)
+        install(FILES ${_BINARY}/${_type}.cmake
+            DESTINATION ${CMAKE_INSTALL_PYTHONDIR}/cdash
+            COMPONENT development)
+    endif(EXISTS "${_SOURCE}/${_type}.cmake.in")
+endforeach(_type Init Build Test Coverage MemCheck Submit Glob Stages)
 
-configure_package_config_file(
-    ${PROJECT_SOURCE_DIR}/cmake/Templates/${PROJECT_NAME}Config.cmake.in
-    ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
-    INSTALL_DESTINATION ${PYCTEST_INSTALL_CMAKEDIR}
-    INSTALL_PREFIX ${_INSTALL_PREFIX}
-    PATH_VARS
-        INCLUDE_INSTALL_DIR
-        LIB_INSTALL_DIR
-        PYTHON_INSTALL_DIR)
+## -- CTest Custom
+if(EXISTS "${CMAKE_SOURCE_DIR}/cmake/Templates/CTestCustom.cmake.in")
+    configure_file(${CMAKE_SOURCE_DIR}/cmake/Templates/CTestCustom.cmake.in
+        ${CMAKE_BINARY_DIR}/CTestCustom.cmake @ONLY)
+endif(EXISTS "${CMAKE_SOURCE_DIR}/cmake/Templates/CTestCustom.cmake.in")
 
-write_basic_package_version_file(
-    ${CMAKE_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY SameMajorVersion)
+# testing
+#ENABLE_TESTING()
+#include(CTest)
+

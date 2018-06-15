@@ -31,6 +31,7 @@
 
 //============================================================================//
 
+typedef std::stringstream                   sstream_t;
 typedef std::string                         string_t;
 typedef std::vector<string_t>               strvec_t;
 typedef std::vector<char*>                  charvec_t;
@@ -639,8 +640,6 @@ PYBIND11_MODULE(pyctest, ct)
                                             os.path.join("bin", "ctest"))
                  if not os.path.exists(_ctest_path):
                      print("Warning! Executable not found @ '{}'".format(_ctest_path))
-                 else:
-                     print("CTest executable: '{}'".format(_ctest_path))
                  )",
                  py::globals(), locals);
         return locals["_ctest_path"].cast<string_t>();
@@ -661,40 +660,28 @@ PYBIND11_MODULE(pyctest, ct)
         for(auto itr : pargs)
             cargs.push_back(str2char_convert(itr));
 
-        // print
-        for(auto itr : pargs)
-            std::cout << itr << std::endl;
-
         // structures passed
         int argc = pargs.size() + 1;
         char** argv = new char*[argc];
 
         // ctest executable
         auto _exe = exe_path();
-        std::cout << "exe: " << _exe << std::endl;
         argv[0] = str2char_convert(_exe);
 
         // fill argv
         for(unsigned i = 1; i < argc; ++i)
             argv[i] = cargs[i-1];
 
-        // print
-        for(unsigned i = 0; i < argc; ++i)
-            std::cout << argv[i] << " ";
-        std::cout << std::endl;
-
         // change working directory
         auto locals = py::dict("working_dir"_a = working_dir);
         py::exec(R"(
                  import os
 
-                 print("--> Current working directory: {}".format(os.getcwd()))
                  origwd = os.getcwd()
                  if len(working_dir) > 0:
                      if not os.path.exists(working_dir):
                          os.makedirs(working_dir)
                      os.chdir(working_dir)
-                 print("--> Current working directory: {}".format(os.getcwd()))
                  )",
                  py::globals(), locals);
 
@@ -705,9 +692,7 @@ PYBIND11_MODULE(pyctest, ct)
         py::exec(R"(
                  import os
 
-                 print("--> Current working directory: {}".format(os.getcwd()))
                  os.chdir(working_dir)
-                 print("--> Current working directory: {}".format(os.getcwd()))
                  )",
                  py::globals(), locals);
 
@@ -776,16 +761,34 @@ PYBIND11_MODULE(pyctest, ct)
         string_t fname = "CTestCustom.cmake";
         pyct::configure_filepath(dir, fname);
 
-        std::stringstream ssfs;
-        for(const auto& itr : pyct::get_custom_attributes())
+        //--------------------------------------------------------------------//
+        auto generate_attr = [=] (sstream_t& ssfs, string_t itr, bool required)
         {
             string_t attr_var = "CTEST_" + itr;
-            string_t attr_val = ct.attr(itr.c_str()).cast<string_t>();
+            string_t attr_val = "";
+            try { attr_val = ct.attr(itr.c_str()).cast<string_t>(); }
+            catch (...)
+            {
+                sstream_t msg;
+                msg << itr << " (i.e. " << attr_var << ") is not set.";
+                if(required)
+                    throw std::runtime_error(msg.str());
+                else
+                    std::cerr << "Warning! " << msg.str() << std::endl;
+            }
             pyct::pycmVariable _pyvar(attr_var, attr_val);
             if(attr_val.length() == 0)
                 ssfs << "# ";
             ssfs << _pyvar << std::endl;
-        }
+        };
+        //--------------------------------------------------------------------//
+
+        std::stringstream ssfs;
+        for(const auto& itr : pyct::get_reqired_attributes())
+            generate_attr(ssfs, itr, true);
+
+        for(const auto& itr : pyct::get_custom_attributes())
+            generate_attr(ssfs, itr, false);
 
         for(const auto& itr : *pyct::get_test_variables())
             ssfs << *itr << std::endl;
@@ -975,15 +978,9 @@ PYBIND11_MODULE(pyctest, ct)
                  cmd.SetOutputStripTrailingWhitespace(True)
                  cmd.Execute()
                  _branch = cmd.Output()
-                 print("Command: {}".format(cmd.Command()))
-                 print("Output: {}".format(cmd.Output()))
-                 print("Error: {}".format(cmd.Error()))
-                 print("Result: {}".format(cmd.Result()))
-                 print("Results: {}".format(cmd.Results()))
                  )",
                  globals, locals);
         string_t _branch = locals["_branch"].cast<string_t>();
-        std::cout << "Git branch: " << _branch << std::endl;
         return _branch;
     };
 

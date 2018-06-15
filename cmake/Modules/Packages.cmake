@@ -48,37 +48,33 @@ endif(NOT PYBIND11_PYTHON_VERSION)
 
 add_feature(PYBIND11_PYTHON_VERSION "PyBind11 Python version")
 
-########################################
+
+################################################################################
+#
 #   Python installation directories
-########################################
-set(PYCTEST_STAGING_PREFIX ${CMAKE_INSTALL_PREFIX} CACHE PATH
-    "Installation prefix (relevant in pip staged builds)")
+#
+################################################################################
 
 if(PYCTEST_SETUP_PY)
 
-    set(PYCTEST_INSTALL_PYTHONDIR ${PYCTEST_STAGING_PREFIX} CACHE PATH
+    set(CMAKE_INSTALL_PYTHONDIR ${CMAKE_INSTALL_PREFIX} CACHE PATH
         "Installation prefix of python" FORCE)
-
-    set(PYCTEST_INSTALL_FULL_PYTHONDIR
-        ${CMAKE_INSTALL_PREFIX}/lib/python${PYBIND11_PYTHON_VERSION}/site-packages)
-
-    add_feature(PYCTEST_INSTALL_PYTHONDIR "pyctest Python installation directory")
-    add_feature(PYCTEST_STAGING_PREFIX "Installation prefix (relevant in pip staged builds)")
 
 else(PYCTEST_SETUP_PY)
 
-    set(PYCTEST_INSTALL_PYTHONDIR
-        ${CMAKE_INSTALL_LIBDIR}/python${PYBIND11_PYTHON_VERSION}/site-packages
+    set(CMAKE_INSTALL_PYTHONDIR
+        ${CMAKE_INSTALL_LIBDIR}/python${PYBIND11_PYTHON_VERSION}/site-packages/pyctest
         CACHE PATH "Installation directory for python")
-
-    set(PYCTEST_INSTALL_FULL_PYTHONDIR
-        ${CMAKE_INSTALL_PREFIX}/${PYCTEST_INSTALL_PYTHONDIR})
 
 endif(PYCTEST_SETUP_PY)
 
-set(PYCTEST_CONFIG_PYTHONDIR
-    ${CMAKE_INSTALL_LIBDIR}/python${PYBIND11_PYTHON_VERSION}/site-packages)
+add_feature(CMAKE_INSTALL_PYTHONDIR "pyctest Python installation directory")
 
+execute_process(COMMAND ${PYTHON_EXECUTABLE}
+        -c "import time ; print('{} {}'.format(time.ctime(), time.tzname[0]))"
+        OUTPUT_VARIABLE PYCTEST_INSTALL_DATE
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET)
 
 ################################################################################
 #
@@ -92,5 +88,3 @@ safe_remove_duplicates(EXTERNAL_LIBRARIES ${EXTERNAL_LIBRARIES})
 foreach(_DIR ${EXTERNAL_INCLUDE_DIRS})
     include_directories(SYSTEM ${_DIR})
 endforeach(_DIR ${EXTERNAL_INCLUDE_DIRS})
-
-

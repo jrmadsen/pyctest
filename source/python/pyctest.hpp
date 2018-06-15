@@ -243,20 +243,10 @@ class pycmTest
 public:
     pycmTest(string_t name = "", strvec_t cmd = strvec_t())
     : m_name(name), m_command(cmd)
-    {
-        if(m_name.length() > 0)
-            std::cout << "Created test \"" << m_name << "\"..." << std::endl;
-        else
-            std::cout << "Created test \"" << this << "\"..." << std::endl;
-    }
+    { }
 
     ~pycmTest()
-    {
-        if(m_name.length() > 0)
-            std::cout << "Deleted test \"" << m_name << "\"..." << std::endl;
-        else
-            std::cout << "Deleted test \"" << this << "\"..." << std::endl;
-    }
+    { }
 
     // name
     void SetName(const string_t& name) { m_name = name; }
@@ -490,6 +480,19 @@ strvec_t& get_config_attributes()
     return _instance;
 }
 //----------------------------------------------------------------------------//
+strvec_t& get_reqired_attributes()
+{
+    static strvec_t _instance =
+    {
+        "BUILD_NAME",
+        "SOURCE_DIRECTORY",
+        "BINARY_DIRECTORY",
+        "MODEL",
+        "SITE",
+    };
+    return _instance;
+}
+//----------------------------------------------------------------------------//
 strvec_t& get_custom_attributes()
 {
     static strvec_t _instance =
@@ -502,13 +505,8 @@ strvec_t& get_custom_attributes()
         "MEMORYCHECK_COMMAND",
         "GENERATOR",
         "GENERATOR_PLATFORM",
-        "MODEL",
-        "SOURCE_DIRECTORY",
-        "BINARY_DIRECTORY",
         "TIMEOUT",
         "TRIGGER",
-        "BUILD_NAME",
-        "SITE",
         "CUSTOM_MAXIMUM_NUMBER_OF_ERRORS",
         "CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS",
         "CUSTOM_MAXIMUM_PASSED_TEST_OUTPUT_SIZE",

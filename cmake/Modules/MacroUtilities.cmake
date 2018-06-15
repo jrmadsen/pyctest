@@ -830,7 +830,10 @@ macro(CHECKOUT_CMAKE_SUBMODULE)
     set(_DIR "${CHECKOUT_WORKING_DIRECTORY}/${CHECKOUT_RELATIVE_PATH}")
     # ensure the (possibly empty) directory exists
     if(NOT EXISTS "${_DIR}")
-        message(FATAL_ERROR "submodule directory does not exist")
+        message(WARNING "submodule directory does not exist. Creating...")
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${CHECKOUT_RELATIVE_PATH}
+            WORKING_DIRECTORY ${CHECKOUT_WORKING_DIRECTORY})
     endif(NOT EXISTS "${_DIR}")
 
     # if this file exists --> project has been checked out

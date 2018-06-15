@@ -1,12 +1,10 @@
 package:
   name: pyctest
-  version: '0.0.1'
+  version: '0.0.2'
 
 build:
-  number: 0
-  ignore_prefix_files: True
-  detect_binary_files_with_prefix: False
-  #binary_relocation: False
+  number: 1
+  binary_relocation: False
 
 source:
   git_rev: 4003891d4d493d8695bdd3854f510d0eaec4e01a

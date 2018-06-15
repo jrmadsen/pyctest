@@ -602,8 +602,6 @@ PYBIND11_MODULE(pycmake, cm)
                                             os.path.join("bin", "cmake"))
                  if not os.path.exists(_cmake_path):
                      print("Warning! Executable not found @ '{}'".format(_cmake_path))
-                 else:
-                     print("CMake executable: '{}'".format(_cmake_path))
                  )",
                  py::globals(), locals);
         return locals["_cmake_path"].cast<std::string>();
@@ -624,40 +622,28 @@ PYBIND11_MODULE(pycmake, cm)
         for(auto itr : pargs)
             cargs.push_back(str2char_convert(itr));
 
-        // print
-        for(auto itr : pargs)
-            std::cout << itr << std::endl;
-
         // structures passed
         int argc = pargs.size() + 1;
         char** argv = new char*[argc];
 
         // cmake executable
         auto _exe = exe_path();
-        std::cout << "exe: " << _exe << std::endl;
         argv[0] = str2char_convert(_exe);
 
         // fill argv
         for(unsigned i = 1; i < argc; ++i)
             argv[i] = cargs[i-1];
 
-        // print
-        for(unsigned i = 0; i < argc; ++i)
-            std::cout << argv[i] << " ";
-        std::cout << std::endl;
-
         // change working directory
         auto locals = py::dict("working_dir"_a = working_dir);
         py::exec(R"(
                  import os
 
-                 print("--> Current working directory: {}".format(os.getcwd()))
                  origwd = os.getcwd()
                  if len(working_dir) > 0:
                      if not os.path.exists(working_dir):
                          os.makedirs(working_dir)
                      os.chdir(working_dir)
-                 print("--> Current working directory: {}".format(os.getcwd()))
                  )",
                  py::globals(), locals);
 
@@ -668,9 +654,7 @@ PYBIND11_MODULE(pycmake, cm)
         py::exec(R"(
                  import os
 
-                 print("Current working directory: {}".format(os.getcwd()))
                  os.chdir(working_dir)
-                 print("Current working directory: {}".format(os.getcwd()))
                  )",
                  py::globals(), locals);
 
@@ -687,13 +671,11 @@ PYBIND11_MODULE(pycmake, cm)
         py::exec(R"(
                  import os
 
-                 print("--> Current working directory: {}".format(os.getcwd()))
                  origwd = os.getcwd()
                  if len(working_dir) > 0:
                      if not os.path.exists(working_dir):
                          os.makedirs(working_dir)
                      os.chdir(working_dir)
-                 print("--> Current working directory: {}".format(os.getcwd()))
 
                  _path = os.path.join(os.getcwd(), 'CMakeLists.txt')
                  if not os.path.exists(_path):
@@ -714,7 +696,6 @@ PYBIND11_MODULE(pycmake, cm)
         int argc = 2;
         char** argv = new char*[argc];
         auto _exe = exe_path();
-        std::cout << "exe: " << _exe << std::endl;
         argv[0] = str2char_convert(_exe);
         argv[1] = str2char_convert(".");
         pycm::cmake_main_driver(argc, argv);
@@ -724,9 +705,7 @@ PYBIND11_MODULE(pycmake, cm)
         py::exec(R"(
                  import os
 
-                 print("--> Current working directory: {}".format(os.getcwd()))
                  os.chdir(working_dir)
-                 print("--> Current working directory: {}".format(os.getcwd()))
                  )",
                  py::globals(), locals);
 

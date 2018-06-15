@@ -211,8 +211,6 @@ class CMakeBuild(build_ext, Command):
 
         cmake_args += [ '-DCMAKE_INSTALL_PREFIX={}'.format(os.path.join(extdir, "pyctest")) ]
         cmake_args += [ '-DPYBIND11_INSTALL={}'.format(str.upper(self.pybind11_install)) ]
-        cmake_args += [ '-DPYCTEST_STAGING_PREFIX={}'.format(os.path.join(extdir, "pyctest")) ]
-        cmake_args += [ '-DPYCTEST_DEVELOPER_INSTALL=ON' ]
 
         build_args = [ '--config', self.build_type ]
         install_args = [ '-DBUILD_TYPE={}'.format(self.build_type),

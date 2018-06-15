@@ -16,9 +16,6 @@ if(APPLE)
     endif(NOT "${CMAKE_CXX_COMPILER}" STREQUAL "/usr/bin/clang++")
 endif(APPLE)
 
-#message(STATUS "C compiler: ${CMAKE_C_COMPILER}")
-#message(STATUS "C++ compiler: ${CMAKE_CXX_COMPILER}")
-
 ################################################################################
 #
 #   CMake settings
@@ -62,6 +59,10 @@ foreach(_TYPE MAJOR MINOR PATCH)
     mark_as_advanced(PYCTEST_VERSION_${_TYPE})
 endforeach(_TYPE MAJOR MINOR PATCH)
 
+################################################################################
+#   Configuration
+################################################################################
+
 set(CMAKE_POSITION_INDEPENDENT_CODE ON CACHE BOOL "Compile as PIC" FORCE)
 set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME ignore)
 mark_as_advanced(PYCTEST_VERSION)
@@ -69,6 +70,8 @@ if(WIN32)
     add_definitions(-DNOMINMAX)
 endif(WIN32)
 
+################################################################################
+#   Configuration
 ################################################################################
 
 include(MacroUtilities)
@@ -80,7 +83,7 @@ include(BuildSettings)
 include(Packages)
 
 ################################################################################
-#   pyctest source
+#   CMake options
 ################################################################################
 
 set(BUILD_CursesDialog OFF CACHE BOOL "Disable building curses dialog" FORCE)
@@ -88,22 +91,28 @@ set(BUILD_QtDialog OFF CACHE BOOL "Disable building Qt dialog" FORCE)
 set(CTEST_TEST_CPACK OFF CACHE BOOL "Disable CTest testing of CPack" FORCE)
 set(CTEST_TEST_CTEST OFF CACHE BOOL "Disable CTest testing of CTest" FORCE)
 set(CMAKE_RUN_LONG_TESTS OFF CACHE BOOL "Disable CMake long tests" FORCE)
+set(CMake_INSTALL_COMPONENTS OFF CACHE BOOL "Using components when installing" FORCE)
+set(CMake_INSTALL_DEPENDENCIES OFF CACHE BOOL "Whether to install 3rd-party runtime dependencies" FORCE)
+
+################################################################################
+#   pyctest source
+################################################################################
 
 add_subdirectory(source)
 
 ################################################################################
-#   Package setup
-################################################################################
-
-include(PackageConfigure)
-
-################################################################################
-#   Testing
+#   Package
 ################################################################################
 enable_testing()
 include(CTest)
-include(Testing)
+include(PackageConfigure)
 
+################################################################################
+#   Examples
+################################################################################
 add_subdirectory(examples)
 
+################################################################################
+#   Features
+################################################################################
 print_features()
