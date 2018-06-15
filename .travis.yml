@@ -323,11 +323,11 @@ install:
     - conda config --set always_yes yes --set changeps1 no
     - conda update -q conda
     - conda info -a
-    - conda install conda-build python=${TRAVIS_PYTHON_VERSION}
-    - conda install anaconda anaconda-client
-    - python setup.py build
+    - conda create -q -n test-env python=${TRAVIS_PYTHON_VERSION}
+        anaconda anaconda-client conda-build
+    - source activate test-env
+    - python setup.py install
     - rm -rf build pyctest.egg-info .eggs dist
-    -
     - if [[ "${CONDA_UPLOAD}" -gt 0 ]]; then
           OLD_GIT_REV=$(grep 'git_rev' conda.yaml | awk '{print $NF}') ;
           NEW_GIT_REV=$(git rev-parse HEAD) ;
@@ -336,11 +336,7 @@ install:
               conda config --set anaconda_upload yes ;
               anaconda login --username jrmadsen --password ${ANACONDA_PASSWD} ;
               conda-build --user jrmadsen --token ${ANACONDA_TOKEN} . ;
-          else
-              conda-build . ;
           fi
-      else
-          conda-build . ;
       fi
 
 script:

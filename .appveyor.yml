@@ -2,8 +2,8 @@ version: 1.0.{build}
 
 
 image:
-- Visual Studio 2015
 - Visual Studio 2017
+- Visual Studio 2015
 
 
 test: off
@@ -20,14 +20,17 @@ platform:
 
 environment:
   matrix:
+  - CONDA: 36
+    CPP: 17
+    CONFIG: Release
+  - CONDA: 27
+    CPP: 17
+    CONFIG: Release
   - PYTHON: 36
     CPP: 14
     CONFIG: Release
   - PYTHON: 27
     CPP: 14
-    CONFIG: Release
-  - CONDA: 36
-    CPP: 17
     CONFIG: Release
 
 
