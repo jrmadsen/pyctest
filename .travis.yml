@@ -1,0 +1,462 @@
+# TiMEemory Travis CI file
+
+language: python
+
+
+cache:
+  directories:
+  - "$HOME/.cache/pip"
+  - "$HOME/.pyenv"
+
+
+# The apt packages here install our compiled code dependencies.
+matrix:
+  include:
+    # ------------------------------------------------------------------------ #
+    #
+    #   Python 2.7
+    #
+    # ------------------------------------------------------------------------ #
+    # GCC 4.9
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '2.7'
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-4.9
+            - g++-4.9
+            - build-essential
+            - cmake
+      env:
+        - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=Debug"
+    # GCC 5
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '2.7'
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-5
+            - g++-5
+            - build-essential
+            - cmake
+      env:
+        - MATRIX_EVAL="CC=$(which gcc-5) && CXX=$(which g++-5) && BUILD_TYPE=MinSizeRel"
+    # GCC 6
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '2.7'
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-6
+            - g++-6
+            - build-essential
+            - cmake
+      env:
+        - MATRIX_EVAL="CC=$(which gcc-6) && CXX=$(which g++-6) && BUILD_TYPE=RelWithDebInfo"
+    # GCC 7
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '2.7'
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-7
+            - g++-7
+            - build-essential
+            - cmake
+      env:
+        - MATRIX_EVAL="CC=$(which gcc-7) && CXX=$(which g++-7) && BUILD_TYPE=Release"
+    # Clang 4.0
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '2.7'
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-4.0
+            - ubuntu-toolchain-r-test
+          packages:
+            - clang-4.0
+            - clang++-4.0
+            - build-essential
+            - cmake
+      env:
+        - MATRIX_EVAL="CC=$(which clang-4.0) && CXX=$(which clang++-4.0) && BUILD_TYPE=Debug"
+    # Clang 5.0
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '2.7'
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-5.0
+            - ubuntu-toolchain-r-test
+          packages:
+            - clang-5.0
+            - clang++-5.0
+            - build-essential
+            - cmake
+      env:
+        - MATRIX_EVAL="CC=$(which clang-5.0) && CXX=$(which clang++-5.0) && BUILD_TYPE=MinSizeRel"
+    # ------------------------------------------------------------------------ #
+    #
+    #   Python 3.4
+    #
+    # ------------------------------------------------------------------------ #
+    # GCC 4.9
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '3.4'
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-4.9
+            - g++-4.9
+            - build-essential
+            - cmake3
+      env:
+        - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo"
+    # GCC 5
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '3.4'
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-5
+            - g++-5
+            - build-essential
+            - cmake3
+      env:
+        - MATRIX_EVAL="CC=$(which gcc-5) && CXX=$(which g++-5) && BUILD_TYPE=Release"
+    # GCC 6
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '3.4'
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-6
+            - g++-6
+            - build-essential
+            - cmake3
+      env:
+        - MATRIX_EVAL="CC=$(which gcc-6) && CXX=$(which g++-6) && BUILD_TYPE=Debug"
+    # GCC 7
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '3.4'
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-7
+            - g++-7
+            - build-essential
+            - cmake3
+      env:
+        - MATRIX_EVAL="CC=$(which gcc-7) && CXX=$(which g++-7) && BUILD_TYPE=MinSizeRel"
+    # Clang 4.0
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '3.4'
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-4.0
+            - ubuntu-toolchain-r-test
+          packages:
+            - clang-4.0
+            - clang++-4.0
+            - build-essential
+            - cmake3
+      env:
+        - MATRIX_EVAL="CC=$(which clang-4.0) && CXX=$(which clang++-4.0) && BUILD_TYPE=RelWithDebInfo"
+    # Clang 5.0
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '3.4'
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-5.0
+            - ubuntu-toolchain-r-test
+          packages:
+            - clang-5.0
+            - clang++-5.0
+            - build-essential
+            - cmake3
+      env:
+        - MATRIX_EVAL="CC=$(which clang-5.0) && CXX=$(which clang++-5.0) && BUILD_TYPE=Release"
+    # ------------------------------------------------------------------------ #
+    #
+    #   Python 3.5
+    #
+    # ------------------------------------------------------------------------ #
+    # GCC 4.9
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '3.5'
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-4.9
+            - g++-4.9
+            - build-essential
+            - cmake3
+      env:
+        - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=Debug"
+    # GCC 5
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '3.5'
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-5
+            - g++-5
+            - build-essential
+            - cmake3
+      env:
+        - MATRIX_EVAL="CC=$(which gcc-5) && CXX=$(which g++-5) && BUILD_TYPE=MinSizeRel"
+    # GCC 6
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '3.5'
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-6
+            - g++-6
+            - build-essential
+            - cmake3
+      env:
+        - MATRIX_EVAL="CC=$(which gcc-6) && CXX=$(which g++-6) && BUILD_TYPE=RelWithDebInfo"
+    # GCC 7
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '3.5'
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-7
+            - g++-7
+            - build-essential
+            - cmake3
+      env:
+        - MATRIX_EVAL="CC=$(which gcc-7) && CXX=$(which g++-7) && BUILD_TYPE=Release"
+    # Clang 4.0
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '3.5'
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-4.0
+            - ubuntu-toolchain-r-test
+          packages:
+            - clang-4.0
+            - clang++-4.0
+            - build-essential
+            - cmake3
+      env:
+        - MATRIX_EVAL="CC=$(which clang-4.0) && CXX=$(which clang++-4.0) && BUILD_TYPE=Debug"
+    # Clang 5.0
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '3.5'
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-5.0
+            - ubuntu-toolchain-r-test
+          packages:
+            - clang-5.0
+            - clang++-5.0
+            - build-essential
+            - cmake3
+      env:
+        - MATRIX_EVAL="CC=$(which clang-5.0) && CXX=$(which clang++-5.0) && BUILD_TYPE=MinSizeRel"
+    # ------------------------------------------------------------------------ #
+    #
+    #   Python 3.6
+    #
+    # ------------------------------------------------------------------------ #
+    # GCC 4.9
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '3.6'
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-4.9
+            - g++-4.9
+            - build-essential
+            - cmake
+      env:
+        - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo"
+    # GCC 5
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '3.6'
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-5
+            - g++-5
+            - build-essential
+            - cmake
+      env:
+        - MATRIX_EVAL="CC=$(which gcc-5) && CXX=$(which g++-5) && BUILD_TYPE=Release"
+    # GCC 6
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '3.6'
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-6
+            - g++-6
+            - build-essential
+            - cmake
+      env:
+        - MATRIX_EVAL="CC=$(which gcc-6) && CXX=$(which g++-6) && BUILD_TYPE=Debug"
+    # GCC 7
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '3.6'
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-7
+            - g++-7
+            - build-essential
+            - cmake
+      env:
+        - MATRIX_EVAL="CC=$(which gcc-7) && CXX=$(which g++-7) && BUILD_TYPE=MinSizeRel"
+    # Clang 4.0
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '3.6'
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-4.0
+            - ubuntu-toolchain-r-test
+          packages:
+            - clang-4.0
+            - clang++-4.0
+            - build-essential
+            - cmake
+      env:
+        - MATRIX_EVAL="CC=$(which clang-4.0) && CXX=$(which clang++-4.0) && BUILD_TYPE=RelWithDebInfo"
+    # Clang 5.0
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '3.6'
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-5.0
+            - ubuntu-toolchain-r-test
+          packages:
+            - clang-5.0
+            - clang++-5.0
+            - build-essential
+            - cmake
+      env:
+        - MATRIX_EVAL="CC=$(which clang-5.0) && CXX=$(which clang++-5.0) && BUILD_TYPE=Release"
+    # ------------------------------------------------------------------------ #
+
+
+before_install:
+    - eval "${MATRIX_EVAL}"
+    - export CC=${CC}
+    - export CXX=${CXX}
+    - export PYBINPATH=$(dirname $(which python))
+    - export PYROOTPATH=$(dirname ${PYBINPATH})
+    - export PATH=${PYBINPATH}:${PATH}
+    - export CMAKE_PREFIX_PATH=${PYROOTPATH}:${CMAKE_PREFIX_PATH}
+    - export PYTHON_VERSION="$(python --version | awk '{print $NF}')"
+    - echo "CC = ${CC} $(${CC} -dumpversion)"
+    - echo "CXX = ${CXX} $(${CXX} -dumpversion)"
+    - echo "Python = $(which python) [version ${PYTHON_VERSION}]"
+    - echo "PYBINPATH = ${PYBINPATH}"
+    - echo "PYROOTPATH = ${PYROOTPATH}"
+    - echo "CMAKE_PREFIX_PATH = ${CMAKE_PREFIX_PATH}"
+
+
+install:
+    #
+    # Python installation
+    #
+    - cd ${SOURCE_DIR}
+    - python${TRAVIS_PYTHON_VERSION} setup.py install
+
+
+script:
+    #
+    # Python testing
+    #
+    - mkdir -p ${HOME}/pyctest-test
+    # go to empty directory for testing
+    - cd ${HOME}/pyctest-test
+    - python${TRAVIS_PYTHON_VERSION} -c "import pyctest; import pyctest.pyctest; import pyctest.pycmake"
