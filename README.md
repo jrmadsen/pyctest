@@ -1,6 +1,38 @@
 # pyctest
 
+## Available on PyPi and Anaconda
+
+- PyPi has the source distribution
+  - PyPi installs can take a long time since CMake must be compiled from scratch
+- Anaconda has compiled distributions
+
+### Travis
+
+[![Build Status](https://travis-ci.org/jrmadsen/pyctest.svg?branch=master)](https://travis-ci.org/jrmadsen/pyctest)
+
+### AppVeyor
+
+[![Build status](https://ci.appveyor.com/api/projects/status/p7m76ovx7sg781pf/branch/master?svg=true)](https://ci.appveyor.com/project/jrmadsen/pyctest/branch/master)
+
+### Anaconda
+
+[![Anaconda-Server Badge](https://anaconda.org/jrmadsen/pyctest/badges/version.svg)](https://anaconda.org/jrmadsen/pyctest)
+
+[![Anaconda-Server Badge](https://anaconda.org/jrmadsen/pyctest/badges/latest_release_date.svg)](https://anaconda.org/jrmadsen/pyctest)
+
+[![Anaconda-Server Badge](https://anaconda.org/jrmadsen/pyctest/badges/platforms.svg)](https://anaconda.org/jrmadsen/pyctest)
+
+[![Anaconda-Server Badge](https://anaconda.org/jrmadsen/pyctest/badges/installer/conda.svg)](https://conda.anaconda.org/jrmadsen)
+
+[![Anaconda-Server Badge](https://anaconda.org/jrmadsen/pyctest/badges/downloads.svg)](https://anaconda.org/jrmadsen/pyctest)
+
+### Example Usage Results
+
 Results from running the TomoPy example can be found at the [TomoPy CDash Testing Dashboard @ NERSC](https://cdash.nersc.gov/index.php?project=TomoPy)
+
+- Python code with C extensions without CMake build system
+- The build logs from "python setup.py install" are registered in the "Build" section
+- The `nosetests test` command + other are wrapped into CTests
 
 ### Examples
 
