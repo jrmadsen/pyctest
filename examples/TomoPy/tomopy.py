@@ -14,12 +14,16 @@ import pyctest.pycmake as pycmake
 #------------------------------------------------------------------------------#
 def configure():
 
+    # limit the mode choices
+    mode_choices = [ "Build", "Test", "Coverage", "MemCheck" ]
     # just a help message
     default_pyexe_help = "Python executable to use this can be absolue, relative, or CMake path"
     # this can be absolue, relative, or CMake path
     default_pyexe = "${CMAKE_CURRENT_LIST_DIR}/miniconda/bin/python"
+    # the default testing mode
+    default_ctest_mode = "Submit"
     # default arguments to provide to ctest
-    default_ctest_args = ["-VV", "-S", "Test.cmake"]
+    default_ctest_args = ["-VV"]
     # where the source directory is located by default
     default_source = os.path.join(os.getcwd(), "tomopy-src")
     # where the binary directory is located by default
@@ -45,6 +49,11 @@ def configure():
                         help="Working directory",
                         type=str,
                         default=default_binary)
+    parser.add_argument("-m", "--mode",
+                        help="Test mode",
+                        type=str,
+                        choices=mode_choices,
+                        default=default_ctest_mode)
 
     args = parser.parse_args()
 
@@ -73,12 +82,6 @@ def configure():
         cmd.SetOutputQuiet(False)
         cmd.SetErrorQuiet(False)
         cmd.Execute()
-        print("Command: {}".format(cmd.Command()))
-        print("Output: {}".format(cmd.Output()))
-        print("Error: {}".format(cmd.Error()))
-        print("Result: {}".format(cmd.Result()))
-        print("Results: {}".format(cmd.Results()))
-
 
     # copy cmake files over
     for f in [ "PreInit", "PostInit" ]:
@@ -89,13 +92,16 @@ def configure():
             shutil.copyfile(fsrc, fdst)
 
     # copy python files over
-    for f in [ "measurement", "run_tomopy" ]:
+    for f in [ "coverage", "run_tomopy" ]:
         fsrc = os.path.join(os.getcwd(), "{}.py".format(f))
         fdst = os.path.join(args.binary_dir, "{}.py".format(f))
         if os.path.exists(fsrc) and fsrc != fdst:
             print("Copying file '{}' to '{}'...".format(fsrc, fdst))
             shutil.copyfile(fsrc, fdst)
             shutil.copymode(fsrc, fdst)
+
+    # append the mode to the CTest args
+    args.ctest_args.extend(["-S", "{}.cmake".format(args.mode)])
 
     return args
 
@@ -134,7 +140,7 @@ def run_pyctest():
         platform.python_version())
 
     # submit after "Test" has been called
-    pyctest.TRIGGER = "Test"
+    pyctest.TRIGGER = args.mode
     # how to checkout the code
     pyctest.CHECKOUT_COMMAND = "${} -E copy_directory {} {}/".format(
         "{CTEST_CMAKE_COMMAND}", source_dir, binary_dir)
@@ -168,10 +174,7 @@ def run_pyctest():
     # create a CTest that wraps "nosetest"
     test = pyctest.test()
     test.SetName("nosetests")
-    test.SetCommand(["nosetests", "test",
-                     "--with-coverage",
-                     # "--cover-xml", "--cover-xml-file=cover.xml",
-                     "--nocapture"])
+    test.SetCommand(["nosetests", "test", "--cover-xml", "--cover-xml-file=coverage.xml"])
     # set directory to run test
     test.SetProperty("WORKING_DIRECTORY", binary_dir)
 
@@ -191,6 +194,7 @@ def run_pyctest():
             # for shepp3d only
             # loop over algorithms and create tests for each
             for algorithm in algorithms:
+                continue
                 # algorithms
                 test = pyctest.test()
                 name = "{}_{}".format(phantom, algorithm)

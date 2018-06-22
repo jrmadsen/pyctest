@@ -265,7 +265,7 @@ install:
           if [[ -n "${NEW_GIT_REV}" ]]; then
               sed -i "s/${OLD_GIT_REV}/${NEW_GIT_REV}/1" conda.yaml ;
               conda config --set anaconda_upload yes ;
-              anaconda login --username jrmadsen --password ${ANACONDA_PASSWD} ;
+              #anaconda login --username jrmadsen --password ${ANACONDA_PASSWD} ;
               conda-build --user jrmadsen --token ${ANACONDA_TOKEN} . ;
           fi
       fi

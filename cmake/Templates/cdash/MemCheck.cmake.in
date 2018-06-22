@@ -11,7 +11,8 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
     message(STATUS " -- Starting ${MODEL} MemoryCheck - ${CTEST_BUILD_NAME} --")
 
     setup(MemoryCheck)
-    ctest_memcheck(BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE ret)
+    ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND SCHEDULE_RANDOM OFF RETURN_VALUE rctest)
+    ctest_memcheck(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND RETURN_VALUE rcmemcheck)
     submit(MemoryCheck)
 
     message(STATUS " -- Finished ${MODEL} MemoryCheck - ${CTEST_BUILD_NAME} --")
