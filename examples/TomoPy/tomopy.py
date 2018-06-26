@@ -21,7 +21,7 @@ def configure():
     # this can be absolue, relative, or CMake path
     default_pyexe = "${CMAKE_CURRENT_LIST_DIR}/miniconda/bin/python"
     # the default testing mode
-    default_ctest_mode = "Submit"
+    default_ctest_mode = "Test"
     # default arguments to provide to ctest
     default_ctest_args = ["-VV"]
     # where the source directory is located by default
@@ -177,24 +177,30 @@ def run_pyctest():
     test.SetCommand(["nosetests", "test", "--cover-xml", "--cover-xml-file=coverage.xml"])
     # set directory to run test
     test.SetProperty("WORKING_DIRECTORY", binary_dir)
+    test.SetProperty("ENVIRONMENT", "OMP_NUM_THREADS=1")
 
     # phantoms to test
-    phantoms = [ "shepp3d", "baboon", "cameraman",
-                 "barbara", "checkerboard", "lena", "peppers" ]
+    phantoms = [ "baboon", "cameraman",
+                 "barbara", "checkerboard",
+                 "lena", "peppers",
+                 "shepp3d" ]
     # the algorithms to test
     algorithms = [ 'gridrec', 'art', 'fbp', 'bart', 'mlem', 'osem', 'sirt',
                    'ospml_hybrid', 'ospml_quad', 'pml_hybrid', 'pml_quad' ]
 
+
     # loop over phantoms
     for phantom in phantoms:
-        nsize = "128"
+        nsize = 128
         if phantom != "shepp3d":
-            nsize = "512"
+            nsize = 512
         else:
             # for shepp3d only
             # loop over algorithms and create tests for each
             for algorithm in algorithms:
+                # SKIP FOR NOW -- TOO MUCH OUTPUT/INFORMATION
                 continue
+                # SKIP FOR NOW -- TOO MUCH OUTPUT/INFORMATION
                 # algorithms
                 test = pyctest.test()
                 name = "{}_{}".format(phantom, algorithm)
@@ -203,7 +209,7 @@ def run_pyctest():
                 test.SetCommand(["./run_tomopy.py",
                                  "-a", algorithm,
                                  "-p", phantom,
-                                 "-s", nsize,
+                                 "-s", "{}".format(nsize),
                                  "-A", "360",
                                  "-f", "jpeg",
                                  "-S", "2",
@@ -214,13 +220,17 @@ def run_pyctest():
         name = "{}_{}".format(phantom, "comparison")
         test.SetName(name)
         test.SetProperty("WORKING_DIRECTORY", binary_dir)
-        test.SetCommand(["./run_tomopy.py",
+        test.SetProperty("ENVIRONMENT", "OMP_NUM_THREADS=1")
+        test.SetProperty("TIMEOUT", "3600") # one hour
+        test.SetCommand([pyexe,
+                         "./run_tomopy.py",
                          "--compare", "all",
                          "-p", phantom,
-                         "-s", nsize,
+                         "-s", "{}".format(nsize),
                          "-A", "360",
                          "-f", "jpeg",
-                         "-S", "1"])
+                         "-S", "1",
+                         "-i", "1"])
 
     # generate the CTestConfig.cmake and CTestCustom.cmake
     # configuration files, copy over

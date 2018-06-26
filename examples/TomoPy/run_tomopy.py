@@ -24,6 +24,10 @@ algorithms = [ 'gridrec', 'art', 'fbp', 'bart', 'mlem', 'osem', 'sirt',
 
 
 #------------------------------------------------------------------------------#
+image_quality = {}
+
+
+#------------------------------------------------------------------------------#
 def convert_image(fname, current_format, new_format):
 
     _fext = new_format
@@ -74,8 +78,16 @@ def output_image(image, fname):
 
 
 #------------------------------------------------------------------------------#
-def rescale_image(rec, nimages, scale, transform=True):
+def print_size(rec, msg = ""):
+    print("{} Image size: {} x {} x {}".format(
+        msg,
+        rec[0].shape[0],
+        rec[0].shape[1],
+        rec.shape[0]))
 
+
+#------------------------------------------------------------------------------#
+def normalize(rec):
     rec_n = rec.copy()
     try:
         _min = np.amin(rec_n)
@@ -84,6 +96,69 @@ def rescale_image(rec, nimages, scale, transform=True):
         if _max > 0.0:
             rec_n /= 0.5 * _max
         rec_n -= 1
+    except Exception as e:
+        print("  --> ##### {}...".format(e))
+        rec_n = rec.copy()
+
+    return rec_n
+
+
+#------------------------------------------------------------------------------#
+def trim_border(rec, nimages, drow, dcol):
+
+    rec_n = rec.copy()
+    nrows = rec[0].shape[0] - drow
+    ncols = rec[0].shape[1] - dcol
+
+    #print("trim border: {} x {} x {}".format(nrows, ncols, nimages))
+    try:
+        rec_tmp = np.ndarray([nimages, nrows, ncols])
+        for i in range(nimages):
+            _xb = int(0.5*drow)
+            _xe = _xb + nrows
+            _yb = int(0.5*dcol)
+            _ye = _yb + ncols
+            #print("X = ({}, {}), Y = ({}, {})".format(_xb, _xe, _yb, _ye))
+            #print_size(rec_tmp, "rec_tmp")
+            #print_size(rec_n, "rec_n")
+            rec_tmp[i, :, :] = rec_n[i, _xb:_xe, _yb:_ye]
+        rec_n = rec_tmp
+    except Exception as e:
+        print("  --> ##### {}...".format(e))
+        rec_n = rec.copy()
+
+    #print_size(rec_n, "Trimmed")
+    return rec_n
+
+
+#------------------------------------------------------------------------------#
+def fill_border(rec, nimages, drow, dcol):
+
+    rec_n = rec.copy()
+    nrows = rec[0].shape[0] + drow
+    ncols = rec[0].shape[1] + dcol
+
+    try:
+        rec_tmp = np.ndarray([nimages, nrows, ncols])
+        for i in range(nimages):
+            _xb = int(0.5*drow)
+            _xe = _xb + rec_n[i].shape[0]
+            _yb = int(0.5*dcol)
+            _ye = _yb + rec_n[i].shape[1]
+            rec_tmp[i, _xb:_xe, _yb:_ye] = rec_n[i, :, :]
+        rec_n = rec_tmp
+    except Exception as e:
+        print("  --> ##### {}...".format(e))
+        rec_n = rec.copy()
+
+    return rec_n
+
+
+#------------------------------------------------------------------------------#
+def rescale_image(rec, nimages, scale, transform=True):
+
+    rec_n = normalize(rec.copy())
+    try:
         import skimage.transform
         if transform is True:
             _nrows = rec[0].shape[0] * scale
@@ -170,27 +245,56 @@ def generate(phantom = "shepp3d", nsize = 512, nangles = 360):
 
 #------------------------------------------------------------------------------#
 @timemory.util.auto_timer()
-def run(phantom, algorithm, size, nangles, ncores, format, scale, ncol, get_recon = False):
+def run(phantom, algorithm, size, nangles, ncores, format, scale, ncol, nitr, get_recon = False):
 
     nitr = size
     ndigits = 6
     imgs = []
-    fname = os.path.join(os.getcwd(), phantom)
-    fname = os.path.join(fname, algorithm)
-    fname = os.path.join(fname, "stack_{}_".format(algorithm))
+    bname = os.path.join(os.getcwd(), phantom)
+    bname = os.path.join(bname, algorithm)
+    oname = os.path.join(bname, "orig_{}_".format(algorithm))
+    fname = os.path.join(bname, "stack_{}_".format(algorithm))
+    dname = os.path.join(bname, "diff_{}_".format(algorithm))
 
     prj, ang, obj = generate(phantom, size, nangles)
 
     if nitr != prj.shape[0]:
         nitr = prj.shape[0]
 
-    with timemory.util.auto_timer("[tomopy.recon(algorithm='{}')]".format(algorithm)):
-        rec = tomopy.recon(prj, ang, algorithm=algorithm, ncore=ncores)
+    if algorithm == "fbp" or algorithm == "gridrec":
+        with timemory.util.auto_timer("[tomopy.recon(algorithm='{}')]".format(algorithm)):
+            rec = tomopy.recon(prj, ang, algorithm=algorithm, ncore=ncores)
+    else:
+        with timemory.util.auto_timer("[tomopy.recon(algorithm='{}')]".format(algorithm)):
+            rec = tomopy.recon(prj, ang, algorithm=algorithm, ncore=ncores, num_iter=nitr)
+
+    obj = normalize(obj)
+    rec = normalize(rec)
+
+    rec = trim_border(rec, rec.shape[0],
+                      rec[0].shape[0] - obj[0].shape[0],
+                      rec[0].shape[1] - obj[0].shape[1])
+
+    #obj = fill_border(obj, rec.shape[0],
+    #                  rec[0].shape[0] - obj[0].shape[0],
+    #                  rec[0].shape[1] - obj[0].shape[1])
+
+
+    print_size(obj, "    --> Original")
+    print_size(rec, "    --> Reconstructed")
+
+    if not "orig" in image_quality:
+        image_quality["orig"] = obj
+
+    dif = obj - rec
+    image_quality[algorithm] = dif
 
     if get_recon is True:
         return rec
 
+    imgs.extend(output_images(obj, oname, format, scale, ncol))
     imgs.extend(output_images(rec, fname, format, scale, ncol))
+    imgs.extend(output_images(dif, dname, format, scale, ncol))
 
     return imgs
 
@@ -204,60 +308,67 @@ def main(args):
     if len(args.compare) > 0:
         algorithm = "comparison"
 
-    print('\nArguments:\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n'.format(
+    print('\nArguments:\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n{} = {}\n'.format(
         "\tPhantom", args.phantom,
         "\tAlgorithm", algorithm,
         "\tSize", args.size,
         "\tAngles", args.angles,
-        "\t# of cores", args.ncores,
         "\tFormat", args.format,
         "\tScale", args.scale,
-        "\t# of columns", args.ncol,
-        "\tcomparison", args.compare))
+        "\tcomparison", args.compare,
+        "\tnumber of cores", args.ncores,
+        "\tnumber of columns", args.ncol,
+        "\tnumber iterations", args.num_iter))
 
     if len(args.compare) > 0:
         args.ncol = 1
         args.scale = 1
         arr = None
+        dif = None
         _nrows = None
         _ncols = None
-        _nitr = 0
+        _nitr = 1
         seq = None
         for alg in args.compare:
             print("Reconstructing with {}...".format(alg))
             if seq is None:
-                seq = "{}".format(alg)
+                seq = "orig-{}".format(alg)
             else:
                 seq = "{}-{}".format(seq, alg)
             tmp = run(args.phantom, alg, args.size, args.angles,
                       args.ncores, args.format, args.scale, args.ncol,
-                      get_recon=True)
+                      args.num_iter, get_recon=True)
             tmp = rescale_image(tmp, args.size, args.scale, transform=False)
             _nrow = tmp[0].shape[0]
             _ncol = tmp[0].shape[1]
             if arr is None:
                 _nrows = _nrow
-                _ncols = _ncol * len(args.compare)
+                _ncols = _ncol * (len(args.compare)+1)
                 arr = np.ndarray([tmp.shape[0], _nrows, _ncols], dtype=float)
+                dif = np.ndarray([tmp.shape[0], _nrows, _ncols], dtype=float)
+                arr[:, :, 0:_ncol] = image_quality["orig"][:,:,:]
+                dif[:, :, 0:_ncol] = image_quality["orig"][:,:,:]
             _b = (_ncol*_nitr)
             _nitr += 1
             _e = (_ncol*_nitr)
             arr[:, :, _b:_e] = tmp[:,:,:]
+            dif[:, :, _b:_e] = image_quality[alg][:,:,:]
         #
         print("Total array size: {} x {} x {}".format(
             arr[0].shape[0],
             arr[0].shape[1],
             arr.shape[0]))
 
-        fname = os.path.join(os.getcwd(), args.phantom)
-        fname = os.path.join(fname, algorithm)
-        fname = os.path.join(fname, "stack_{}_".format(seq))
-        imgs = output_images(arr, fname,
-                             args.format, args.scale, args.ncol)
+        bname = os.path.join(os.getcwd(), args.phantom)
+        bname = os.path.join(bname, algorithm)
+        fname = os.path.join(bname, "stack_{}_".format(seq))
+        dname = os.path.join(bname, "diff_{}_".format(seq))
+        imgs = output_images(arr, fname, args.format, args.scale, args.ncol)
+        imgs.extend(output_images(dif, dname, args.format, args.scale, args.ncol))
     else:
         print("Reconstructing with {}...".format(args.algorithm))
         imgs = run(args.phantom, args.algorithm, args.size, args.angles,
-                   args.ncores, args.format, args.scale, args.ncol)
+                   args.ncores, args.format, args.scale, args.ncol, args.num_iter)
 
 
     # timing report to stdout
@@ -325,6 +436,8 @@ if __name__ == "__main__":
                         default=1, type=int)
     parser.add_argument("--compare", help="Generate comparison",
                         nargs='*', default=["none"], type=str)
+    parser.add_argument("-i", "--num-iter", help="Number of iterations",
+                        default=10, type=int)
 
     args = timemory.options.add_args_and_parse_known(parser)
 

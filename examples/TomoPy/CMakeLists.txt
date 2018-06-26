@@ -3,7 +3,6 @@ set(COPY_DIR ${PROJECT_BINARY_DIR}/examples/TomoPy)
 set(FILES
     PyCTestPreInit.cmake
     README.md
-    measurement.py
     run_tomopy.py
     tomopy.py
 )
