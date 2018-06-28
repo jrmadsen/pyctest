@@ -239,15 +239,9 @@ before_install:
     - echo "PYROOTPATH = ${PYROOTPATH}"
     - echo "CMAKE_PREFIX_PATH = ${CMAKE_PREFIX_PATH}"
 
-
 install:
-    - eval "${MATRIX_EVAL}"
-    - export CONDA_UPLOAD
-    - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-          wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
-      else
-          wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-      fi
+    - export CPY_MAJOR=$(echo "${TRAVIS_PYTHON_VERSION}" | sed 's/\./ /g' | awk '{print $1}')
+    - wget https://repo.continuum.io/miniconda/Miniconda${CPY_MAJOR}-latest-Linux-x86_64.sh -O miniconda.sh
     - bash miniconda.sh -b -p $HOME/miniconda
     - export PATH="$HOME/miniconda/bin:$PATH"
     - hash -r
@@ -265,7 +259,6 @@ install:
           if [[ -n "${NEW_GIT_REV}" ]]; then
               sed -i "s/${OLD_GIT_REV}/${NEW_GIT_REV}/1" conda.yaml ;
               conda config --set anaconda_upload yes ;
-              #anaconda login --username jrmadsen --password ${ANACONDA_PASSWD} ;
               conda-build --user jrmadsen --token ${ANACONDA_TOKEN} . ;
           fi
       fi

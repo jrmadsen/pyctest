@@ -46,7 +46,7 @@ install:
   #- anaconda login --username jrmadsen --password "%ANACONDA_PASSWD%"
 
 build_script:
-  - python setup.py install
-  - python -c "import pyctest; import pyctest.pyctest; import pyctest.pycmake"
+  #- python setup.py install
+  #- python -c "import pyctest; import pyctest.pyctest; import pyctest.pycmake"
   - python update-conda-yaml.py
   - conda-build --user jrmadsen --token "%ANACONDA_TOKEN%" .
