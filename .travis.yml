@@ -254,13 +254,9 @@ install:
     - python setup.py install
     - rm -rf build pyctest.egg-info .eggs dist
     - if [[ "${CONDA_UPLOAD}" -gt 0 ]]; then
-          OLD_GIT_REV=$(grep 'git_rev' conda.yaml | awk '{print $NF}') ;
-          NEW_GIT_REV=$(git rev-parse HEAD) ;
-          if [[ -n "${NEW_GIT_REV}" ]]; then
-              sed -i "s/${OLD_GIT_REV}/${NEW_GIT_REV}/1" conda.yaml ;
-              conda config --set anaconda_upload yes ;
-              conda-build --user jrmadsen --token ${ANACONDA_TOKEN} . ;
-          fi
+          conda config --set anaconda_upload yes ;
+          python update-conda-yaml.py ;
+          conda-build --user jrmadsen --token ${ANACONDA_TOKEN} . ;
       fi
 
 script:

@@ -23,6 +23,12 @@ environment:
       PYTHON_ARCH: "64"
     - PYTHON_VERSION: "3.6"
       PYTHON_ARCH: "64"
+    - PYTHON_VERSION: "2.7"
+      PYTHON_ARCH: "32"
+    - PYTHON_VERSION: "3.5"
+      PYTHON_ARCH: "32"
+    - PYTHON_VERSION: "3.6"
+      PYTHON_ARCH: "32"
 
 install:
   - if "%PYTHON_VERSION%" == "3.5" set "BASE_PYTHON_VERSION=35"
@@ -43,7 +49,6 @@ install:
   - conda create -q -n test-env python=%PYTHON_VERSION% anaconda anaconda-client
   - "%CONDA_ROOT%\\Scripts\\activate test-env"
   - conda config --set anaconda_upload yes
-  #- anaconda login --username jrmadsen --password "%ANACONDA_PASSWD%"
 
 build_script:
   #- python setup.py install

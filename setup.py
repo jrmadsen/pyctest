@@ -245,9 +245,16 @@ class CMakeBuild(build_ext, Command):
         install_args = [ '-DBUILD_TYPE={}'.format(self.build_type),
                          '-P', 'cmake_install.cmake' ]
 
+        env_arch = os.environ.get("PYTHON_ARCH")
         if platform.system() == "Windows":
-            if sys.maxsize > 2**32 or platform.architecture()[0] == '64bit':
+            if platform.architecture()[0] == '64bit':
                 cmake_args += ['-A', 'x64']
+            elif env_arch is None:
+                if sys.maxsize > 2**32:
+                    cmake_args += ['-A', 'x64']
+            elif env_arch is not None and env_arch == "64":
+                cmake_args += ['-A', 'x64']
+            cmake_args += ['-DCMake_MSVC_PARALLEL=ON']
             build_args += ['--target', 'ALL_BUILD', '--', '/m' ]
         else:
             nproc = '-j4'

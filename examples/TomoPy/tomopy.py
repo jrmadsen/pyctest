@@ -6,6 +6,7 @@ import shutil
 import platform
 import argparse
 import traceback
+import multiprocessing
 
 import pyctest.pyctest as pyctest
 import pyctest.pycmake as pycmake
@@ -16,6 +17,7 @@ def configure():
 
     # limit the mode choices
     mode_choices = [ "Build", "Test", "Coverage", "MemCheck" ]
+    model_choices = [ "Nightly", "Continuous", "Experimental" ]
     # just a help message
     default_pyexe_help = "Python executable to use this can be absolue, relative, or CMake path"
     # this can be absolue, relative, or CMake path
@@ -28,6 +30,14 @@ def configure():
     default_source = os.path.join(os.getcwd(), "tomopy-src")
     # where the binary directory is located by default
     default_binary = os.path.join(os.getcwd(), "ctest-tomopy")
+    # default model
+    default_model = "Continuous"
+    # number of cores
+    default_ncores = multiprocessing.cpu_count()
+    # number of simultaneous jobs
+    default_njobs = 1
+    # number of iterations
+    default_nitr = 1
 
     # argument parser
     parser = argparse.ArgumentParser()
@@ -54,6 +64,23 @@ def configure():
                         type=str,
                         choices=mode_choices,
                         default=default_ctest_mode)
+    parser.add_argument("-M", "--model",
+                        help="CTest submission track",
+                        type=str,
+                        choices=model_choices,
+                        default=default_model)
+    parser.add_argument("-n", "--ncores",
+                        help="number of cores",
+                        type=int,
+                        default=default_ncores)
+    parser.add_argument("-j", "--jobs",
+                        help="number of concurrent jobs",
+                        type=int,
+                        default=default_njobs)
+    parser.add_argument("-i", "--num-iter",
+                        help="number of iterations",
+                        type=int,
+                        default=default_nitr)
 
     args = parser.parse_args()
 
@@ -102,6 +129,8 @@ def configure():
 
     # append the mode to the CTest args
     args.ctest_args.extend(["-S", "{}.cmake".format(args.mode)])
+    if args.jobs > 0:
+        args.ctest_args.append("-j{}".format(args.jobs))
 
     return args
 
@@ -147,7 +176,7 @@ def run_pyctest():
     # how to build the code
     pyctest.BUILD_COMMAND = "{} setup.py build_ext --inplace".format(pyexe)
     # the submission track in CDash (default = Nightly)
-    pyctest.MODEL = "Continuous"
+    pyctest.MODEL = args.model
     # custom variables
     pyctest.CUSTOM_COVERAGE_EXCLUDE = "NONE"
     pyctest.CUSTOM_MAXIMUM_NUMBER_OF_ERRORS = "200"
@@ -213,7 +242,8 @@ def run_pyctest():
                                  "-A", "360",
                                  "-f", "jpeg",
                                  "-S", "2",
-                                 "-c", "8"])
+                                 "-c", "8",
+                                 "-i", "{}".format(args.num_iter)])
 
         # create a test comparing all the algorithms
         test = pyctest.test()
@@ -230,7 +260,7 @@ def run_pyctest():
                          "-A", "360",
                          "-f", "jpeg",
                          "-S", "1",
-                         "-i", "1"])
+                         "-i", "{}".format(args.num_iter)])
 
     # generate the CTestConfig.cmake and CTestCustom.cmake
     # configuration files, copy over

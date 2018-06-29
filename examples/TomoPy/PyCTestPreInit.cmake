@@ -35,7 +35,7 @@ if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/miniconda/bin/conda")
 
     set(CONDA_PACKAGE_INSTALL ON)
     if("${PYTHON_VERSION}" VERSION_EQUAL "2.7")
-        set(MINICONDA_VER "Miniconda")
+        set(MINICONDA_VER "Miniconda2")
         list(APPEND CONDA_PKGS "futures")
     else()
         set(MINICONDA_VER "Miniconda3")
