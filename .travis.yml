@@ -156,7 +156,11 @@ before_install:
 install:
     - eval "${MATRIX_EVAL}"
     - export CPY_MAJOR=$(echo "${TRAVIS_PYTHON_VERSION}" | sed 's/\./ /g' | awk '{print $1}')
-    - wget https://repo.continuum.io/miniconda/Miniconda${CPY_MAJOR}-latest-Linux-x86_64.sh -O miniconda.sh
+    - export CPY_OS=Linux
+    - if [[ -n "${MACOSX}" ]]; then
+        export CPY_OS=MacOSX ;
+      fi
+    - wget https://repo.continuum.io/miniconda/Miniconda${CPY_MAJOR}-latest-${CPY_OS}-x86_64.sh -O miniconda.sh
     - bash miniconda.sh -b -p $HOME/miniconda
     - export PATH="$HOME/miniconda/bin:$PATH"
     - hash -r
