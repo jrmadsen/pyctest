@@ -37,7 +37,7 @@ matrix:
     - os: osx
       osx_image: xcode9.4
       env:
-        - MATRIX_EVAL="PYTHON_VERSION=2.7 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
+        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=2.7 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
     # GCC 5
     - os: linux
       dist: trusty
@@ -79,7 +79,7 @@ matrix:
     - os: osx
       osx_image: xcode9.4
       env:
-        - MATRIX_EVAL="PYTHON_VERSION=3.5 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
+        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.5 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
     # GCC 6
     - os: linux
       dist: trusty
@@ -121,7 +121,7 @@ matrix:
     - os: osx
       osx_image: xcode9.4
       env:
-        - MATRIX_EVAL="PYTHON_VERSION=3.6 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
+        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.6 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
     # GCC 7
     - os: linux
       dist: trusty
@@ -146,10 +146,6 @@ before_install:
     - if [[ -n "${MACOSX}" ]]; then
         CC=$(which clang) ;
         CXX=$(which clang++) ;
-        export PYTHON_VERSION=${PYTHON_VERSION} ;
-      fi
-    - if [[ -z "${PYTHON_VERSION}" ]]; then
-        export PYTHON_VERSION=${TRAVIS_PYTHON_VERSION} ;
       fi
     - export CC=${CC}
     - export CXX=${CXX}
@@ -158,7 +154,8 @@ before_install:
     - echo "CXX = ${CXX} $(${CXX} -dumpversion)"
 
 install:
-    - export CPY_MAJOR=$(echo "${PYTHON_VERSION}" | sed 's/\./ /g' | awk '{print $1}')
+    - eval "${MATRIX_EVAL}"
+    - export CPY_MAJOR=$(echo "${TRAVIS_PYTHON_VERSION}" | sed 's/\./ /g' | awk '{print $1}')
     - wget https://repo.continuum.io/miniconda/Miniconda${CPY_MAJOR}-latest-Linux-x86_64.sh -O miniconda.sh
     - bash miniconda.sh -b -p $HOME/miniconda
     - export PATH="$HOME/miniconda/bin:$PATH"
@@ -166,7 +163,7 @@ install:
     - conda config --set always_yes yes --set changeps1 no
     - conda update -q conda
     - conda info -a
-    - conda create -q -n test-env python=${PYTHON_VERSION}
+    - conda create -q -n test-env python=${TRAVIS_PYTHON_VERSION}
         anaconda anaconda-client conda-build
     - source activate test-env
     - python setup.py install
@@ -181,7 +178,8 @@ script:
     #
     # Python testing
     #
+    - eval "${MATRIX_EVAL}"
     - mkdir -p ${HOME}/pyctest-test
     # go to empty directory for testing
     - cd ${HOME}/pyctest-test
-    - python${PYTHON_VERSION} -c "import pyctest; import pyctest.pyctest; import pyctest.pycmake"
+    - python${TRAVIS_PYTHON_VERSION} -c "import pyctest; import pyctest.pyctest; import pyctest.pycmake"
