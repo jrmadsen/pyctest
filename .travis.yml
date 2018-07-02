@@ -153,6 +153,10 @@ before_install:
         CC=$(which clang) ;
         CXX=$(which clang++) ;
       fi
+    - if [[ "${TRAVIS_BRANCH}" != "master" ]] || [[ "${TRAVIS_PULL_REQUEST}" != "false" ]]; then
+        CONDA_UPLOAD=0 ;
+      fi
+    - export CONDA_UPLOAD
     - export CC=${CC}
     - export CXX=${CXX}
     - export PYCTEST_BUILD_TYPE=${BUILD_TYPE}
@@ -160,7 +164,6 @@ before_install:
     - echo "CXX = ${CXX} $(${CXX} -dumpversion)"
 
 install:
-    - eval "${MATRIX_EVAL}"
     - export CPY_MAJOR=$(echo "${TRAVIS_PYTHON_VERSION}" | sed 's/\./ /g' | awk '{print $1}')
     - export CPY_OS=Linux
     - if [[ -n "${MACOSX}" ]]; then
@@ -175,6 +178,11 @@ install:
     - conda info -a
     - conda create -q -n test-env python=${TRAVIS_PYTHON_VERSION}
         anaconda anaconda-client conda-build
+
+script:
+    #
+    # Python testing
+    #
     - source activate test-env
     - python setup.py install
     - rm -rf build pyctest.egg-info .eggs dist
@@ -182,14 +190,9 @@ install:
           conda config --set anaconda_upload yes ;
           python update-conda-yaml.py ;
           conda-build --user jrmadsen --token ${ANACONDA_TOKEN} . ;
+      else
+          python setup.py install ;
+          mkdir -p ${HOME}/pyctest-test ;
+          cd ${HOME}/pyctest-test ;
+          python${TRAVIS_PYTHON_VERSION} -c "import pyctest; import pyctest.pyctest; import pyctest.pycmake" ;
       fi
-
-script:
-    #
-    # Python testing
-    #
-    - eval "${MATRIX_EVAL}"
-    - mkdir -p ${HOME}/pyctest-test
-    # go to empty directory for testing
-    - cd ${HOME}/pyctest-test
-    - python${TRAVIS_PYTHON_VERSION} -c "import pyctest; import pyctest.pyctest; import pyctest.pycmake"
