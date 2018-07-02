@@ -1,5 +1,8 @@
 # pyctest Travis CI file
 
+language: ruby
+
+
 cache:
   directories:
   - "$HOME/.cache/pip"
@@ -143,7 +146,7 @@ before_install:
     - if [[ -n "${MACOSX}" ]; then
         CC=$(which clang) ;
         CXX=$(which clang++) ;
-        export PYTHON_VERSION=${PYTHON_VERSION}
+        export PYTHON_VERSION=${PYTHON_VERSION} ;
       fi
     - if [[ -z "${PYTHON_VERSION}" ]]; then
         export PYTHON_VERSION=${TRAVIS_PYTHON_VERSION} ;
