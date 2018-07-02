@@ -33,6 +33,12 @@ matrix:
             - cmake
       env:
         - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
+    # macOS
+    - os: osx
+      osx_image: xcode9.4
+      python: '2.7'
+      env:
+        - MATRIX_EVAL="CC=$(which clang) && CXX=$(which clang++) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
     # GCC 5
     - os: linux
       dist: trusty
@@ -49,38 +55,6 @@ matrix:
             - cmake
       env:
         - MATRIX_EVAL="CC=$(which gcc-5) && CXX=$(which g++-5) && BUILD_TYPE=MinSizeRel && CONDA_UPLOAD=0"
-    # GCC 6
-    - os: linux
-      dist: trusty
-      sudo: false
-      python: '2.7'
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - gcc-6
-            - g++-6
-            - build-essential
-            - cmake
-      env:
-        - MATRIX_EVAL="CC=$(which gcc-6) && CXX=$(which g++-6) && BUILD_TYPE=Debug && CONDA_UPLOAD=0"
-    # GCC 7
-    - os: linux
-      dist: trusty
-      sudo: false
-      python: '2.7'
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - gcc-7
-            - g++-7
-            - build-essential
-            - cmake
-      env:
-        - MATRIX_EVAL="CC=$(which gcc-7) && CXX=$(which g++-7) && BUILD_TYPE=Release && CONDA_UPLOAD=0"
     # ------------------------------------------------------------------------ #
     #
     #   Python 3.5
@@ -102,22 +76,12 @@ matrix:
             - cmake3
       env:
         - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
-    # GCC 5
-    - os: linux
-      dist: trusty
-      sudo: false
+    # macOS
+    - os: osx
+      osx_image: xcode9.4
       python: '3.5'
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - gcc-5
-            - g++-5
-            - build-essential
-            - cmake3
       env:
-        - MATRIX_EVAL="CC=$(which gcc-5) && CXX=$(which g++-5) && BUILD_TYPE=MinSizeRel && CONDA_UPLOAD=0"
+        - MATRIX_EVAL="CC=$(which clang) && CXX=$(which clang++) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
     # GCC 6
     - os: linux
       dist: trusty
@@ -134,22 +98,6 @@ matrix:
             - cmake3
       env:
         - MATRIX_EVAL="CC=$(which gcc-6) && CXX=$(which g++-6) && BUILD_TYPE=Debug && CONDA_UPLOAD=0"
-    # GCC 7
-    - os: linux
-      dist: trusty
-      sudo: false
-      python: '3.5'
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - gcc-7
-            - g++-7
-            - build-essential
-            - cmake3
-      env:
-        - MATRIX_EVAL="CC=$(which gcc-7) && CXX=$(which g++-7) && BUILD_TYPE=Release && CONDA_UPLOAD=0"
     # ------------------------------------------------------------------------ #
     #
     #   Python 3.6
@@ -171,38 +119,12 @@ matrix:
             - cmake
       env:
         - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
-    # GCC 5
-    - os: linux
-      dist: trusty
-      sudo: false
+    # macOS
+    - os: osx
+      osx_image: xcode9.4
       python: '3.6'
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - gcc-5
-            - g++-5
-            - build-essential
-            - cmake
       env:
-        - MATRIX_EVAL="CC=$(which gcc-5) && CXX=$(which g++-5) && BUILD_TYPE=Release && CONDA_UPLOAD=0"
-    # GCC 6
-    - os: linux
-      dist: trusty
-      sudo: false
-      python: '3.6'
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - gcc-6
-            - g++-6
-            - build-essential
-            - cmake
-      env:
-        - MATRIX_EVAL="CC=$(which gcc-6) && CXX=$(which g++-6) && BUILD_TYPE=Debug && CONDA_UPLOAD=0"
+        - MATRIX_EVAL="CC=$(which clang) && CXX=$(which clang++) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
     # GCC 7
     - os: linux
       dist: trusty
@@ -226,18 +148,10 @@ before_install:
     - eval "${MATRIX_EVAL}"
     - export CC=${CC}
     - export CXX=${CXX}
-    - export PYBINPATH=$(dirname $(which python))
-    - export PYROOTPATH=$(dirname ${PYBINPATH})
-    - export PATH=${PYBINPATH}:${PATH}
-    - export CMAKE_PREFIX_PATH=${PYROOTPATH}:${CMAKE_PREFIX_PATH}
     - export PYTHON_VERSION="$(python --version | awk '{print $NF}')"
     - export PYCTEST_BUILD_TYPE=${BUILD_TYPE}
     - echo "CC = ${CC} $(${CC} -dumpversion)"
     - echo "CXX = ${CXX} $(${CXX} -dumpversion)"
-    - echo "Python = $(which python) [version ${PYTHON_VERSION}]"
-    - echo "PYBINPATH = ${PYBINPATH}"
-    - echo "PYROOTPATH = ${PYROOTPATH}"
-    - echo "CMAKE_PREFIX_PATH = ${CMAKE_PREFIX_PATH}"
 
 install:
     - export CPY_MAJOR=$(echo "${TRAVIS_PYTHON_VERSION}" | sed 's/\./ /g' | awk '{print $1}')
