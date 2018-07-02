@@ -143,7 +143,7 @@ matrix:
 
 before_install:
     - eval "${MATRIX_EVAL}"
-    - if [[ -n "${MACOSX}" ]; then
+    - if [[ -n "${MACOSX}" ]]; then
         CC=$(which clang) ;
         CXX=$(which clang++) ;
         export PYTHON_VERSION=${PYTHON_VERSION} ;
