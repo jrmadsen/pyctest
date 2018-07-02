@@ -36,9 +36,8 @@ matrix:
     # macOS
     - os: osx
       osx_image: xcode9.4
-      python: '2.7'
       env:
-        - MATRIX_EVAL="CC=$(which clang) && CXX=$(which clang++) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
+        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=2.7 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
     # GCC 5
     - os: linux
       dist: trusty
@@ -79,9 +78,8 @@ matrix:
     # macOS
     - os: osx
       osx_image: xcode9.4
-      python: '3.5'
       env:
-        - MATRIX_EVAL="CC=$(which clang) && CXX=$(which clang++) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
+        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.5 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
     # GCC 6
     - os: linux
       dist: trusty
@@ -122,9 +120,8 @@ matrix:
     # macOS
     - os: osx
       osx_image: xcode9.4
-      python: '3.6'
       env:
-        - MATRIX_EVAL="CC=$(which clang) && CXX=$(which clang++) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
+        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.6 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
     # GCC 7
     - os: linux
       dist: trusty
@@ -146,9 +143,12 @@ matrix:
 
 before_install:
     - eval "${MATRIX_EVAL}"
+    - if [[ "${MACOSX}" -gt 0 ]; then
+        CC=$(which clang) ;
+        CXX=$(which clang++) ;
+      fi
     - export CC=${CC}
     - export CXX=${CXX}
-    - export PYTHON_VERSION="$(python --version | awk '{print $NF}')"
     - export PYCTEST_BUILD_TYPE=${BUILD_TYPE}
     - echo "CC = ${CC} $(${CC} -dumpversion)"
     - echo "CXX = ${CXX} $(${CXX} -dumpversion)"
