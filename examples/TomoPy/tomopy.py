@@ -38,6 +38,8 @@ def configure():
     default_njobs = 1
     # number of iterations
     default_nitr = 1
+    # submission site
+    default_site = platform.node()
 
     # argument parser
     parser = argparse.ArgumentParser()
@@ -81,6 +83,10 @@ def configure():
                         help="number of iterations",
                         type=int,
                         default=default_nitr)
+    parser.add_argument("--site",
+                        help="CTest submission site",
+                        type=str,
+                        default=default_site)
 
     args = parser.parse_args()
 
@@ -157,7 +163,7 @@ def run_pyctest():
     # binary directory
     pyctest.BINARY_DIRECTORY = binary_dir
     # site of CDash submission
-    pyctest.SITE = platform.node()
+    pyctest.SITE = args.site
     # build name for CDash
     pyctest.BUILD_NAME = "[{}] [{}] [{} {} {}] [Python ({}) {}]".format(
         pyctest.PROJECT_NAME,
@@ -206,6 +212,7 @@ def run_pyctest():
     test.SetCommand(["nosetests", "test", "--cover-xml", "--cover-xml-file=coverage.xml"])
     # set directory to run test
     test.SetProperty("WORKING_DIRECTORY", binary_dir)
+    test.SetProperty("RUN_SERIAL", "ON")
     test.SetProperty("ENVIRONMENT", "OMP_NUM_THREADS=1")
 
     # phantoms to test
@@ -235,7 +242,8 @@ def run_pyctest():
                 name = "{}_{}".format(phantom, algorithm)
                 test.SetName(name)
                 test.SetProperty("WORKING_DIRECTORY", binary_dir)
-                test.SetCommand(["./run_tomopy.py",
+                test.SetCommand([pyexe,
+                                 "./run_tomopy.py",
                                  "-a", algorithm,
                                  "-p", phantom,
                                  "-s", "{}".format(nsize),
@@ -243,6 +251,7 @@ def run_pyctest():
                                  "-f", "jpeg",
                                  "-S", "2",
                                  "-c", "8",
+                                 "-n", "{}".format(args.ncores),
                                  "-i", "{}".format(args.num_iter)])
 
         # create a test comparing all the algorithms
@@ -251,7 +260,7 @@ def run_pyctest():
         test.SetName(name)
         test.SetProperty("WORKING_DIRECTORY", binary_dir)
         test.SetProperty("ENVIRONMENT", "OMP_NUM_THREADS=1")
-        test.SetProperty("TIMEOUT", "3600") # one hour
+        test.SetProperty("TIMEOUT", "5400") # 1.5 hours
         test.SetCommand([pyexe,
                          "./run_tomopy.py",
                          "--compare", "all",
@@ -260,6 +269,7 @@ def run_pyctest():
                          "-A", "360",
                          "-f", "jpeg",
                          "-S", "1",
+                         "-n", "{}".format(args.ncores),
                          "-i", "{}".format(args.num_iter)])
 
     # generate the CTestConfig.cmake and CTestCustom.cmake
