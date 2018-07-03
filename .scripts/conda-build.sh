@@ -18,5 +18,4 @@ if [ -f "${PWD}/meta.yaml" ]; then
         conda-build .
         source deactivate ${_ENV}
     done
-    rm ./meta.yaml
 fi

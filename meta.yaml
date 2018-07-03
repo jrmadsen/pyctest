@@ -1,0 +1,32 @@
+package:
+  name: pyctest
+  version: '0.0.4'
+
+build:
+  number: 1
+  binary_relocation: False
+
+source:
+  git_rev: 2545eabbabdef54affea62b26e58314808e42e86
+  git_url: https://github.com/jrmadsen/pyctest.git
+
+requirements:
+  host:
+  - python
+  - setuptools
+  - cmake
+  - openssl
+  run:
+  - python
+  - openssl
+
+test:
+  imports:
+  - pyctest
+  - pyctest.pyctest
+  - pyctest.pycmake
+
+about:
+  home: https://jrmadsen.github.io/pyctest/
+  license: MIT
+  summary: "Python bindings to select portions of CMake/CTest package -- enabling generation of CTests for CDash submission without a CMake build system"
