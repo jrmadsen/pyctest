@@ -15,9 +15,8 @@ def read_file(fname):
     return content
 
 def main(new_git_rev):
-    content = read_file("conda.yaml")
+    content = read_file("meta.yaml")
 
-    fc = open("conda.yaml", "w")
     fm = open("meta.yaml", "w")
     old_git_rev = ""
     for l in content:
@@ -27,11 +26,9 @@ def main(new_git_rev):
             if entries[0] == "git_rev:":
                 old_git_rev = entries[1]
                 l = l.replace(old_git_rev, new_git_rev)
-        fc.write("{}\n".format(l))
         fm.write("{}\n".format(l))
         print("{}".format(l))
 
-    fc.close()
     fm.close()
     print("\nOld git revision: {}".format(old_git_rev))
     print("\nNew git revision: {}\n".format(new_git_rev))

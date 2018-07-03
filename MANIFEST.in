@@ -7,7 +7,7 @@ include .license.c
 include .license.py
 include build.sh
 include bld.bat
-include conda.yaml
+include meta.yaml
 include README.md
 include README.rst
 include CHANGES.md

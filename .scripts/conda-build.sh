@@ -8,7 +8,7 @@ fi
 
 module load python/conda/latest
 
-if [ -f "${PWD}/conda.yaml" ]; then
+if [ -f "${PWD}/meta.yaml" ]; then
     ./update-conda-yaml.py
     for i in 36 35 27
     do

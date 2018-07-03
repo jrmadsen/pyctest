@@ -6,10 +6,3 @@
 /build
 /pyctest.egg-info
 /dist
-
-# prefer conda.yaml
-# however, update-conda-yaml.py
-# generates a meta.yaml due
-# to issues with python 3.5
-# but only keep one in repo
-/meta.yaml
