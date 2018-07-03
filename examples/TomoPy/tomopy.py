@@ -111,7 +111,7 @@ def configure():
         cmd = pyctest.command(["git", "clone",
             "https://github.com/tomopy/tomopy.git", source_dir])
         cmd.SetWorkingDirectory(os.getcwd())
-        cmd.SetTimeout("7200")
+        cmd.SetTimeout("600")
         cmd.SetOutputQuiet(False)
         cmd.SetErrorQuiet(False)
         cmd.Execute()
@@ -227,9 +227,9 @@ def run_pyctest():
 
     # loop over phantoms
     for phantom in phantoms:
-        nsize = 128
+        nsize = 96
         if phantom != "shepp3d":
-            nsize = 512
+            nsize = 128
         else:
             # for shepp3d only
             # loop over algorithms and create tests for each
@@ -260,7 +260,7 @@ def run_pyctest():
         test.SetName(name)
         test.SetProperty("WORKING_DIRECTORY", binary_dir)
         test.SetProperty("ENVIRONMENT", "OMP_NUM_THREADS=1")
-        test.SetProperty("TIMEOUT", "5400") # 1.5 hours
+        test.SetProperty("TIMEOUT", "10800") # 3 hours
         test.SetCommand([pyexe,
                          "./run_tomopy.py",
                          "--compare", "all",

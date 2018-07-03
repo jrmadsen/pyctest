@@ -37,17 +37,16 @@ install:
   - if "%PYTHON_ARCH%" == "64" set "CMAKE_ARCH=x%PYTHON_ARCH%"
   - set "CONDA_ROOT=C:\Miniconda%BASE_PYTHON_VERSION%%ARCH_LABEL%"
   - set "PATH=%CONDA_ROOT%;%CONDA_ROOT%\Scripts;%CONDA_ROOT%\Library\bin;%PATH%"
-  - set PATH
   - echo CONDA_PREFIX %CONDA_PREFIX%
   - conda config --set always_yes yes --set changeps1 no
   - conda install -n root conda --no-pin
   - "%CONDA_ROOT%\\Scripts\\activate root"
   - echo CONDA_PREFIX %CONDA_PREFIX%
   - conda info -a
-  - conda create -q -n test-env python=%PYTHON_VERSION% anaconda anaconda-client conda-build
+  - conda create -q -n test-env python="%PYTHON_VERSION%" anaconda anaconda-client conda-build
+  - "%CONDA_ROOT%\\Scripts\\activate test-env"
 
 build_script:
-  - "%CONDA_ROOT%\\Scripts\\activate test-env"
   - echo CONDA_PREFIX %CONDA_PREFIX%
   - conda info -a
   - conda config --set anaconda_upload yes
