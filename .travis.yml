@@ -184,8 +184,6 @@ script:
     # Python testing
     #
     - source activate test-env
-    - python setup.py install
-    - rm -rf build pyctest.egg-info .eggs dist
     - if [[ "${CONDA_UPLOAD}" -gt 0 ]]; then
           conda config --set anaconda_upload yes ;
           python update-conda-yaml.py ;
