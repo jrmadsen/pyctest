@@ -10,10 +10,13 @@ module load python/conda/latest
 
 if [ -f "${PWD}/conda.yaml" ]; then
     ./update-conda-yaml.py
-    for i in 27 35 36
+    for i in 36 35 27
     do
-        source activate py${i}-builder
+        _ENV="py${i}-builder"
+        echo -e "\nEnvironment: ${_ENV}..."
+        source activate ${_ENV}
         conda-build .
+        source deactivate ${_ENV}
     done
     rm ./meta.yaml
 fi

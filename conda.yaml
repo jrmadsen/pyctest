@@ -7,7 +7,7 @@ build:
   binary_relocation: False
 
 source:
-  git_rev: a46c6fbd68b7323d10003487fb1a3fc0beb5dec7
+  git_rev: 5cd6cecf6e11f098f15e50afee9616555f0acccf
   git_url: https://github.com/jrmadsen/pyctest.git
 
 requirements:
