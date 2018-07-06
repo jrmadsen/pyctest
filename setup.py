@@ -425,7 +425,7 @@ class CMakeInstallEggInfo(install_egg_info):
 def get_long_description():
     long_descript = ''
     try:
-        long_descript = open('README.rst').read()
+        long_descript = open('README.md').read()
     except:
         long_descript = ''
     return long_descript
@@ -488,6 +488,7 @@ setup(name='pyctest',
     contact_email=get_email(),
     description=get_short_description(),
     long_description=get_long_description(),
+    long_description_content_type='text/markdown',
     url='https://github.com/jrmadsen/pyctest.git',
     license='MIT',
     # add extension module

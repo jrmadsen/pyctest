@@ -9,9 +9,7 @@ include build.sh
 include bld.bat
 include meta.yaml
 include README.md
-include README.rst
 include CHANGES.md
-include CHANGES.rst
 # recursive includes
 recursive-include cmake *
 recursive-include examples *

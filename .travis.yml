@@ -29,7 +29,6 @@ matrix:
             - g++-4.9
             - build-essential
             - cmake
-            - gpg
       env:
         - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
     # GCC 4.9
@@ -47,7 +46,6 @@ matrix:
             - g++-4.9
             - build-essential
             - cmake
-            - gpg
       env:
         - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=0"
     # macOS
@@ -82,7 +80,6 @@ matrix:
             - g++-4.9
             - build-essential
             - cmake3
-            - gpg
       env:
         - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
     # GCC 4.9
@@ -100,7 +97,6 @@ matrix:
             - g++-4.9
             - build-essential
             - cmake
-            - gpg
       env:
         - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=0"
     # macOS
@@ -135,7 +131,6 @@ matrix:
             - g++-4.9
             - build-essential
             - cmake
-            - gpg
       env:
         - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
     # GCC 4.9
@@ -153,7 +148,6 @@ matrix:
             - g++-4.9
             - build-essential
             - cmake
-            - gpg
       env:
         - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=0"
     # macOS
@@ -178,7 +172,7 @@ before_install:
         CXX=$(which clang++) ;
       fi
     - if [[ "${CONDA_UPLOAD}" -eq 0 ]]; then
-        TWINE_UPLOAD=0 ;
+        TWINE_UPLOAD=1 ;
       fi
     - if [[ "${TRAVIS_BRANCH}" != "master" ]] || [[ "${TRAVIS_PULL_REQUEST}" != "false" ]]; then
         CONDA_UPLOAD=0 ;
