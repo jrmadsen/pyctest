@@ -717,7 +717,8 @@ PYBIND11_MODULE(pyctest, ct)
                  if not os.path.exists(_cdash_path):
                      print("Warning! CDash directory not found @ '{}'".format(_cdash_path))
                  else:
-                     for f in [ "Build", "Coverage", "Glob", "Init", "MemCheck", "Stages", "Submit", "Test"]:
+                     for f in [ "Build", "Coverage", "Glob", "Init", "MemCheck",
+                                "Stages", "Submit", "Test", "Utilities"]:
                          fsrc = os.path.join(_cdash_path, "{}.cmake".format(f))
                          fdst = os.path.join(_dir, "{}.cmake".format(f))
                          copyfile(fsrc, fdst)
@@ -814,6 +815,92 @@ PYBIND11_MODULE(pyctest, ct)
         copy_cdash(dir);
     };
     //------------------------------------------------------------------------//
+    auto copy_files = [=] (py::list files,
+                           std::string from_dir,
+                           std::string target_dir)
+    {
+        auto locals = py::dict("files"_a = files,
+                               "from_dir"_a = from_dir,
+                               "target_dir"_a = target_dir);
+        locals["pyctest"] = ct;
+        py::exec(R"(
+                 import os
+                 import shutil
+
+                 if len(from_dir) == 0:
+                     from_dir = os.getcwd()
+
+                 if len(target_dir) == 0:
+                     target_dir = pyctest.BINARY_DIRECTORY
+
+                 if len(target_dir) == 0:
+                     raise Exception("Please provide a target directory or set pyctest.pyctest.BINARY_DIRECTORY")
+
+                 def files_append(fname, files):
+                     if not fname in files:
+                         files.append(fname)
+
+                 files_append("PyCTestPreInit.cmake", files)
+                 files_append("PyCTestPostInit.cmake", files)
+
+                 def _copy_file(_file, _from_dir, _target_dir):
+                     fsrc = os.path.join(_from_dir, '{}'.format(_file))
+                     fdst = os.path.join(_target_dir, '{}'.format(_file))
+                     if not os.path.exists(_target_dir):
+                         os.makedirs(_dir)
+                     if os.path.exists(fsrc) and fsrc != fdst:
+                         print("Copying file '{}' to '{}'...".format(fsrc, fdst))
+                         shutil.copyfile(fsrc, fdst)
+                         shutil.copymode(fsrc, fdst)
+
+                 for f in files:
+                     _copy_file(f, from_dir, target_dir)
+                 )",
+                 py::globals(), locals);
+    };
+    //------------------------------------------------------------------------//
+    auto git_checkout = [=] (std::string repo_url,
+                             std::string source_dir,
+                             bool update)
+    {
+        auto locals = py::dict("repo_url"_a = repo_url,
+                               "source_dir"_a = source_dir,
+                               "update"_a = update);
+        locals["pyctest"] = ct;
+        py::exec(R"(
+                 import os
+
+                 def _perform_update(_source_dir):
+                     # try to pull latest version. not a fatal error if fails
+                     try:
+                         import git
+                         repo = git.Repo(_source_dir)
+                         repo.remotes['origin'].pull()
+                     except:
+                         # execute a pull command
+                         cmd = pyctest.command(["git", "pull"])
+                         cmd.SetWorkingDirectory(_source_dir)
+                         cmd.SetOutputQuiet(False)
+                         cmd.SetErrorQuiet(False)
+                         cmd.Execute()
+
+                 _git_dir = os.path.join(source_dir, ".git")
+                 print("Checking for '{}'...".format(_git_dir))
+                 # do we want to checkout or try to update?
+                 if os.path.exists(_git_dir):
+                     if update:
+                         _perform_update(source_dir)
+                 else:
+                     # execute a checkout command
+                     cmd = pyctest.command(["git", "clone", repo_url, source_dir])
+                     cmd.SetWorkingDirectory(os.getcwd())
+                     cmd.SetOutputQuiet(False)
+                     cmd.SetErrorQuiet(False)
+                     cmd.Execute()
+                 )",
+                 py::globals(), locals);
+    };
+    //------------------------------------------------------------------------//
     auto add_note = [=] (string_t dir, string_t file, bool clobber)
     {
         string_t fname = "CTestNotes.cmake";
@@ -905,6 +992,16 @@ PYBIND11_MODULE(pyctest, ct)
     ct.def("generate_test_file", &pyct::generate_test_file,
            "Generate a CTestTestfile.cmake",
            py::arg("output_dir") = "");
+    ct.def("copy_files", copy_files,
+           "Helper method to copy files over to binary dir",
+           py::arg("files") = py::list(),
+           py::arg("from_dir") = "",
+           py::arg("target_dir") = "");
+    ct.def("git_checkout", git_checkout,
+           "Perform git checkout a code and optionally update if already exists",
+           py::arg("repo_url"),
+           py::arg("source_dir"),
+           py::arg("update") = true);
     ct.def("generate_config", generate_config,
            "Generate PyCTestConfig.cmake file",
            py::arg("output_dir") = "");

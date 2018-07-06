@@ -5,6 +5,8 @@ set(FILES
     README.md
     run_tomopy.py
     tomopy.py
+    tomopy_rec.py
+    tomopy_test_utils.py
 )
 
 foreach(_FILE ${FILES})

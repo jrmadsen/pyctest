@@ -15,15 +15,35 @@ import pyctest.pycmake as pycmake
 #------------------------------------------------------------------------------#
 def configure():
 
+    # default algorithm choices
+    available_algorithms = [ 'gridrec', 'art', 'fbp', 'bart', 'mlem', 'osem', 'sirt',
+                             'ospml_hybrid', 'ospml_quad', 'pml_hybrid', 'pml_quad' ]
+    # default phantom choices
+    available_phantoms = [ "baboon", "cameraman", "barbara", "checkerboard",
+                           "lena", "peppers", "shepp3d" ]
+
     # limit the mode choices
-    mode_choices = [ "Build", "Test", "Coverage", "MemCheck" ]
+    mode_choices = [ "Build", "Test", "Coverage", "MemCheck", "Submit" ]
+    # choices for submission track
     model_choices = [ "Nightly", "Continuous", "Experimental" ]
+    # choices for submit trigger
+    trigger_choices = [ "Build", "Test", "Coverage", "MemCheck", "Submit", "None" ]
+    # choices for algorithms
+    algorithm_choices = [ 'gridrec', 'art', 'fbp', 'bart', 'mlem', 'osem', 'sirt',
+                          'ospml_hybrid', 'ospml_quad', 'pml_hybrid', 'pml_quad',
+                          'none', 'all' ]
+    # phantom choices
+    phantom_choices = [ "baboon", "cameraman", "barbara", "checkerboard",
+                        "lena", "peppers", "shepp3d", "none", "all" ]
+
     # just a help message
     default_pyexe_help = "Python executable to use this can be absolue, relative, or CMake path"
     # this can be absolue, relative, or CMake path
     default_pyexe = "${CMAKE_CURRENT_LIST_DIR}/miniconda/bin/python"
     # the default testing mode
     default_ctest_mode = "Test"
+    # the default submit trigger
+    default_ctest_trigger = "{}".format(default_ctest_mode)
     # default arguments to provide to ctest
     default_ctest_args = ["-VV"]
     # where the source directory is located by default
@@ -40,6 +60,12 @@ def configure():
     default_nitr = 1
     # submission site
     default_site = platform.node()
+    # default algorithm choices
+    default_algorithms = [ 'gridrec', 'art', 'fbp', 'bart', 'mlem', 'osem', 'sirt',
+                           'ospml_hybrid', 'ospml_quad', 'pml_hybrid', 'pml_quad' ]
+    # default phantom choices
+    default_phantoms = [ "baboon", "cameraman", "barbara", "checkerboard",
+                         "lena", "peppers", "shepp3d" ]
 
     # argument parser
     parser = argparse.ArgumentParser()
@@ -66,6 +92,10 @@ def configure():
                         type=str,
                         choices=mode_choices,
                         default=default_ctest_mode)
+    parser.add_argument("-t", "--trigger",
+                        help="Submit to dashboard after this mode was run",
+                        choices=trigger_choices,
+                        default=default_ctest_trigger)
     parser.add_argument("-M", "--model",
                         help="CTest submission track",
                         type=str,
@@ -87,56 +117,63 @@ def configure():
                         help="CTest submission site",
                         type=str,
                         default=default_site)
+    parser.add_argument("--phantoms",
+                        help="Phantoms to simulate",
+                        type=str,
+                        nargs='*',
+                        choices=phantom_choices,
+                        default=default_phantoms)
+    parser.add_argument("--algorithms",
+                        help="Algorithms to use",
+                        type=str,
+                        nargs='*',
+                        choices=algorithm_choices,
+                        default=default_algorithms)
+    parser.add_argument("--globus-path",
+                        help="Path to tomobank datasets",
+                        type=str,
+                        default=None)
 
     args = parser.parse_args()
 
     binary_dir = os.path.realpath(args.binary_dir)
     source_dir = os.path.realpath(args.source_dir)
+
     # make binary directory
     if not os.path.exists(binary_dir):
         os.makedirs(binary_dir)
 
-    # do we want to checkout or try to update?
-    if os.path.exists(source_dir):
-        # try to pull latest version. not a fatal error if fails
-        try:
-            import git
-            repo = git.Repo(source_dir)
-            repo.remotes['origin'].pull()
-        except Exception as e:
-            print("Warning! Failure pulling repo: {}".format(e))
-
-    else:
-        # execute a checkout command
-        cmd = pyctest.command(["git", "clone",
-            "https://github.com/tomopy/tomopy.git", source_dir])
-        cmd.SetWorkingDirectory(os.getcwd())
-        cmd.SetTimeout("600")
-        cmd.SetOutputQuiet(False)
-        cmd.SetErrorQuiet(False)
-        cmd.Execute()
-
-    # copy cmake files over
-    for f in [ "PreInit", "PostInit" ]:
-        fsrc = os.path.join(os.getcwd(),     "PyCTest{}.cmake".format(f))
-        fdst = os.path.join(args.binary_dir, "PyCTest{}.cmake".format(f))
-        if os.path.exists(fsrc) and fsrc != fdst:
-            print("Copying file '{}' to '{}'...".format(fsrc, fdst))
-            shutil.copyfile(fsrc, fdst)
-
-    # copy python files over
-    for f in [ "coverage", "run_tomopy" ]:
-        fsrc = os.path.join(os.getcwd(), "{}.py".format(f))
-        fdst = os.path.join(args.binary_dir, "{}.py".format(f))
-        if os.path.exists(fsrc) and fsrc != fdst:
-            print("Copying file '{}' to '{}'...".format(fsrc, fdst))
-            shutil.copyfile(fsrc, fdst)
-            shutil.copymode(fsrc, fdst)
+    pyctest.git_checkout("https://github.com/tomopy/tomopy.git", source_dir)
 
     # append the mode to the CTest args
     args.ctest_args.extend(["-S", "{}.cmake".format(args.mode)])
     if args.jobs > 0:
         args.ctest_args.append("-j{}".format(args.jobs))
+
+    def remove_entry(entry, container):
+        for itr in container:
+            if itr == entry:
+                del itr
+
+    def remove_duplicates(container):
+        container = list(set(container))
+
+    if "all" in args.algorithms:
+        remove_entry("all", args.algorithms)
+        args.algorithms.extend(available_algorithms)
+
+    if "all" in args.phantoms:
+        remove_entry("all", args.phantoms)
+        args.phantoms.extend(available_phantoms)
+
+    if "none" in args.algorithms:
+        args.algorithms = []
+
+    if "none" in args.phantoms:
+        args.phantoms = []
+
+    remove_duplicates(args.algorithms)
+    remove_duplicates(args.phantoms)
 
     return args
 
@@ -175,7 +212,7 @@ def run_pyctest():
         platform.python_version())
 
     # submit after "Test" has been called
-    pyctest.TRIGGER = args.mode
+    pyctest.TRIGGER = args.trigger
     # how to checkout the code
     pyctest.CHECKOUT_COMMAND = "${} -E copy_directory {} {}/".format(
         "{CTEST_CMAKE_COMMAND}", source_dir, binary_dir)
@@ -188,6 +225,11 @@ def run_pyctest():
     pyctest.CUSTOM_MAXIMUM_NUMBER_OF_ERRORS = "200"
     pyctest.CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS = "300"
     pyctest.CUSTOM_MAXIMUM_PASSED_TEST_OUTPUT_SIZE = "104857600"
+
+    #--------------------------------------------------------------------------#
+    # copy over files from os.getcwd() to pyctest.BINARY_DIR
+    # (implicitly copies over PyCTest{Pre,Post}Init.cmake if they exist)
+    pyctest.copy_files([ "tomopy_test_utils.py", "run_tomopy.py", "tomopy_rec.py"])
 
     #--------------------------------------------------------------------------#
     # find the CTEST_TOKEN_FILE
@@ -215,29 +257,44 @@ def run_pyctest():
     test.SetProperty("RUN_SERIAL", "ON")
     test.SetProperty("ENVIRONMENT", "OMP_NUM_THREADS=1")
 
-    # phantoms to test
-    phantoms = [ "baboon", "cameraman",
-                 "barbara", "checkerboard",
-                 "lena", "peppers",
-                 "shepp3d" ]
-    # the algorithms to test
-    algorithms = [ 'gridrec', 'art', 'fbp', 'bart', 'mlem', 'osem', 'sirt',
-                   'ospml_hybrid', 'ospml_quad', 'pml_hybrid', 'pml_quad' ]
+    if args.globus_path is not None:
+        phantom = "tomo_00001"
+        h5file = os.path.join(args.globus_path, os.path.join(phantom, phantom + ".h5"))
+        # loop over args.algorithms and create tests for each
+        for algorithm in args.algorithms:
+            if not os.path.exists(h5file):
+                print("Warning! HDF5 file '{}' does not exists! Skipping test...".format(h5file))
+            # args.algorithms
+            test = pyctest.test()
+            name = "{}_{}".format(phantom, algorithm)
+            test.SetName(name)
+            test.SetProperty("WORKING_DIRECTORY", binary_dir)
+            test.SetProperty("TIMEOUT", "3600") # 1 hour
+            test.SetProperty("ENVIRONMENT", "OMP_NUM_THREADS=1")
+            test.SetCommand([pyexe,
+                             "./tomopy_rec.py",
+                             h5file,
+                             "-a", algorithm,
+                             "--type", "slice",
+                             "-f", "jpeg",
+                             "-S", "1",
+                             "-c", "4",
+                             "-n", "{}".format(args.ncores),
+                             "-i", "{}".format(args.num_iter)])
 
-
-    # loop over phantoms
-    for phantom in phantoms:
+    # loop over args.phantoms
+    for phantom in args.phantoms:
         nsize = 96
         if phantom != "shepp3d":
             nsize = 128
         else:
             # for shepp3d only
-            # loop over algorithms and create tests for each
-            for algorithm in algorithms:
+            # loop over args.algorithms and create tests for each
+            for algorithm in args.algorithms:
                 # SKIP FOR NOW -- TOO MUCH OUTPUT/INFORMATION
                 continue
                 # SKIP FOR NOW -- TOO MUCH OUTPUT/INFORMATION
-                # algorithms
+                # args.algorithms
                 test = pyctest.test()
                 name = "{}_{}".format(phantom, algorithm)
                 test.SetName(name)
@@ -254,7 +311,7 @@ def run_pyctest():
                                  "-n", "{}".format(args.ncores),
                                  "-i", "{}".format(args.num_iter)])
 
-        # create a test comparing all the algorithms
+        # create a test comparing all the args.algorithms
         test = pyctest.test()
         name = "{}_{}".format(phantom, "comparison")
         test.SetName(name)
@@ -263,14 +320,14 @@ def run_pyctest():
         test.SetProperty("TIMEOUT", "10800") # 3 hours
         test.SetCommand([pyexe,
                          "./run_tomopy.py",
-                         "--compare", "all",
                          "-p", phantom,
                          "-s", "{}".format(nsize),
                          "-A", "360",
                          "-f", "jpeg",
                          "-S", "1",
                          "-n", "{}".format(args.ncores),
-                         "-i", "{}".format(args.num_iter)])
+                         "-i", "{}".format(args.num_iter),
+                         "--compare" ] + args.algorithms)
 
     # generate the CTestConfig.cmake and CTestCustom.cmake
     # configuration files, copy over
