@@ -29,15 +29,10 @@ matrix:
             - g++-4.9
             - build-essential
             - cmake
+            - gpg
       env:
         - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
-    # macOS
-    - os: osx
-      osx_image: xcode9.4
-      language: ruby
-      env:
-        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=2.7 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
-    # GCC 5
+    # GCC 4.9
     - os: linux
       dist: trusty
       sudo: false
@@ -48,12 +43,25 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - gcc-5
-            - g++-5
+            - gcc-4.9
+            - g++-4.9
             - build-essential
             - cmake
+            - gpg
       env:
-        - MATRIX_EVAL="CC=$(which gcc-5) && CXX=$(which g++-5) && BUILD_TYPE=MinSizeRel && CONDA_UPLOAD=0"
+        - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=0"
+    # macOS
+    - os: osx
+      osx_image: xcode9.4
+      language: ruby
+      env:
+        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=2.7 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
+    # macOS
+    - os: osx
+      osx_image: xcode9.4
+      language: ruby
+      env:
+        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=2.7 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=0"
     # ------------------------------------------------------------------------ #
     #
     #   Python 3.5
@@ -74,15 +82,10 @@ matrix:
             - g++-4.9
             - build-essential
             - cmake3
+            - gpg
       env:
         - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
-    # macOS
-    - os: osx
-      osx_image: xcode9.4
-      language: ruby
-      env:
-        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.5 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
-    # GCC 6
+    # GCC 4.9
     - os: linux
       dist: trusty
       sudo: false
@@ -93,12 +96,25 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - gcc-6
-            - g++-6
+            - gcc-4.9
+            - g++-4.9
             - build-essential
-            - cmake3
+            - cmake
+            - gpg
       env:
-        - MATRIX_EVAL="CC=$(which gcc-6) && CXX=$(which g++-6) && BUILD_TYPE=Debug && CONDA_UPLOAD=0"
+        - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=0"
+    # macOS
+    - os: osx
+      osx_image: xcode9.4
+      language: ruby
+      env:
+        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.5 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
+    # macOS
+    - os: osx
+      osx_image: xcode9.4
+      language: ruby
+      env:
+        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.5 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=0"
     # ------------------------------------------------------------------------ #
     #
     #   Python 3.6
@@ -119,15 +135,10 @@ matrix:
             - g++-4.9
             - build-essential
             - cmake
+            - gpg
       env:
         - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
-    # macOS
-    - os: osx
-      osx_image: xcode9.4
-      language: ruby
-      env:
-        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.6 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
-    # GCC 7
+    # GCC 4.9
     - os: linux
       dist: trusty
       sudo: false
@@ -138,12 +149,25 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - gcc-7
-            - g++-7
+            - gcc-4.9
+            - g++-4.9
             - build-essential
             - cmake
+            - gpg
       env:
-        - MATRIX_EVAL="CC=$(which gcc-7) && CXX=$(which g++-7) && BUILD_TYPE=MinSizeRel && CONDA_UPLOAD=0"
+        - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=0"
+    # macOS
+    - os: osx
+      osx_image: xcode9.4
+      language: ruby
+      env:
+        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.6 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
+    # macOS
+    - os: osx
+      osx_image: xcode9.4
+      language: ruby
+      env:
+        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.6 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=0"
     # ------------------------------------------------------------------------ #
 
 
@@ -153,43 +177,55 @@ before_install:
         CC=$(which clang) ;
         CXX=$(which clang++) ;
       fi
+    - if [[ "${CONDA_UPLOAD}" -eq 0 ]]; then
+        TWINE_UPLOAD=0 ;
+      fi
     - if [[ "${TRAVIS_BRANCH}" != "master" ]] || [[ "${TRAVIS_PULL_REQUEST}" != "false" ]]; then
         CONDA_UPLOAD=0 ;
+        TWINE_UPLOAD=0 ;
       fi
     - export CONDA_UPLOAD
+    - export TWINE_UPLOAD
     - export CC=${CC}
     - export CXX=${CXX}
     - export PYCTEST_BUILD_TYPE=${BUILD_TYPE}
     - echo "CC = ${CC} $(${CC} -dumpversion)"
     - echo "CXX = ${CXX} $(${CXX} -dumpversion)"
+    - mkdir -p .gpg
+    - openssl aes-256-cbc -K $encrypted_66d16737a1a4_key -iv $encrypted_66d16737a1a4_iv -in all.gpg.enc -out .gpg/all.gpg -d
+    - gpg --import .gpg/all.gpg
 
 install:
     - export CPY_MAJOR=$(echo "${TRAVIS_PYTHON_VERSION}" | sed 's/\./ /g' | awk '{print $1}')
     - export CPY_OS=Linux
-    - if [[ -n "${MACOSX}" ]]; then
-        export CPY_OS=MacOSX ;
-      fi
-    - wget https://repo.continuum.io/miniconda/Miniconda${CPY_MAJOR}-latest-${CPY_OS}-x86_64.sh -O miniconda.sh
-    - bash miniconda.sh -b -p $HOME/miniconda
-    - export PATH="$HOME/miniconda/bin:$PATH"
-    - hash -r
-    - conda config --set always_yes yes --set changeps1 no
-    - conda update -q conda
-    - conda info -a
-    - conda create -q -n test-env python=${TRAVIS_PYTHON_VERSION}
-        anaconda anaconda-client conda-build
+    - if [[ -n "${MACOSX}" ]]; then export CPY_OS=MacOSX ; fi
+    - if [[ "${CONDA_UPLOAD}" -gt 0 ]]; then wget https://repo.continuum.io/miniconda/Miniconda${CPY_MAJOR}-latest-${CPY_OS}-x86_64.sh -O miniconda.sh ; fi
+    - if [[ "${CONDA_UPLOAD}" -gt 0 ]]; then bash miniconda.sh -b -p $HOME/miniconda ; fi
+    - if [[ "${CONDA_UPLOAD}" -gt 0 ]]; then export PATH="$HOME/miniconda/bin:$PATH" ; fi
+    - if [[ "${CONDA_UPLOAD}" -gt 0 ]]; then hash -r ; fi
+    - if [[ "${CONDA_UPLOAD}" -gt 0 ]]; then conda config --set always_yes yes --set changeps1 no ; fi
+    - if [[ "${CONDA_UPLOAD}" -gt 0 ]]; then conda update -q conda ; fi
+    - if [[ "${CONDA_UPLOAD}" -gt 0 ]]; then conda info -a ; fi
+    - if [[ "${CONDA_UPLOAD}" -gt 0 ]]; then conda create -q -n test-env python=${TRAVIS_PYTHON_VERSION} anaconda anaconda-client conda-build ; fi
+    - if [[ "${TWINE_UPLOAD}" -gt 0 ]]; then python${TRAVIS_PYTHON_VERSION} -m pip install twine ; fi
+    - if [[ "${TWINE_UPLOAD}" -gt 0 ]]; then echo -e "[distutils]\nindex-servers = \n    pypi\n\n[pypi]\nusername:jrmadsen\npassword:${TWINE_TOKEN}\n" > ${HOME}/.pypirc ; fi
 
 script:
     #
     # Python testing
     #
-    - source activate test-env
     - if [[ "${CONDA_UPLOAD}" -gt 0 ]]; then
+          source activate test-env ;
           conda config --set anaconda_upload yes ;
           python update-conda-yaml.py ;
           conda-build --user jrmadsen --token ${ANACONDA_TOKEN} . ;
+      elif [[ "${TWINE_UPLOAD}" -gt 0 ]]; then
+          python${TRAVIS_PYTHON_VERSION} setup.py bdist ;
+          cd dist ;
+          gpg --detach-sign -a *.tar.gz ;
+          eval $(python${TRAVIS_PYTHON_VERSION} -m twine upload *.tar.gz *.tar.gz.asc) ;
       else
-          python setup.py install ;
+          python${TRAVIS_PYTHON_VERSION} setup.py install ;
           mkdir -p ${HOME}/pyctest-test ;
           cd ${HOME}/pyctest-test ;
           python${TRAVIS_PYTHON_VERSION} -c "import pyctest; import pyctest.pyctest; import pyctest.pycmake" ;

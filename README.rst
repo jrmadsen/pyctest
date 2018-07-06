@@ -34,8 +34,80 @@ Anaconda
 
 |Anaconda-Server Badge|
 
-Example Usage Results
-~~~~~~~~~~~~~~~~~~~~~
+Python Modules
+~~~~~~~~~~~~~~
+
+-  ``import pyctest`` -- global package
+-  ``import pyctest.pyctest`` -- CTest module
+-  ``import pyctest.pycmake`` -- CMake module
+
+-  NOTES: - This document uses ``pyctest.<...>`` as shorthand for
+   ``pyctest.pyctest.<...>`` (e.g.
+   ``import pyctest.pyctest as pyctest``) - It is possible to call CMake
+   from this package but it is generally not the purpose
+
+Benefits
+~~~~~~~~
+
+-  Integration into continuous integration systems (e.g. Travis,
+   AppVeyor, Jenkins, etc.) and pushing to CDash dashboard will combine
+   all the results in one place - The warnings and errors are enumerated
+   in CDash (no more parsing stdout logs for errors)
+-  Easily create platform-independent testing
+-  No need to migrate build system to CMake -- just specify
+   ``pyctest.BUILD_COMMAND``
+-  Easily download Miniconda/Anaconda in workflow before build + testing
+   - Using default python: ``pip install pyctest`` and follow recipe in
+   `TomoPy PyCTestPreInit.cmake
+   example <examples/TomoPy/PyCTestPreInit.cmake>`__
+
+Standard Configuration Variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-  ``pyctest.PROJECT_NAME``
+-  ``pyctest.SOURCE_DIRECTORY``
+-  ``pyctest.BINARY_DIRECTORY``
+-  ``pyctest.SITE``
+-  ``pyctest.BUILD_NAME``
+-  ``pyctest.TRIGGER``
+-  ``pyctest.CHECKOUT_COMMAND``
+-  ``pyctest.BUILD_COMMAND``
+-  ``pyctest.MODEL``
+-  ``pyctest.CUSTOM_COVERAGE_EXCLUDE``
+-  ``pyctest.CUSTOM_MAXIMUM_NUMBER_OF_ERRORS``
+-  ``pyctest.CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS``
+-  ``pyctest.CUSTOM_MAXIMUM_PASSED_TEST_OUTPUT_SIZE``
+
+Setting Arbitrary Variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: python
+
+      pyctest.set("CTEST_TOKEN_FILE", "${CMAKE_CURRENT_LIST_DIR}/.ctest-token")
+
+Generating a Test
+~~~~~~~~~~~~~~~~~
+
+.. code:: python
+
+      test = pyctest.test()
+      test.SetName("nosetests")
+      test.SetCommand(["nosetests", "test", "--cover-xml", "--cover-xml-file=coverage.xml"])
+      # set directory to run test
+      test.SetProperty("WORKING_DIRECTORY", pyctest.BINARY_DIRECTORY)
+      test.SetProperty("RUN_SERIAL", "ON")
+      test.SetProperty("ENVIRONMENT", "OMP_NUM_THREADS=1")
+
+Examples
+~~~~~~~~
+
+-  `Basic example <examples/Basic/README.md>`__
+-  `Advanced example <examples/TomoPy/README.md>`__
+
+   -  includes submission to CDash dashboard
+
+CDash Integration Example
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Results from running the TomoPy example can be found at the `TomoPy
 CDash Testing Dashboard @
@@ -46,17 +118,7 @@ NERSC <https://cdash.nersc.gov/index.php?project=TomoPy>`__
    "Build" section
 -  The ``nosetests test`` command + other are wrapped into CTests
 
-Examples
-~~~~~~~~
-
--  `Basic
-   example <https://github.com/jrmadsen/pyctest/tree/master/examples/Basic>`__
--  `Advanced
-   example <https://github.com/jrmadsen/pyctest/tree/master/examples/TomoPy>`__
-
-   -  includes submission to CDash dashboard
-
-Basic usage
+Basic Usage
 ~~~~~~~~~~~
 
 Generates ``pycm-test/CTestTestfile.cmake`` but does not submit to
