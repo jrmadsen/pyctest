@@ -21,7 +21,7 @@ from tomopy_test_utils import *
 
 #------------------------------------------------------------------------------#
 @timemory.util.auto_timer()
-def generate(phantom = "shepp3d", nsize = 512, nangles = 360):
+def generate(phantom="shepp3d", nsize=512, nangles=360):
 
     with timemory.util.auto_timer("[tomopy.misc.phantom.{}]".format(phantom)):
         obj = getattr(tomopy.misc.phantom, phantom)(size=nsize)
@@ -30,20 +30,19 @@ def generate(phantom = "shepp3d", nsize = 512, nangles = 360):
     with timemory.util.auto_timer("[tomopy.project]"):
         prj = tomopy.project(obj, ang)
 
-    #np.save('projection.npy', prj)
-    #np.save('angles.npy', ang)
+    # np.save('projection.npy', prj)
+    # np.save('angles.npy', ang)
 
-    return [ prj, ang, obj ]
+    return [prj, ang, obj]
 
 
 #------------------------------------------------------------------------------#
 @timemory.util.auto_timer()
-def run(phantom, algorithm, size, nangles, ncores, format, scale, ncol, nitr, get_recon = False):
+def run(phantom, algorithm, size, nangles, ncores, format, scale, ncol, nitr, get_recon=False):
 
     global image_quality
 
     nitr = size
-    ndigits = 6
     imgs = []
     bname = os.path.join(os.getcwd(), phantom)
     bname = os.path.join(bname, algorithm)
@@ -56,12 +55,18 @@ def run(phantom, algorithm, size, nangles, ncores, format, scale, ncol, nitr, ge
     if nitr != prj.shape[0]:
         nitr = prj.shape[0]
 
-    if algorithm == "fbp" or algorithm == "gridrec":
-        with timemory.util.auto_timer("[tomopy.recon(algorithm='{}')]".format(algorithm)):
-            rec = tomopy.recon(prj, ang, algorithm=algorithm, ncore=ncores)
-    else:
-        with timemory.util.auto_timer("[tomopy.recon(algorithm='{}')]".format(algorithm)):
-            rec = tomopy.recon(prj, ang, algorithm=algorithm, ncore=ncores, num_iter=nitr)
+    # always add algorithm
+    _kwargs = {"algorithm": algorithm}
+
+    # assign number of cores
+    _kwargs["ncore"] = ncores
+
+    # don't assign "num_iter" if gridrec or fbp
+    if algorithm != "fbp" and algorithm != "gridrec":
+        _kwargs["num_iter"] = nitr
+
+    with timemory.util.auto_timer("[tomopy.recon(algorithm='{}')]".format(algorithm)):
+        rec = tomopy.recon(prj, ang, **_kwargs)
 
     obj = normalize(obj)
     rec = normalize(rec)
@@ -70,8 +75,9 @@ def run(phantom, algorithm, size, nangles, ncores, format, scale, ncol, nitr, ge
                       rec[0].shape[0] - obj[0].shape[0],
                       rec[0].shape[1] - obj[0].shape[1])
 
-    print_size(obj, "    --> Original")
-    print_size(rec, "    --> Reconstructed")
+    label = "{} @ {}".format(algorithm.upper(), phantom.upper())
+
+    quantify_difference(label, obj, rec)
 
     if not "orig" in image_quality:
         image_quality["orig"] = obj
@@ -115,58 +121,40 @@ def main(args):
     if len(args.compare) > 0:
         args.ncol = 1
         args.scale = 1
-        arr = None
-        dif = None
-        _nrows = None
-        _ncols = None
-        _nitr = 1
-        seq = None
+        nitr = 1
+        comparison = None
         for alg in args.compare:
-            print("Reconstructing with {}...".format(alg))
-            if seq is None:
-                seq = "orig-{}".format(alg)
-            else:
-                seq = "{}-{}".format(seq, alg)
+            print("Reconstructing {} with {}...".format(args.phantom, alg))
             tmp = run(args.phantom, alg, args.size, args.angles,
                       args.ncores, args.format, args.scale, args.ncol,
                       args.num_iter, get_recon=True)
             tmp = rescale_image(tmp, args.size, args.scale, transform=False)
-            _nrow = tmp[0].shape[0]
-            _ncol = tmp[0].shape[1]
-            if arr is None:
-                _nrows = _nrow
-                _ncols = _ncol * (len(args.compare)+1)
-                arr = np.ndarray([tmp.shape[0], _nrows, _ncols], dtype=float)
-                dif = np.ndarray([tmp.shape[0], _nrows, _ncols], dtype=float)
-                arr[:, :, 0:_ncol] = image_quality["orig"][:,:,:]
-                dif[:, :, 0:_ncol] = image_quality["orig"][:,:,:]
-            _b = (_ncol*_nitr)
-            _nitr += 1
-            _e = (_ncol*_nitr)
-            arr[:, :, _b:_e] = tmp[:,:,:]
-            dif[:, :, _b:_e] = image_quality[alg][:,:,:]
-        #
-        print("Total array size: {} x {} x {}".format(
-            arr[0].shape[0],
-            arr[0].shape[1],
-            arr.shape[0]))
-
+            if comparison is None:
+                comparison = image_comparison(len(
+                    args.compare), tmp.shape[0], tmp[0].shape[0], tmp[0].shape[1], image_quality["orig"])
+            comparison.assign(alg, nitr, tmp)
+            nitr += 1
         bname = os.path.join(os.getcwd(), args.phantom)
         bname = os.path.join(bname, algorithm)
-        fname = os.path.join(bname, "stack_{}_".format(seq))
-        dname = os.path.join(bname, "diff_{}_".format(seq))
-        imgs = output_images(arr, fname, args.format, args.scale, args.ncol)
-        imgs.extend(output_images(dif, dname, args.format, args.scale, args.ncol))
+        fname = os.path.join(bname, "stack_{}_".format(comparison.tagname()))
+        dname = os.path.join(bname, "diff_{}_".format(comparison.tagname()))
+        imgs = []
+        imgs.extend(
+            output_images(comparison.array, fname,
+                          args.format, args.scale, args.ncol))
+        imgs.extend(
+            output_images(comparison.delta, dname,
+                          args.format, args.scale, args.ncol))
     else:
         print("Reconstructing with {}...".format(args.algorithm))
         imgs = run(args.phantom, args.algorithm, args.size, args.angles,
                    args.ncores, args.format, args.scale, args.ncol, args.num_iter)
 
-
     # timing report to stdout
     print('{}'.format(manager))
 
-    timemory.options.output_dir = "./{}".format(os.path.join(args.phantom, algorithm))
+    timemory.options.output_dir = "./{}".format(
+        os.path.join(args.phantom, algorithm))
     timemory.options.set_report("run_tomopy.out")
     timemory.options.set_serial("run_tomopy.json")
     manager.report()
@@ -196,7 +184,8 @@ def main(args):
     #------------------------------------------------------------------#
     # provide ASCII results
     try:
-        notes = manager.write_ctest_notes(directory="{}/{}".format(args.phantom, algorithm))
+        notes = manager.write_ctest_notes(
+            directory="{}/{}".format(args.phantom, algorithm))
         print('"{}" wrote CTest notes file : {}'.format(__file__, notes))
     except Exception as e:
         print("Exception - {}".format(e))
@@ -267,7 +256,6 @@ if __name__ == "__main__":
         except:
             pass
 
-
     ret = 0
     try:
 
@@ -277,8 +265,7 @@ if __name__ == "__main__":
     except Exception as e:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback, limit=5)
-        print ('Exception - {}'.format(e))
+        print('Exception - {}'.format(e))
         ret = 2
-        os.kill(os.getpid(), signal.SIGHUP)
 
     sys.exit(ret)

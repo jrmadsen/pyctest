@@ -1,3 +1,16 @@
+################################################################################
+#   Python files
+################################################################################
+file(GLOB PYTHON_FILES "${PROJECT_SOURCE_DIR}/pyctest/*.py")
+foreach(_FILE ${PYTHON_FILES})
+    get_filename_component(_FILE_NAME "${_FILE}" NAME)
+    configure_file(
+        ${PROJECT_SOURCE_DIR}/pyctest/${_FILE_NAME}
+        ${PROJECT_BINARY_DIR}/pyctest/${_FILE_NAME} @ONLY)
+    install(FILES ${PROJECT_BINARY_DIR}/pyctest/${_FILE_NAME}
+        DESTINATION ${CMAKE_INSTALL_PYTHONDIR}
+        COMPONENT python)
+endforeach(_FILE ${PYTHON_FILES})
 
 ################################################################################
 #

@@ -48,11 +48,9 @@ set_python_version("2.7")
 #------------------------------------------------------------------------------#
 set(ENV{PYTHONPATH} "") # conda doesn't like PYTHONPATH
 # control whether to download + install when not necessary
-set(MINICONDA_PACKAGE_INSTALL
-    OFF)
+set(MINICONDA_PACKAGE_INSTALL OFF)
 # prefix for miniconda install
-set(MINICONDA_PREFIX
-    "${CMAKE_CURRENT_LIST_DIR}/miniconda")
+set(MINICONDA_PREFIX "${CMAKE_CURRENT_LIST_DIR}/Miniconda")
 # environment to install to
 set(MINICONDA_ENVIRONMENT "root")
 # packages
@@ -104,5 +102,12 @@ if(MINICONDA_PACKAGE_INSTALL)
     execute_process(COMMAND ${CONDA_EXE} install -n ${MINICONDA_ENVIRONMENT}
         python=${PYTHON_VERSION} ${MINICONDA_PACKAGES})
 endif()
+
+configure_conda(
+    PYTHON_VERSION      ${PYTHON_VERSION}
+    PREFIX              ${MINICONDA_PREFIX}
+    ENVIRONMENT         ${MINICONDA_ENVIRONMENT}
+    PACKAGES            scipy
+    CHANNELS            conda-forge jrmadsen)
 
 find_conda(${MINICONDA_PREFIX} ${MINICONDA_ENVIRONMENT})

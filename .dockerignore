@@ -1,0 +1,7 @@
+
+# git folder big and irrelevant
+*.git*
+
+# source folder big and irrelevant
+*source*
+

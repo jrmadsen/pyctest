@@ -656,6 +656,10 @@ PYBIND11_MODULE(pyctest, ct)
     auto run = [=] (std::vector<string_t> pargs, string_t working_dir)
     {
         charvec_t cargs;
+        // pyctest.ARGUMENTS attributes
+        for(auto itr : ct.attr("ARGUMENTS").cast<py::list>())
+            cargs.push_back(str2char_convert(itr.cast<std::string>()));
+
         // convert list elements to char*
         for(auto itr : pargs)
             cargs.push_back(str2char_convert(itr));
@@ -974,6 +978,7 @@ PYBIND11_MODULE(pyctest, ct)
             .value  ("ANSI",        cmProcessOutput::Encoding::ANSI)
             .value  ("OEM",         cmProcessOutput::Encoding::OEM);
 
+    ct.attr("ARGUMENTS") = py::list();
     ct.attr("PROJECT_NAME") = "";
     ct.attr("NIGHTLY_START_TIME") = "01:00:00 UTC";
     ct.attr("DROP_METHOD") = "https";
