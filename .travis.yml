@@ -121,35 +121,6 @@ matrix:
       language: ruby
       env:
         - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.6 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
-    # ------------------------------------------------------------------------ #
-    #
-    #   Python 3.7
-    #
-    # ------------------------------------------------------------------------ #
-    # GCC 4.9
-    - os: linux
-      dist: trusty
-      sudo: false
-      language: python
-      python: '3.7'
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - gcc-4.9
-            - g++-4.9
-            - build-essential
-            - cmake
-      env:
-        - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
-    # macOS
-    - os: osx
-      osx_image: xcode9.4
-      language: ruby
-      env:
-        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.7 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
-    # ------------------------------------------------------------------------ #
 
 
 before_install:
@@ -169,6 +140,15 @@ before_install:
     - echo "CXX = ${CXX} $(${CXX} -dumpversion)"
 
 install:
+    - eval "${MATRIX_EVAL}"
+    - if [[ -n "${MACOSX}" ]]; then
+        CC=$(which clang) ;
+        CXX=$(which clang++) ;
+      fi
+    - export CC
+    - export CXX
+    - echo "CC = ${CC} $(${CC} -dumpversion)"
+    - echo "CXX = ${CXX} $(${CXX} -dumpversion)"
     - if [[ "${CONDA_UPLOAD}" -gt 0 ]]; then
           export CPY_MAJOR=$(echo "${TRAVIS_PYTHON_VERSION}" | sed 's/\./ /g' | awk '{print $1}') ;
           export CPY_OS=Linux ;
@@ -181,13 +161,6 @@ install:
           conda update -q conda ;
           conda info -a ;
           conda create -q -n test-env python=${TRAVIS_PYTHON_VERSION} anaconda anaconda-client conda-build ;
-      fi
-
-script:
-    #
-    # Python testing
-    #
-    - if [[ "${CONDA_UPLOAD}" -gt 0 ]]; then
           source activate test-env ;
           conda config --set anaconda_upload yes ;
           python update-conda-yaml.py ;
@@ -198,4 +171,9 @@ script:
           cd ${HOME}/pyctest-test ;
           python${TRAVIS_PYTHON_VERSION} -c "import pyctest; import pyctest.pyctest; import pyctest.pycmake" ;
       fi
+
+script:
+    #
+    # Python testing
+    #
     - echo "Finished -- collapse Travis log tree"
