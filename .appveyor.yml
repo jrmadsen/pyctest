@@ -17,8 +17,6 @@ environment:
     CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-helpers\\appveyor\\windows_sdk.cmd"
 
   matrix:
-    - PYTHON_VERSION: "3.7"
-      PYTHON_ARCH: "64"
     - PYTHON_VERSION: "3.6"
       PYTHON_ARCH: "64"
     - PYTHON_VERSION: "3.5"
@@ -27,8 +25,6 @@ environment:
       PYTHON_ARCH: "64"
     - PYTHON_VERSION: "2.7"
       PYTHON_ARCH: "64"
-    - PYTHON_VERSION: "3.7"
-      PYTHON_ARCH: "32"
     - PYTHON_VERSION: "3.6"
       PYTHON_ARCH: "32"
     - PYTHON_VERSION: "3.5"
@@ -39,7 +35,6 @@ environment:
       PYTHON_ARCH: "32"
 
 install:
-  - if "%PYTHON_VERSION%" == "3.7" set "BASE_PYTHON_VERSION=37"
   - if "%PYTHON_VERSION%" == "3.5" set "BASE_PYTHON_VERSION=35"
   - if "%PYTHON_VERSION%" == "3.6" set "BASE_PYTHON_VERSION=36"
   - if "%PYTHON_ARCH%" == "64" set "ARCH_LABEL=-x64"
