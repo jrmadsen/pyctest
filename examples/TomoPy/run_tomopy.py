@@ -62,7 +62,7 @@ def run(phantom, algorithm, size, nangles, ncores, format, scale, ncol, nitr, ge
     _kwargs["ncore"] = ncores
 
     # don't assign "num_iter" if gridrec or fbp
-    if algorithm != "fbp" and algorithm != "gridrec":
+    if not algorithm in ["fbp", "gridrec"]:
         _kwargs["num_iter"] = nitr
 
     with timemory.util.auto_timer("[tomopy.recon(algorithm='{}')]".format(algorithm)):

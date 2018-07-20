@@ -20,7 +20,7 @@ import dxchange
 import timemory
 from tomopy_test_utils import *
 
-   
+
 #------------------------------------------------------------------------------#
 def get_dx_dims(fname, dataset):
     """
@@ -71,7 +71,7 @@ def read_rot_centers(fname):
 
         return collections.OrderedDict(sorted(dictionary.items()))
 
-    except Exception as error: 
+    except Exception as error:
         print("ERROR: the json file containing the rotation axis locations is missing")
         print("ERROR: run: python find_center.py to create one first")
         exit()
@@ -83,7 +83,7 @@ def reconstruct(h5fname, sino, rot_center, args, blocked_views=None):
 
     # Read APS 32-BM raw data.
     proj, flat, dark, theta = dxchange.read_aps_32id(h5fname, sino=sino)
-        
+
     # Manage the missing angles:
     if blocked_views is not None:
         print("Blocked Views: ", blocked_views)
@@ -109,27 +109,30 @@ def reconstruct(h5fname, sino, rot_center, args, blocked_views=None):
     ncores = args.ncores
     nitr = args.num_iter
 
+    # always add algorithm
+    _kwargs = {"algorithm": algorithm}
+
+    # assign number of cores
+    _kwargs["ncore"] = ncores
+
+    # don't assign "num_iter" if gridrec or fbp
+    if not algorithm in ["fbp", "gridrec"]:
+        _kwargs["num_iter"] = nitr
+
     # Reconstruct object.
-    if algorithm == "fbp" or algorithm == "gridrec":
-        with timemory.util.auto_timer("[tomopy.recon(algorithm='{}')]".format(algorithm)):
-            rec = tomopy.recon(data, theta, center=rot_center,
-                               algorithm=algorithm, ncore=ncores)
-    else:
-        with timemory.util.auto_timer("[tomopy.recon(algorithm='{}')]".format(algorithm)):
-            rec = tomopy.recon(data, theta, center=rot_center,
-                               algorithm=algorithm, ncore=ncores,
-                               num_iter=nitr)
+    with timemory.util.auto_timer("[tomopy.recon(algorithm='{}')]".format(algorithm)):
+        rec = tomopy.recon(prj, ang, **_kwargs)
 
     # Mask each reconstructed slice with a circle.
     rec = tomopy.circ_mask(rec, axis=0, ratio=0.95)
-    
+
     return rec
-        
+
 
 #------------------------------------------------------------------------------#
 @timemory.util.auto_timer()
 def rec_full(h5fname, rot_center, args, blocked_views):
-    
+
     data_size = get_dx_dims(h5fname, 'data')
 
     output_dir = os.path.join(args.output_dir, 'rec_full')
@@ -152,18 +155,18 @@ def rec_full(h5fname, rot_center, args, blocked_views):
     strt = 0
     for iChunk in range(0,chunks):
         print('\n  -- chunk # %i' % (iChunk+1))
-        sino_chunk_start = sino_start + nSino_per_chunk*iChunk 
+        sino_chunk_start = sino_start + nSino_per_chunk*iChunk
         sino_chunk_end = sino_start + nSino_per_chunk*(iChunk+1)
         print('\n  --------> [%i, %i]' % (sino_chunk_start, sino_chunk_end))
-                
-        if sino_chunk_end > sino_end: 
+
+        if sino_chunk_end > sino_end:
             break
 
         sino = (int(sino_chunk_start), int(sino_chunk_end))
 
         # Reconstruct.
         rec = reconstruct(h5fname, sino, rot_center, args, blocked_views)
-                
+
         # Write data as stack of TIFs.
         fname = os.path.join(output_dir,'recon_{}_'.format(args.algorithm))
         print("Reconstructions: ", fname)
@@ -171,12 +174,12 @@ def rec_full(h5fname, rot_center, args, blocked_views):
         imgs.extend(output_images(rec, fname, args.format, args.scale, args.ncol))
         #dxchange.write_tiff_stack(rec, fname=fname, start=strt)
         strt += sino[1] - sino[0]
-    
+
 
 #------------------------------------------------------------------------------#
 @timemory.util.auto_timer()
 def rec_slice(h5fname, nsino, rot_center, args, blocked_views):
-    
+
     data_size = get_dx_dims(h5fname, 'data')
     ssino = int(data_size[1] * nsino)
 
@@ -202,7 +205,7 @@ def rec_slice(h5fname, nsino, rot_center, args, blocked_views):
     print("Slice: ", start)
     imgs.extend(output_images(rec, fname, args.format, args.scale, args.ncol))
     return imgs
-   
+
 #------------------------------------------------------------------------------#
 def main(arg):
 
@@ -262,8 +265,8 @@ def main(arg):
         slice = True
 
     imgs = []
-    if os.path.isfile(fname):       
-        if slice:             
+    if os.path.isfile(fname):
+        if slice:
             imgs = rec_slice(fname, nsino, rot_center, args, blocked_views)
         else:
             imgs = rec_full(fname, rot_center, args, blocked_views)

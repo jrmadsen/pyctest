@@ -26,11 +26,84 @@
 
 [![Anaconda-Server Badge](https://anaconda.org/jrmadsen/pyctest/badges/downloads.svg)](https://anaconda.org/jrmadsen/pyctest)
 
+### General Setup
+
+- Create an anaconda environment for PyCTest: `conda create -n pyctest python=3.6 pyctest`
+- Activate this environment: `source activate pyctest`
+- Write a driver Python script
+
+```python
+#!/usr/bin/env python
+
+import os
+import sys
+import shutil
+import platform
+import argparse
+import traceback
+import multiprocessing
+
+import pyctest.pyctest as pyctest
+import pyctest.pycmake as pycmake
+import pyctest.helpers as helpers
+
+
+if __name__ == "__main__":
+
+    try:
+
+        helpers.ParseArgs(project_name="MyProject",
+                          source_dir="project-source",
+                          binary_dir="project-pyctest",
+                          python_exe="python")
+
+        pyctest.git_checkout("<your-repo-url>", pyctest.SOURCE_DIRECTORY)
+
+        pyctest.BUILD_NAME = "[{}] [{}] [{} {} {}] [Python ({}) {}]".format(
+            pyctest.PROJECT_NAME,
+            pyctest.GetGitBranch(pyctest.SOURCE_DIRECTORY),
+            platform.uname()[0],
+            platform.mac_ver()[0],
+            platform.uname()[4],
+            platform.python_implementation(),
+            platform.python_version())
+
+        pyctest.CHECKOUT_COMMAND = "${} -E copy_directory {} {}/".format(
+            "{CTEST_CMAKE_COMMAND}",
+            pyctest.SOURCE_DIRECTORY, pyctest.BINARY_DIRECTORY)
+
+        pyctest.BUILD_COMMAND = "{} setup.py build --inplace".format(
+            pyctest.PYTHON_EXECUTABLE)
+
+        cm = pycmake.cmake(pyctest.BINARY_DIRECTORY, pyctest.PROJECT_NAME)
+
+        test = pyctest.test()
+        test.SetName("unittest")
+        test.SetCommand([pyctest.PYTHON_EXECUTABLE, "-m", "unittest"])
+        test.SetProperty("WORKING_DIRECTORY", pyctest.BINARY_DIRECTORY)
+
+        pyctest.generate_config(pyctest.BINARY_DIRECTORY)
+        pyctest.generate_test_file(pyctest.BINARY_DIRECTORY)
+        ctest_args = pyctest.ARGUMENTS
+        ctest_args.append("-V")
+        pyctest.run(ctest_args, pyctest.BINARY_DIRECTORY)
+
+    except Exception as e:
+        print('Error running pyctest - {}'.format(e))
+        exc_type, exc_value, exc_trback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_trback, limit=10)
+        sys.exit(1)
+
+    sys.exit(0)
+```
+
 ### Python Modules
 
 - `import pyctest` -- global package
 - `import pyctest.pyctest` -- CTest module
 - `import pyctest.pycmake` -- CMake module
+- `import pyctest.helpers` -- Helpers module
+    - includes command line arguments (`argparse`) for PyCTest
 
 - NOTES:
     - This document uses `pyctest.<...>` as shorthand for `pyctest.pyctest.<...>` (e.g. `import pyctest.pyctest as pyctest`)

@@ -31,12 +31,23 @@ matrix:
             - cmake
       env:
         - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
+    # macOS
+    - os: osx
+      osx_image: xcode9.4
+      language: ruby
+      env:
+        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=2.7 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
+    # ------------------------------------------------------------------------ #
+    #
+    #   Python 3.4
+    #
+    # ------------------------------------------------------------------------ #
     # GCC 4.9
     - os: linux
       dist: trusty
       sudo: false
       language: python
-      python: '2.7'
+      python: '3.4'
       addons:
         apt:
           sources:
@@ -45,21 +56,15 @@ matrix:
             - gcc-4.9
             - g++-4.9
             - build-essential
-            - cmake
+            - cmake3
       env:
-        - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=0"
+        - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
     # macOS
     - os: osx
       osx_image: xcode9.4
       language: ruby
       env:
-        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=2.7 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
-    # macOS
-    - os: osx
-      osx_image: xcode9.4
-      language: ruby
-      env:
-        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=2.7 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=0"
+        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.4 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
     # ------------------------------------------------------------------------ #
     #
     #   Python 3.5
@@ -82,35 +87,12 @@ matrix:
             - cmake3
       env:
         - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
-    # GCC 4.9
-    - os: linux
-      dist: trusty
-      sudo: false
-      language: python
-      python: '3.5'
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - gcc-4.9
-            - g++-4.9
-            - build-essential
-            - cmake
-      env:
-        - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=0"
     # macOS
     - os: osx
       osx_image: xcode9.4
       language: ruby
       env:
         - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.5 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
-    # macOS
-    - os: osx
-      osx_image: xcode9.4
-      language: ruby
-      env:
-        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.5 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=0"
     # ------------------------------------------------------------------------ #
     #
     #   Python 3.6
@@ -133,12 +115,23 @@ matrix:
             - cmake
       env:
         - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
+    # macOS
+    - os: osx
+      osx_image: xcode9.4
+      language: ruby
+      env:
+        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.6 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
+    # ------------------------------------------------------------------------ #
+    #
+    #   Python 3.7
+    #
+    # ------------------------------------------------------------------------ #
     # GCC 4.9
     - os: linux
       dist: trusty
       sudo: false
       language: python
-      python: '3.6'
+      python: '3.7'
       addons:
         apt:
           sources:
@@ -149,19 +142,13 @@ matrix:
             - build-essential
             - cmake
       env:
-        - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=0"
+        - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
     # macOS
     - os: osx
       osx_image: xcode9.4
       language: ruby
       env:
-        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.6 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
-    # macOS
-    - os: osx
-      osx_image: xcode9.4
-      language: ruby
-      env:
-        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.6 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=0"
+        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.7 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_UPLOAD=1"
     # ------------------------------------------------------------------------ #
 
 
@@ -175,7 +162,6 @@ before_install:
         CONDA_UPLOAD=0 ;
       fi
     - export CONDA_UPLOAD
-    - export TWINE_UPLOAD
     - export CC=${CC}
     - export CXX=${CXX}
     - export PYCTEST_BUILD_TYPE=${BUILD_TYPE}
