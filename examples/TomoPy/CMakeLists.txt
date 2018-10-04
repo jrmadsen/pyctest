@@ -3,7 +3,7 @@ set(COPY_DIR ${PROJECT_BINARY_DIR}/examples/TomoPy)
 set(FILES
     PyCTestPreInit.cmake
     README.md
-    run_tomopy.py
+    tomopy_phantom.py
     tomopy.py
     tomopy_rec.py
     tomopy_test_utils.py
