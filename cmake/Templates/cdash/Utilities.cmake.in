@@ -116,12 +116,10 @@ macro(FIND_CONDA CONDA_PREFIX CONDA_ENVIRONMENT)
     set_if_empty(CONDA_PREFIX "${CMAKE_CURRENT_LIST_DIR}/Miniconda")
 
     # search paths
-    set(ENV{PATH} "${CONDA_PREFIX}/bin:$ENV{PATH}")
+    set(ENV{PATH} "${CONDA_PREFIX}/envs/${CONDA_ENVIRONMENT}/bin:${CONDA_PREFIX}/bin:$ENV{PATH}")
     set(SEARCH_PATHS
+        ${CONDA_PERFIX}/envs/${CONDA_ENVIRONMENT}
         ${CONDA_PREFIX}
-        ${CONDA_PREFIX}/bin
-        ${CONDA_PREFIX}/Scripts # Windows
-        ${CONDA_PREFIX}/Library/bin # Windows
         ${ARGN}
     )
 
@@ -140,10 +138,10 @@ macro(FIND_CONDA CONDA_PREFIX CONDA_ENVIRONMENT)
     endif()
 
     get_filename_component(CONDA_DIR "${CONDA_EXE}" PATH)
-    set(SEARCH_PATHS ${CONDA_DIR} ${SEARCH_PATHS})
+    set(SEARCH_PATHS ${SEARCH_PATHS} ${CONDA_DIR})
 
     #--------------------------------------------------------------------------#
-    #   local `conda`
+    #   local `python`
     #--------------------------------------------------------------------------#
     find_program(PYTHON_EXE
         NAMES           python
@@ -162,8 +160,13 @@ macro(FIND_CONDA CONDA_PREFIX CONDA_ENVIRONMENT)
     set(ENV{CONDA_PYTHON_EXE}   ${PYTHON_EXE})
     set(ENV{PYTHON_ROOT}        ${CONDA_PREFIX})
 
-    message(STATUS "Using conda: ${CONDA_EXE}")
+    message(STATUS "")
+    message(STATUS "Using conda: '${CONDA_EXE}' and python: '${PYTHON_EXE}'")
+    message(STATUS "")
     execute_process(COMMAND ${CONDA_EXE} info -a)
+    message(STATUS "")
+    message(STATUS "Using conda: '${CONDA_EXE}' and python: '${PYTHON_EXE}'")
+    message(STATUS "")
 
 endmacro()
 
@@ -205,7 +208,7 @@ macro(CONFIGURE_CONDA)
 
     # defaults
     set_if_empty(CONDA_PREFIX "${CMAKE_CURRENT_LIST_DIR}/Miniconda")
-    set_if_empty(CONDA_ENVIRONMENT "root")
+    set_if_empty(CONDA_ENVIRONMENT "pyctest-unknown-project")
     set_if_empty(CONDA_PYTHON_VERSION "2.7")
     list(APPEND CONDA_CHANNELS "conda-forge" "jrmadsen")
     list(REMOVE_DUPLICATES CONDA_CHANNELS)
@@ -215,7 +218,8 @@ macro(CONFIGURE_CONDA)
 
     # add channels
     foreach(_CHANNEL ${CONDA_CHANNELS})
-        execute_process(COMMAND ${CONDA_EXE} config --add channels ${_CHANNEL})
+        execute_process(COMMAND ${CONDA_EXE} config --add channels ${_CHANNEL}
+            OUTPUT_QUIET ERROR_QUIET)
     endforeach()
 
     # ensure no interactive
@@ -239,8 +243,22 @@ macro(CONFIGURE_CONDA)
         set(NO_PIN_OPT "--no-pin")
     endif()
 
+    # remove message
+    message(STATUS "")
+    message(STATUS "Running: '${CONDA_EXE} remove -n ${CONDA_ENVIRONMENT} --all'...")
+    message(STATUS "")
+
+    # remove existing environment
+    execute_process(COMMAND ${CONDA_EXE} remove -n ${CONDA_ENVIRONMENT} --all
+        ERROR_QUIET)
+
+    # install message
+    message(STATUS "")
+    message(STATUS "Running: '${CONDA_EXE} create -n ${CONDA_ENVIRONMENT} python=${CONDA_PYTHON_VERSION} _license ${CONDA_PACKAGES} ${NO_PIN_OPT}'...")
+    message(STATUS "")
+
     # install packages
-    execute_process(COMMAND ${CONDA_EXE} install -n ${CONDA_ENVIRONMENT}
+    execute_process(COMMAND ${CONDA_EXE} create -n ${CONDA_ENVIRONMENT}
         python=${CONDA_PYTHON_VERSION} _license ${CONDA_PACKAGES} ${NO_PIN_OPT})
 
 endmacro()

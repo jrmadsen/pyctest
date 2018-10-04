@@ -864,11 +864,13 @@ PYBIND11_MODULE(pyctest, ct)
     };
     //------------------------------------------------------------------------//
     auto git_checkout = [=] (std::string repo_url,
-                             std::string source_dir,
-                             bool update)
+                        std::string source_dir,
+                        std::string branch,
+                        bool update)
     {
         auto locals = py::dict("repo_url"_a = repo_url,
                                "source_dir"_a = source_dir,
+                               "branch"_a = branch,
                                "update"_a = update);
         locals["pyctest"] = ct;
         py::exec(R"(
@@ -896,8 +898,14 @@ PYBIND11_MODULE(pyctest, ct)
                          _perform_update(source_dir)
                  else:
                      # execute a checkout command
-                     cmd = pyctest.command(["git", "clone", repo_url, source_dir])
+                     cmd = pyctest.command(["git", "clone", "-b", branch, repo_url, source_dir])
                      cmd.SetWorkingDirectory(os.getcwd())
+                     cmd.SetOutputQuiet(False)
+                     cmd.SetErrorQuiet(False)
+                     cmd.Execute()
+                     # checkout submodules
+                     cmd = pyctest.command(["git", "submodule", "update", "--init", "--recursive"])
+                     cmd.SetWorkingDirectory(source_dir)
                      cmd.SetOutputQuiet(False)
                      cmd.SetErrorQuiet(False)
                      cmd.Execute()
@@ -1006,6 +1014,7 @@ PYBIND11_MODULE(pyctest, ct)
            "Perform git checkout a code and optionally update if already exists",
            py::arg("repo_url"),
            py::arg("source_dir"),
+           py::arg("branch") = "master",
            py::arg("update") = true);
     ct.def("generate_config", generate_config,
            "Generate PyCTestConfig.cmake file",

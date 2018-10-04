@@ -121,7 +121,7 @@ def reconstruct(h5fname, sino, rot_center, args, blocked_views=None):
 
     # Reconstruct object.
     with timemory.util.auto_timer("[tomopy.recon(algorithm='{}')]".format(algorithm)):
-        rec = tomopy.recon(prj, ang, **_kwargs)
+        rec = tomopy.recon(proj, theta, **_kwargs)
 
     # Mask each reconstructed slice with a circle.
     rec = tomopy.circ_mask(rec, axis=0, ratio=0.95)
@@ -131,7 +131,7 @@ def reconstruct(h5fname, sino, rot_center, args, blocked_views=None):
 
 #------------------------------------------------------------------------------#
 @timemory.util.auto_timer()
-def rec_full(h5fname, rot_center, args, blocked_views):
+def rec_full(h5fname, rot_center, args, blocked_views, nchunks=16):
 
     data_size = get_dx_dims(h5fname, 'data')
 
@@ -143,7 +143,7 @@ def rec_full(h5fname, rot_center, args, blocked_views):
     sino_start = 0
     sino_end = data_size[1]
 
-    chunks = 16         # number of sinogram chunks to reconstruct
+    chunks = nchunks    # number of sinogram chunks to reconstruct
                         # only one chunk at the time is reconstructed
                         # allowing for limited RAM machines to complete a full reconstruction
 
@@ -153,7 +153,7 @@ def rec_full(h5fname, rot_center, args, blocked_views):
 
     imgs = []
     strt = 0
-    for iChunk in range(0,chunks):
+    for iChunk in range(0, chunks):
         print('\n  -- chunk # %i' % (iChunk+1))
         sino_chunk_start = sino_start + nSino_per_chunk*iChunk
         sino_chunk_end = sino_start + nSino_per_chunk*(iChunk+1)
@@ -235,6 +235,8 @@ def main(arg):
                         default=1, type=int)
     parser.add_argument("-o", "--output-dir", help="Output directory",
                         default=None, type=str)
+    parser.add_argument("-g", "--grainsize", help="Granularity of slices to compute",
+                        default=16, type=int)
 
     args = parser.parse_args()
 
@@ -269,7 +271,7 @@ def main(arg):
         if slice:
             imgs = rec_slice(fname, nsino, rot_center, args, blocked_views)
         else:
-            imgs = rec_full(fname, rot_center, args, blocked_views)
+            imgs = rec_full(fname, rot_center, args, blocked_views, args.grainsize)
 
     else:
         print("File Name does not exist: ", fname)

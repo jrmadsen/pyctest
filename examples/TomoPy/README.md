@@ -11,7 +11,7 @@
   - Warnings are logged in "Build" section of dashboard
 - Generates a test around the `nosetests` unit testing
 - If `--globus-path` options is specified for a path to `tomo_00001/tomo_00001.h5`, generates tests calling `tomopy_rec.py`
-- Generates tests around several algorithms by calling `run_tomopy.py`
+- Generates tests around several algorithms by calling `tomopy_phantom.py`
 - Submits to CDash dashboard at [NERSC CDash Testing Dashboard](https://cdash.nersc.gov)
 - Timing and memory plots provided via [TiMemory](https://github.com/jrmadsen/TiMemory)
 - Attaches CTest notes (e.g. ASCII results)
@@ -24,9 +24,12 @@ Results from running the TomoPy example can be found at the [TomoPy CDash Testin
   - gitpython (optional)
 
 ### Optional setup
-$ git clone https://github.com/tomopy/tomopy.git tomopy-src
+$ git clone https://github.com/tomopy/tomopy.git tomopy-source
 
 ### Run and submit to dashboard
 ```bash
 $ ./tomopy.py
+```
+```bash
+$ ./tomopy.sh
 ```

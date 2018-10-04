@@ -7,3 +7,4 @@
 /pyctest.egg-info
 /dist
 /.gpg
+*__pycache__*

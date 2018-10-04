@@ -48,66 +48,90 @@ set_python_version("2.7")
 #------------------------------------------------------------------------------#
 set(ENV{PYTHONPATH} "") # conda doesn't like PYTHONPATH
 # control whether to download + install when not necessary
-set(MINICONDA_PACKAGE_INSTALL OFF)
+set(CONDA_PACKAGE_INSTALL ON)
 # prefix for miniconda install
-set(MINICONDA_PREFIX "${CMAKE_CURRENT_LIST_DIR}/Miniconda")
+set(CONDA_PREFIX "${CMAKE_CURRENT_LIST_DIR}/Miniconda")
 # environment to install to
-set(MINICONDA_ENVIRONMENT "root")
+set(CONDA_ENVIRONMENT "tomopy-pyctest")
 # packages
-set(MINICONDA_PACKAGES
+set(CONDA_PACKAGES
     nose six numpy h5py scipy scikit-image pywavelets mkl-devel
     mkl_fft python-coveralls dxchange numexpr timemory)
 
-if(NOT "$ENV{CONDA_PACKAGE_INSTALL}" STREQUAL "" OR
-   NOT "$ENV{MINICONDA_PACKAGE_INSTALL}" STREQUAL "")
-    set(MINICONDA_PACKAGE_INSTALL ON)
+if(NOT "$ENV{CONDA_PREFIX}" STREQUAL "")
+    set(CONDA_PREFIX $ENV{CONDA_PREFIX})
+endif()
+
+if(NOT "$ENV{CONDA_ENVIRONMENT}" STREQUAL "")
+    set(CONDA_ENVIRONMENT $ENV{CONDA_ENVIRONMENT})
+endif()
+
+if(NOT "$ENV{CONDA_EXE}" STREQUAL "")
+    set(CONDA_EXE ${CONDA_EXE})
+else()
+    set(CONDA_EXE ${CONDA_PREFIX}/bin/conda)
+endif()
+
+if(NOT "$ENV{CONDA_PACKAGE_INSTALL}" STREQUAL "")
+    set(CONDA_PACKAGE_INSTALL $ENV{CONDA_PACKAGE_INSTALL})
 endif()
 
 if("${PYTHON_VERSION}" VERSION_EQUAL "2.7")
-    list(APPEND MINICONDA_PACKAGES "futures")
+    list(APPEND CONDA_PACKAGES "futures")
 endif()
 
+message(STATUS "")
+message(STATUS "[${CMAKE_CURRENT_LIST_FILE}]")
+message(STATUS "")
+message(STATUS "    Python version    : ${PYTHON_VERSION}")
+message(STATUS "    Conda prefix      : ${CONDA_PREFIX}")
+message(STATUS "    Conda environment : ${CONDA_ENVIRONMENT}")
+message(STATUS "    Conda executable  : ${CONDA_EXE}")
+message(STATUS "")
 
 #------------------------------------------------------------------------------#
 #   download Miniconda if not already exists
 #------------------------------------------------------------------------------#
 # if not already installed
-if(NOT EXISTS "${MINICONDA_PREFIX}/bin/conda")
+if(NOT EXISTS "${CONDA_EXE}")
+    message(STATUS "CONDA_EXE (${CONDA_EXE}) does not exist. Downloading conda...")
 
     download_conda(
         VERSION "latest"
         PYTHON_VERSION ${PYTHON_VERSION}
-        INSTALL_PREFIX ${MINICONDA_PREFIX}
+        INSTALL_PREFIX ${CONDA_PREFIX}
         ARCH "x86_64"
         DOWNLOAD_DIR "${CMAKE_CURRENT_LIST_DIR}")
 
-    set(MINICONDA_PACKAGE_INSTALL ON)
+    set(CONDA_PACKAGE_INSTALL ON)
 
-endif(NOT EXISTS "${MINICONDA_PREFIX}/bin/conda")
+endif(NOT EXISTS "${CONDA_EXE}")
 
 
 #------------------------------------------------------------------------------#
-#   setup -- use MINICONDA_PACKAGE_INSTALL to avoid reinstalling if not necessary
+#   setup -- use CONDA_PACKAGE_INSTALL to avoid reinstalling if not necessary
 #------------------------------------------------------------------------------#
-if(MINICONDA_PACKAGE_INSTALL)
+if(CONDA_PACKAGE_INSTALL)
+
+    message(STATUS "")
+    message(STATUS "Configuring conda:")
+    message(STATUS "    prefix          : ${CONDA_PREFIX}")
+    message(STATUS "    python version  : ${PYTHON_VERSION}")
+    message(STATUS "    environment     : ${CONDA_ENVIRONMENT}")
+    message(STATUS "    packages        : ${CONDA_PACKAGES}")
+    message(STATUS "")
+
     configure_conda(UPDATE
         PYTHON_VERSION      ${PYTHON_VERSION}
-        PREFIX              ${MINICONDA_PREFIX}
-        ENVIRONMENT         ${MINICONDA_ENVIRONMENT}
-        PACKAGES            ${MINICONDA_PACKAGES}
+        PREFIX              ${CONDA_PREFIX}
+        ENVIRONMENT         ${CONDA_ENVIRONMENT}
+        PACKAGES            ${CONDA_PACKAGES}
         CHANNELS            conda-forge jrmadsen)
 
-    find_conda(${MINICONDA_PREFIX} ${MINICONDA_ENVIRONMENT})
-    # tomopy has errors if install is not called a second time on KNL
-    execute_process(COMMAND ${CONDA_EXE} install -n ${MINICONDA_ENVIRONMENT}
-        python=${PYTHON_VERSION} ${MINICONDA_PACKAGES})
 endif()
 
-configure_conda(
-    PYTHON_VERSION      ${PYTHON_VERSION}
-    PREFIX              ${MINICONDA_PREFIX}
-    ENVIRONMENT         ${MINICONDA_ENVIRONMENT}
-    PACKAGES            scipy
-    CHANNELS            conda-forge jrmadsen)
 
-find_conda(${MINICONDA_PREFIX} ${MINICONDA_ENVIRONMENT})
+#------------------------------------------------------------------------------#
+#   ensure environment setup
+#------------------------------------------------------------------------------#
+find_conda(${CONDA_PREFIX} ${CONDA_ENVIRONMENT})

@@ -17,10 +17,25 @@ import pyctest.helpers as helpers
 
 def configure():
 
+    env_conda_prefix = os.environ.get("CONDA_PREFIX")
+    env_conda_env = os.environ.get("CONDA_ENVIRONMENT")
+
+    use_python_exe = "${CMAKE_CURRENT_LIST_DIR}/Miniconda/bin/python"
+    if env_conda_prefix is not None and env_conda_env is not None:
+        if not "envs" in env_conda_prefix:
+            use_python_exe = os.path.join(env_conda_prefix, "envs")
+            use_python_exe = os.path.join(use_python_exe, env_conda_env)
+        else:
+            use_python_exe = os.path.dirname(env_conda_prefix)
+            use_python_exe = os.path.join(use_python_exe, env_conda_env)
+        use_python_exe = os.path.join(use_python_exe, "bin")
+        use_python_exe = os.path.join(use_python_exe, "python")
+
+
     helpers.ParseArgs(project_name="TomoPy",
                       source_dir="tomopy-source",
                       binary_dir="tomopy-ctest",
-                      python_exe="${CMAKE_CURRENT_LIST_DIR}/Miniconda/bin/python")
+                      python_exe=use_python_exe)
 
     # default algorithm choices
     available_algorithms = ['gridrec', 'art', 'fbp', 'bart', 'mlem', 'osem', 'sirt',
@@ -40,13 +55,16 @@ def configure():
     # number of cores
     default_ncores = multiprocessing.cpu_count()
     # number of iterations
-    default_nitr = 1
+    default_nitr = 10
     # default algorithm choices
     default_algorithms = ['gridrec', 'art', 'fbp', 'bart', 'mlem', 'osem', 'sirt',
                           'ospml_hybrid', 'ospml_quad', 'pml_hybrid', 'pml_quad']
     # default phantom choices
     default_phantoms = ["baboon", "cameraman", "barbara", "checkerboard",
                         "lena", "peppers", "shepp3d"]
+
+    default_repo_url = "https://github.com/jrmadsen/tomopy.git"
+    default_repo_branch = "tomopy-cxx"
 
     # argument parser
     parser = argparse.ArgumentParser()
@@ -71,6 +89,14 @@ def configure():
                         nargs='*',
                         choices=algorithm_choices,
                         default=default_algorithms)
+    parser.add_argument("--repo-url",
+                        help="Set the repository URL",
+                        type=str,
+                        default=default_repo_url)
+    parser.add_argument("--repo-branch",
+                        help="Branch of the repository",
+                        type=str,
+                        default=default_repo_branch)
     parser.add_argument("--globus-path",
                         help="Path to tomobank datasets",
                         type=str,
@@ -78,8 +104,9 @@ def configure():
 
     args = parser.parse_args()
 
-    pyctest.git_checkout("https://github.com/tomopy/tomopy.git",
-                         pyctest.SOURCE_DIRECTORY)
+    pyctest.git_checkout(args.repo_url,
+                         pyctest.SOURCE_DIRECTORY,
+                         branch = args.repo_branch)
 
     #-----------------------------------#
     def remove_entry(entry, container):
@@ -151,7 +178,7 @@ def run_pyctest():
     # (implicitly copies over PyCTest{Pre,Post}Init.cmake if they exist)
     #
     pyctest.copy_files(
-        ["tomopy_test_utils.py", "run_tomopy.py", "tomopy_rec.py"])
+        ["tomopy_test_utils.py", "tomopy_phantom.py", "tomopy_rec.py"])
 
     #--------------------------------------------------------------------------#
     # find the CTEST_TOKEN_FILE
@@ -164,9 +191,19 @@ def run_pyctest():
             pyctest.set("CTEST_TOKEN_FILE", token_path)
 
     #--------------------------------------------------------------------------#
-    # run CMake to generate DartConfiguration.tcl
+    # run CMake to generate DartConfiguration.tcl if no CMakeLists.txt
     #
-    cm = pycmake.cmake(pyctest.BINARY_DIRECTORY, pyctest.PROJECT_NAME)
+    cmake_list_file = os.path.join(pyctest.BINARY_DIRECTORY, "CMakeLists.txt")
+    if not os.path.exists(cmake_list_file):
+        cm = pycmake.cmake(pyctest.BINARY_DIRECTORY, pyctest.PROJECT_NAME)
+        #---------------------------------------------------------------------#
+        # remove CMakeCache.txt and CMakeFiles
+        cache_file = os.path.join(pyctest.BINARY_DIRECTORY, "CMakeCache.txt")
+        cache_folder = os.path.join(pyctest.BINARY_DIRECTORY, "CMakeFiles")
+        if os.path.exists(cache_file):
+            os.remove(cache_file)
+        if os.path.exists(cache_folder):
+            shutil.rmtree(cache_folder)
 
     #--------------------------------------------------------------------------#
     # create a CTest that checks we imported the correct module
@@ -234,21 +271,23 @@ def run_pyctest():
     # loop over args.phantoms
     #
     for phantom in args.phantoms:
-        nsize = 128 if phantom != "shepp3d" else 64
+        nsize = 512 if phantom != "shepp3d" else 128
         if phantom == "shepp3d":
             # for shepp3d only
             # loop over args.algorithms and create tests for each
             for algorithm in args.algorithms:
+                #-------------------------------------------#
                 # SKIP FOR NOW -- TOO MUCH OUTPUT/INFORMATION
+                #-------------------------------------------#
                 continue
-                # SKIP FOR NOW -- TOO MUCH OUTPUT/INFORMATION
+                #-------------------------------------------#
                 # args.algorithms
                 test = pyctest.test()
                 name = "{}_{}".format(phantom, algorithm)
                 test.SetName(name)
                 test.SetProperty("WORKING_DIRECTORY", pyctest.BINARY_DIRECTORY)
                 test.SetCommand([pyctest.PYTHON_EXECUTABLE,
-                                 "./run_tomopy.py",
+                                 "./tomopy_phantom.py",
                                  "-a", algorithm,
                                  "-p", phantom,
                                  "-s", "{}".format(nsize),
@@ -271,9 +310,9 @@ def run_pyctest():
         if phantom == "shepp3d":
             test.SetProperty("RUN_SERIAL", "ON")
             ncores = multiprocessing.cpu_count()
-            niters = min([niters, 2])
+            #niters = min([niters, 10])
         test.SetCommand([pyctest.PYTHON_EXECUTABLE,
-                         "./run_tomopy.py",
+                         "./tomopy_phantom.py",
                          "-p", phantom,
                          "-s", "{}".format(nsize),
                          "-A", "360",
@@ -314,7 +353,7 @@ def run_pyctest():
     # run CTest -- e.g. ctest -VV -S Test.cmake <binary_dir>
     #
     ctest_args = pyctest.ARGUMENTS
-    ctest_args.append("-V")
+    ctest_args.append("-VV")
     pyctest.run(ctest_args, pyctest.BINARY_DIRECTORY)
 
 

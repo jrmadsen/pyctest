@@ -42,7 +42,6 @@ def run(phantom, algorithm, size, nangles, ncores, format, scale, ncol, nitr, ge
 
     global image_quality
 
-    nitr = size
     imgs = []
     bname = os.path.join(os.getcwd(), phantom)
     bname = os.path.join(bname, algorithm)
@@ -51,9 +50,6 @@ def run(phantom, algorithm, size, nangles, ncores, format, scale, ncol, nitr, ge
     dname = os.path.join(bname, "diff_{}_".format(algorithm))
 
     prj, ang, obj = generate(phantom, size, nangles)
-
-    if nitr != prj.shape[0]:
-        nitr = prj.shape[0]
 
     # always add algorithm
     _kwargs = {"algorithm": algorithm}
@@ -65,6 +61,7 @@ def run(phantom, algorithm, size, nangles, ncores, format, scale, ncol, nitr, ge
     if not algorithm in ["fbp", "gridrec"]:
         _kwargs["num_iter"] = nitr
 
+    print("kwargs: {}".format(_kwargs))
     with timemory.util.auto_timer("[tomopy.recon(algorithm='{}')]".format(algorithm)):
         rec = tomopy.recon(prj, ang, **_kwargs)
 
@@ -196,13 +193,17 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
+    # phantom choices
+    phantom_choices = ["baboon", "cameraman", "barbara", "checkerboard",
+                       "lena", "peppers", "shepp3d"]
+
     import multiprocessing as mp
     ncores = mp.cpu_count()
 
     parser.add_argument("-p", "--phantom", help="Phantom to use",
-                        default="shepp3d", type=str)
+                        default="lena", choices=phantom_choices, type=str)
     parser.add_argument("-a", "--algorithm", help="Select the algorithm",
-                        default="gridrec", choices=algorithms, type=str)
+                        default="art", choices=algorithms, type=str)
     parser.add_argument("-A", "--angles", help="number of angles",
                         default=360, type=int)
     parser.add_argument("-s", "--size", help="size of image",
