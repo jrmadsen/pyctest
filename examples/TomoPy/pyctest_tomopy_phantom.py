@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""
+TomoPy script to reconstruct a built-in phantom
+"""
+
 import sys
 import os
 import argparse
@@ -16,7 +20,7 @@ import signal
 import numpy as np
 import time as t
 import pylab
-from tomopy_test_utils import *
+from pyctest_tomopy_utils import *
 
 
 #------------------------------------------------------------------------------#

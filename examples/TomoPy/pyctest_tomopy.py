@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+PyCTest driver for TomoPy
+"""
 
 import os
 import sys
@@ -178,7 +183,7 @@ def run_pyctest():
     # (implicitly copies over PyCTest{Pre,Post}Init.cmake if they exist)
     #
     pyctest.copy_files(
-        ["tomopy_test_utils.py", "tomopy_phantom.py", "tomopy_rec.py"])
+        ["pyctest_tomopy_utils.py", "pyctest_tomopy_phantom.py", "pyctest_tomopy_rec.py"])
 
     #--------------------------------------------------------------------------#
     # find the CTEST_TOKEN_FILE
@@ -257,7 +262,7 @@ def run_pyctest():
                                  phantom, phantom)])
         else:
             test.SetCommand([pyctest.PYTHON_EXECUTABLE,
-                             "./tomopy_rec.py",
+                             "./pyctest_tomopy_rec.py",
                              h5file,
                              "-a", algorithm,
                              "--type", "slice",
@@ -287,7 +292,7 @@ def run_pyctest():
                 test.SetName(name)
                 test.SetProperty("WORKING_DIRECTORY", pyctest.BINARY_DIRECTORY)
                 test.SetCommand([pyctest.PYTHON_EXECUTABLE,
-                                 "./tomopy_phantom.py",
+                                 "./pyctest_tomopy_phantom.py",
                                  "-a", algorithm,
                                  "-p", phantom,
                                  "-s", "{}".format(nsize),
@@ -312,7 +317,7 @@ def run_pyctest():
             ncores = multiprocessing.cpu_count()
             #niters = min([niters, 10])
         test.SetCommand([pyctest.PYTHON_EXECUTABLE,
-                         "./tomopy_phantom.py",
+                         "./pyctest_tomopy_phantom.py",
                          "-p", phantom,
                          "-s", "{}".format(nsize),
                          "-A", "360",

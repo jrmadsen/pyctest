@@ -3,15 +3,15 @@
 ## Overview
 
 - Uses CMake macros provided by package for Miniconda/Anaconda installation
-  - Downloads Miniconda in `PyCTestPreInit.cmake`
-  - Installs Miniconda and required packages in `PyCTestPreInit.cmake`
-  - Ensures proper conda environment variables are set
-- Checks out source code of Python package via `pyctest.pyctest.git_checkout("https://github.com/tomopy/tomopy.git", "tomopy-src")`
+    - Downloads Miniconda in `PyCTestPreInit.cmake`
+    - Installs Miniconda and required packages in `PyCTestPreInit.cmake`
+    - Ensures proper conda environment variables are set
+- Checks out source code of Python package via `pyctest.pyctest.git_checkout("https://github.com/tomopy/tomopy.git", "tomopy-source")`
 - Build source code via `python setup.py install` when running CTest
-  - Warnings are logged in "Build" section of dashboard
+    - Warnings are logged in "Build" section of dashboard
 - Generates a test around the `nosetests` unit testing
-- If `--globus-path` options is specified for a path to `tomo_00001/tomo_00001.h5`, generates tests calling `tomopy_rec.py`
-- Generates tests around several algorithms by calling `tomopy_phantom.py`
+- If `--globus-path` options is specified for a path to `tomo_00001/tomo_00001.h5`, generates tests calling `pyctest_tomopy_rec.py`
+- Generates tests around several algorithms by calling `pyctest_tomopy_phantom.py`
 - Submits to CDash dashboard at [NERSC CDash Testing Dashboard](https://cdash.nersc.gov)
 - Timing and memory plots provided via [TiMemory](https://github.com/jrmadsen/TiMemory)
 - Attaches CTest notes (e.g. ASCII results)
@@ -20,16 +20,17 @@
 Results from running the TomoPy example can be found at the [TomoPy CDash Testing Dashboard @ NERSC](https://cdash.nersc.gov/index.php?project=TomoPy)
 
 ### Dependencies
+
 - Python packages
-  - gitpython (optional)
+    - gitpython (optional)
 
 ### Optional setup
 $ git clone https://github.com/tomopy/tomopy.git tomopy-source
 
 ### Run and submit to dashboard
 ```bash
-$ ./tomopy.py
+$ ./pyctest_tomopy.py
 ```
 ```bash
-$ ./tomopy.sh
+$ ./pyctest_tomopy.sh
 ```
