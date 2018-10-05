@@ -164,7 +164,7 @@ install:
           source activate test-env ;
           conda config --set anaconda_upload yes ;
           python update-conda-yaml.py ;
-          conda-build --user jrmadsen --token ${ANACONDA_TOKEN} . ;
+          conda-build --user jrmadsen --token ${ANACONDA_TOKEN} --python=${TRAVIS_PYTHON_VERSION} . ;
       else
           python${TRAVIS_PYTHON_VERSION} setup.py install ;
           mkdir -p ${HOME}/pyctest-test ;
