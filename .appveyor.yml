@@ -46,7 +46,7 @@ install:
   - echo CONDA_PREFIX %CONDA_PREFIX%
   - conda config --set always_yes yes
   - conda config --set anaconda_upload yes
-  - conda install -n base conda-build anaconda-client --no-pin
+  - conda install -n root conda-build anaconda-client --no-pin
   - "%CONDA_ROOT%\\Scripts\\activate root"
 
 build_script:
