@@ -44,13 +44,13 @@ install:
   - set "CONDA_ROOT=C:\Miniconda%BASE_PYTHON_VERSION%%ARCH_LABEL%"
   - set "PATH=%CONDA_ROOT%;%CONDA_ROOT%\Scripts;%CONDA_ROOT%\Library\bin;%PATH%"
   - echo CONDA_PREFIX %CONDA_PREFIX%
-  - conda config --set always_yes yes --set changeps1 no
+  - conda config --set always_yes yes
   - conda config --set anaconda_upload yes
-  - conda install -n root conda conda-build python="%PYTHON_VERSION%" anaconda anaconda-client --no-pin
+  - conda install -n base conda-build anaconda-client --no-pin
   - "%CONDA_ROOT%\\Scripts\\activate root"
 
 build_script:
   - echo CONDA_PREFIX %CONDA_PREFIX%
   - conda info -a
   - python update-conda-yaml.py
-  - conda-build --user jrmadsen --token "%ANACONDA_TOKEN%" .
+  - conda-build --python "%PYTHON_VERSION%" --user jrmadsen --token "%ANACONDA_TOKEN%" .
