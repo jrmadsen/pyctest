@@ -140,7 +140,6 @@ before_install:
     - echo "CXX = ${CXX} $(${CXX} -dumpversion)"
 
 install:
-    - eval "${MATRIX_EVAL}"
     - if [[ -n "${MACOSX}" ]]; then
         CC=$(which clang) ;
         CXX=$(which clang++) ;
@@ -160,8 +159,7 @@ install:
           conda config --set always_yes yes --set changeps1 no ;
           conda update -q conda ;
           conda info -a ;
-          conda create -q -n test-env python=${TRAVIS_PYTHON_VERSION} anaconda anaconda-client conda-build ;
-          source activate test-env ;
+          conda install -n base anaconda-client conda-build ;
           conda config --set anaconda_upload yes ;
           python update-conda-yaml.py ;
           conda-build --user jrmadsen --token ${ANACONDA_TOKEN} --python=${TRAVIS_PYTHON_VERSION} . ;

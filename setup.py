@@ -70,7 +70,7 @@ def get_string_version(version_integer):
 # ---------------------------------------------------------------------------- #
 #
 def get_project_version():
-    # open ".version.txt"
+    # open "VERSION"
     with open(os.path.join(os.getcwd(), 'VERSION'), 'r') as f:
         data = f.read().replace('\n', '')
     # make sure is string
@@ -139,8 +139,8 @@ class CMakeBuild(build_ext, Command):
                 re.search(r'version\s*([\d.]+)', out.decode()).group(1))
         except OSError:
             # if fail, try the module
-            import cmake
             try:
+                import cmake
                 if not cmake.CMAKE_BIN_DIR in sys.path:
                     sys.path.append(cmake.CMAKE_BIN_DIR)
                 if platform.system() != "Windows":
@@ -326,8 +326,8 @@ class CMakeTest(TestCommand):
     lib tests.
     """
 
-    cmake_version = get_integer_version('2.7.12')
-    cmake_min_version = get_integer_version('2.8.12')
+    ctest_version = get_integer_version('2.7.12')
+    ctest_min_version = get_integer_version('2.8.12')
 
 
     #--------------------------------------------------------------------------#
@@ -351,12 +351,12 @@ class CMakeTest(TestCommand):
         """
         try:
             out = subprocess.check_output(['ctest', '--version'])
-            CMakeBuild.cmake_version = get_integer_version(
+            CMakeTest.ctest_version = get_integer_version(
                 re.search(r'version\s*([\d.]+)', out.decode()).group(1))
         except OSError:
             # if fail, try the module
-            import cmake
             try:
+                import cmake
                 if not cmake.CMAKE_BIN_DIR in sys.path:
                     sys.path.append(cmake.CMAKE_BIN_DIR)
                 if platform.system() != "Windows":

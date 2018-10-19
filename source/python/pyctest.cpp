@@ -789,7 +789,7 @@ PYBIND11_MODULE(pyctest, ct)
         //--------------------------------------------------------------------//
 
         std::stringstream ssfs;
-        for(const auto& itr : pyct::get_reqired_attributes())
+        for(const auto& itr : pyct::get_required_attributes())
             generate_attr(ssfs, itr, true);
 
         for(const auto& itr : pyct::get_custom_attributes())
@@ -898,11 +898,19 @@ PYBIND11_MODULE(pyctest, ct)
                          _perform_update(source_dir)
                  else:
                      # execute a checkout command
-                     cmd = pyctest.command(["git", "clone", "-b", branch, repo_url, source_dir])
+                     cmd = pyctest.command(["git", "clone", repo_url, source_dir])
                      cmd.SetWorkingDirectory(os.getcwd())
                      cmd.SetOutputQuiet(False)
                      cmd.SetErrorQuiet(False)
                      cmd.Execute()
+
+                     # execute a checkout command
+                     cmd = pyctest.command(["git", "checkout", branch])
+                     cmd.SetWorkingDirectory(os.getcwd())
+                     cmd.SetOutputQuiet(False)
+                     cmd.SetErrorQuiet(False)
+                     cmd.Execute()
+
                      # checkout submodules
                      cmd = pyctest.command(["git", "submodule", "update", "--init", "--recursive"])
                      cmd.SetWorkingDirectory(source_dir)
