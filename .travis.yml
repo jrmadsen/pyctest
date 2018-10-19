@@ -140,30 +140,40 @@ before_install:
     - echo "CXX = ${CXX} $(${CXX} -dumpversion)"
 
 install:
+    - eval "${MATRIX_EVAL}"
     - if [[ -n "${MACOSX}" ]]; then
         CC=$(which clang) ;
         CXX=$(which clang++) ;
       fi
+    - if [[ "${TRAVIS_BRANCH}" != "master" ]] || [[ "${TRAVIS_PULL_REQUEST}" != "false" ]]; then
+        CONDA_UPLOAD=0 ;
+      fi
+    - export CONDA_UPLOAD
     - export CC
     - export CXX
     - echo "CC = ${CC} $(${CC} -dumpversion)"
     - echo "CXX = ${CXX} $(${CXX} -dumpversion)"
+    - export CPY_MAJOR=$(echo "${TRAVIS_PYTHON_VERSION}" | sed 's/\./ /g' | awk '{print $1}') ;
+    - export CPY_OS=Linux ;
+    - if [[ -n "${MACOSX}" ]]; then export CPY_OS=MacOSX ; fi ;
+    - wget https://repo.continuum.io/miniconda/Miniconda${CPY_MAJOR}-latest-${CPY_OS}-x86_64.sh -O miniconda.sh ;
+    - bash miniconda.sh -b -p $HOME/miniconda ;
+    - export PATH="$HOME/miniconda/bin:$PATH" ;
+    - hash -r ;
+    - conda config --set always_yes yes --set changeps1 no ;
+    - conda update -q conda ;
+    - conda info -a ;
+    - conda install -n base anaconda-client conda-build ;
     - if [[ "${CONDA_UPLOAD}" -gt 0 ]]; then
-          export CPY_MAJOR=$(echo "${TRAVIS_PYTHON_VERSION}" | sed 's/\./ /g' | awk '{print $1}') ;
-          export CPY_OS=Linux ;
-          if [[ -n "${MACOSX}" ]]; then export CPY_OS=MacOSX ; fi ;
-          wget https://repo.continuum.io/miniconda/Miniconda${CPY_MAJOR}-latest-${CPY_OS}-x86_64.sh -O miniconda.sh ;
-          bash miniconda.sh -b -p $HOME/miniconda ;
-          export PATH="$HOME/miniconda/bin:$PATH" ;
-          hash -r ;
-          conda config --set always_yes yes --set changeps1 no ;
-          conda update -q conda ;
-          conda info -a ;
-          conda install -n base anaconda-client conda-build ;
           conda config --set anaconda_upload yes ;
           python update-conda-yaml.py ;
           conda-build --user jrmadsen --token ${ANACONDA_TOKEN} --python=${TRAVIS_PYTHON_VERSION} . ;
       else
+          conda config --set anaconda_upload no ;
+          python update-conda-yaml.py ;
+          conda-build --python=${TRAVIS_PYTHON_VERSION} . ;
+      fi
+    - if [[ -n "$(which python${TRAVIS_PYTHON_VERSION})" ]] ; then
           python${TRAVIS_PYTHON_VERSION} setup.py install ;
           mkdir -p ${HOME}/pyctest-test ;
           cd ${HOME}/pyctest-test ;
