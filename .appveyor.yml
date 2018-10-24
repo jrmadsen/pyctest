@@ -53,5 +53,6 @@ build_script:
   - echo CONDA_PREFIX %CONDA_PREFIX%
   - conda info -a
   - python update-conda-yaml.py
+  - anaconda logout
   - anaconda login --user jrmadsen --password "%ANACONDA_PASSWD%"
   - conda-build --python "%PYTHON_VERSION%" .
