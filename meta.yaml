@@ -3,7 +3,7 @@ package:
   version: '0.0.7'
 
 build:
-  number: 0
+  number: 1
   binary_relocation: False
   script_env:
   - TMPDIR
@@ -19,7 +19,7 @@ build:
   - PYCTEST_CMAKE_LIBRARY_PATH
   
 source:
-  git_rev: 47db1ca3c18bd6a9cf934ad0c939ce03bc1e23f9
+  git_rev: 73fc66aa5bc3098678fe447509b98b6ed79fe023
   git_url: https://github.com/jrmadsen/pyctest.git
 
 requirements:
@@ -37,7 +37,8 @@ test:
   - pyctest
   - pyctest.pyctest
   - pyctest.pycmake
-
+  - pyctest.helpers
+  
 about:
   home: https://jrmadsen.github.io/pyctest/
   license: MIT
