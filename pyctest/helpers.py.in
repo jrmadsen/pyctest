@@ -156,208 +156,237 @@ def GetHomePath():
 
 #------------------------------------------------------------------------------#
 #
-def ParseArgs(project_name,
-              source_dir,
-              binary_dir,
-              python_exe=sys.executable,
-              mode="Stages",
-              stages=["Build", "Test", "Coverage", "MemCheck"],
-              trigger="None",
-              model="Continuous",
-              site=platform.node(),
-              jobs=1,
-              submit=False,
-              ctest_args=["-V"]):
+class ArgumentParser(argparse.ArgumentParser):
+
     """
     - Adds common options for PyCTest
-    - Parses the known options
-    - Removes from sys.argv[]
-    - Sets the defaults if not specified
     """
 
-    # limit the mode choices
-    mode_choices = ["Build", "Test", "Coverage", "MemCheck", "Submit", "Stages"]
-    # stage choices
-    stage_choices = ["Build", "Test", "Coverage", "MemCheck"]
-    # choices for submission model
-    model_choices = ["Nightly", "Continuous", "Experimental"]
-    # choices for submit trigger
-    trigger_choices = ["Build", "Test", "Coverage", "MemCheck", "None"]
+    #-------------------------------------------------------------------------#
+    #
+    def __init__(self,
+                project_name,
+                source_dir,
+                binary_dir,
+                python_exe=sys.executable,
+                mode="Stages",
+                stages=["Build", "Test", "Coverage", "MemCheck"],
+                trigger="None",
+                model="Continuous",
+                site=platform.node(),
+                jobs=1,
+                submit=False,
+                ctest_args=["-V"],
+                prog=None,
+                usage=None,
+                description=None,
+                epilog=None,
+                parents=[],
+                formatter_class=argparse.HelpFormatter,
+                prefix_chars='-',
+                fromfile_prefix_chars=None,
+                argument_default=None,
+                conflict_handler='error',
+                add_help=True,
+                allow_abbrev=True):
 
-    # just a help message
-    default_pyexe_help = "{}. {}. Example: '{}'".format(
-        "Python executable to use",
-        "This can be absolue, relative, or CMake path",
-        "${CMAKE_CURRENT_LIST_DIR}/miniconda/bin/python")
+        # init parent
+        super(ArgumentParser, self).__init__(prog, usage, description, epilog, parents, formatter_class,
+                                             prefix_chars, fromfile_prefix_chars, argument_default,
+                                             conflict_handler, add_help, allow_abbrev)
 
-    parser = argparse.ArgumentParser()
+        # limit the mode choices
+        mode_choices = ["Build", "Test", "Coverage", "MemCheck", "Submit", "Stages"]
+        # stage choices
+        stage_choices = ["Build", "Test", "Coverage", "MemCheck"]
+        # choices for submission model
+        model_choices = ["Nightly", "Continuous", "Experimental"]
+        # choices for submit trigger
+        trigger_choices = ["Build", "Test", "Coverage", "MemCheck", "None"]
 
-    parser.add_argument("--pyctest-ctest-args",
-                        help="CTest arguments",
-                        type=str,
-                        default=ctest_args,
-                        nargs='*')
-    parser.add_argument("--pyctest-project-name",
-                        help="Name of project using PyCTest",
-                        type=str,
-                        default=project_name)
-    parser.add_argument("--pyctest-python-exe",
-                        help=default_pyexe_help,
-                        type=str,
-                        default=python_exe)
-    parser.add_argument("--pyctest-source-dir",
-                        help="Source directory",
-                        type=str,
-                        default=source_dir)
-    parser.add_argument("--pyctest-binary-dir",
-                        help="Working directory",
-                        type=str,
-                        default=binary_dir)
-    parser.add_argument("--pyctest-mode",
-                        help="Testing mode (how to run the setup)",
-                        type=str,
-                        choices=mode_choices,
-                        default=mode)
-    parser.add_argument("--pyctest-stages",
-                        help="Run modes separately in stages",
-                        choices=stage_choices,
-                        default=stages,
-                        nargs='*')
-    parser.add_argument("--pyctest-trigger",
-                        help="Submit to dashboard after this mode was run",
-                        choices=trigger_choices,
-                        default=trigger)
-    parser.add_argument("--pyctest-model",
-                        help="CTest submission model (CDash)",
-                        type=str,
-                        choices=model_choices,
-                        default=model)
-    parser.add_argument("--pyctest-jobs",
-                        help="number of concurrent jobs",
-                        type=int,
-                        default=jobs)
-    parser.add_argument("--pyctest-site",
-                        help="CTest submission site",
-                        type=str,
-                        default=site)
-    parser.add_argument("--pyctest-clean-first",
-                        help="Remove any old source/binary directories",
-                        action="store_true")
-    parser.add_argument("--pyctest-token",
-                        help="CTest site token for submission",
-                        type=str)
-    parser.add_argument("--pyctest-token-file",
-                        help="Path to file for CTest site token for submission",
-                        type=str)
-    parser.add_argument("--pyctest-submit",
-                        help="Enable submission to dashboard",
-                        action='store_true',
-                        default=submit)
+        # just a help message
+        default_pyexe_help = "{}. {}. Example: '{}'".format(
+            "Python executable to use",
+            "This can be absolue, relative, or CMake path",
+            "${CMAKE_CURRENT_LIST_DIR}/miniconda/bin/python")
 
-    # read known arguments and remove
-    args, left = parser.parse_known_args()
+        self.add_argument("--pyctest-ctest-args",
+                          help="CTest arguments",
+                          type=str,
+                          default=ctest_args,
+                          nargs='*')
+        self.add_argument("--pyctest-project-name",
+                          help="Name of project using PyCTest",
+                          type=str,
+                          default=project_name)
+        self.add_argument("--pyctest-python-exe",
+                          help=default_pyexe_help,
+                          type=str,
+                          default=python_exe)
+        self.add_argument("--pyctest-source-dir",
+                          help="Source directory",
+                          type=str,
+                          default=source_dir)
+        self.add_argument("--pyctest-binary-dir",
+                          help="Working directory",
+                          type=str,
+                          default=binary_dir)
+        self.add_argument("--pyctest-mode",
+                          help="Testing mode (how to run the setup)",
+                          type=str,
+                          choices=mode_choices,
+                          default=mode)
+        self.add_argument("--pyctest-stages",
+                          help="Run modes separately in stages",
+                          choices=stage_choices,
+                          default=stages,
+                          nargs='*')
+        self.add_argument("--pyctest-trigger",
+                          help="Submit to dashboard after this mode was run",
+                          choices=trigger_choices,
+                          default=trigger)
+        self.add_argument("--pyctest-model",
+                          help="CTest submission model (CDash)",
+                          type=str,
+                          choices=model_choices,
+                          default=model)
+        self.add_argument("--pyctest-jobs",
+                          help="number of concurrent jobs",
+                          type=int,
+                          default=jobs)
+        self.add_argument("--pyctest-site",
+                          help="CTest submission site",
+                          type=str,
+                          default=site)
+        self.add_argument("--pyctest-clean-first",
+                          help="Remove any old source/binary directories",
+                          action="store_true")
+        self.add_argument("--pyctest-token",
+                          help="CTest site token for submission",
+                          type=str)
+        self.add_argument("--pyctest-token-file",
+                          help="Path to file for CTest site token for submission",
+                          type=str)
+        self.add_argument("--pyctest-submit",
+                          help="Enable submission to dashboard",
+                          action='store_true',
+                          default=submit)
 
-    binary_dir = os.path.realpath(args.pyctest_binary_dir)
-    source_dir = os.path.realpath(args.pyctest_source_dir)
 
-    # clean
-    if args.pyctest_clean_first:
-        RemovePath(source_dir)
-        RemovePath(binary_dir)
+    #-------------------------------------------------------------------------#
+    #
+    def process_args(self, args):
+        """
+        Process PyCTest args
+        """
+        binary_dir = os.path.realpath(args.pyctest_binary_dir)
+        source_dir = os.path.realpath(args.pyctest_source_dir)
 
-    # make binary directory
-    if not os.path.exists(binary_dir):
-        os.makedirs(binary_dir)
+        # clean
+        if args.pyctest_clean_first:
+            RemovePath(source_dir)
+            RemovePath(binary_dir)
 
-    # if submit was included in stages
-    if "Submit" in args.pyctest_stages:
-        args.pyctest_stages.remove("Submit")
-        nstages = len(args.pyctest_stages)
-        args.pyctest_trigger = args.pyctest_stages[nstages-1]
+        # make binary directory
+        if not os.path.exists(binary_dir):
+            os.makedirs(binary_dir)
 
-    # append the stages to the CTest args
-    if args.pyctest_mode == "Stages":
-        args.pyctest_ctest_args.append(
-            "-DSTAGES={}".format(";".join(args.pyctest_stages)))
+        # if submit was included in stages
+        if "Submit" in args.pyctest_stages:
+            args.pyctest_stages.remove("Submit")
+            nstages = len(args.pyctest_stages)
+            args.pyctest_trigger = args.pyctest_stages[nstages-1]
 
-    # append the mode to the CTest args
-    args.pyctest_ctest_args.extend(
-        ["-S", "{}.cmake".format(args.pyctest_mode)])
+        # append the stages to the CTest args
+        if args.pyctest_mode == "Stages":
+            args.pyctest_ctest_args.append(
+                "-DSTAGES={}".format(";".join(args.pyctest_stages)))
 
-    # add the number of jobs
-    if args.pyctest_jobs > 0:
-        args.pyctest_ctest_args.append("-j{}".format(args.pyctest_jobs))
+        # append the mode to the CTest args
+        args.pyctest_ctest_args.extend(
+            ["-S", "{}.cmake".format(args.pyctest_mode)])
 
-    # version info for build name
-    version_info = None
-    if platform.system() == 'Darwin':
-        version_info = "macOS {}".format(platform.mac_ver()[0])
-    elif platform.system() == 'Linux':
-        version_info = "{} {}".format(platform.linux_distribution()[0],
-                                      platform.linux_distribution()[1])
-    else:
-        version_info = "Windows {}".format(platform.version())
+        # add the number of jobs
+        if args.pyctest_jobs > 0:
+            args.pyctest_ctest_args.append("-j{}".format(args.pyctest_jobs))
 
-    # the name of the project
-    pyctest.PROJECT_NAME = args.pyctest_project_name
+        # version info for build name
+        version_info = None
+        if platform.system() == 'Darwin':
+            version_info = "macOS {}".format(platform.mac_ver()[0])
+        elif platform.system() == 'Linux':
+            version_info = "{} {}".format(platform.linux_distribution()[0],
+                                        platform.linux_distribution()[1])
+        else:
+            version_info = "Windows {}".format(platform.version())
 
-    # source directory
-    pyctest.SOURCE_DIRECTORY = source_dir
+        # the name of the project
+        pyctest.PROJECT_NAME = args.pyctest_project_name
 
-    # binary directory
-    pyctest.BINARY_DIRECTORY = binary_dir
+        # source directory
+        pyctest.SOURCE_DIRECTORY = source_dir
 
-    # site of CDash submission
-    pyctest.SITE = args.pyctest_site
+        # binary directory
+        pyctest.BINARY_DIRECTORY = binary_dir
 
-    # build name for CDash
-    pyctest.BUILD_NAME = "[{}] [{} {} {}] [Python ({}) {}]".format(
-        pyctest.PROJECT_NAME,
-        platform.uname()[0],
-        version_info,
-        platform.uname()[4],
-        platform.python_implementation(),
-        platform.python_version())
+        # site of CDash submission
+        pyctest.SITE = args.pyctest_site
 
-    # the Python to use with scripts
-    pyctest.PYTHON_EXECUTABLE = args.pyctest_python_exe
+        # build name for CDash
+        pyctest.BUILD_NAME = "[{}] [{} {} {}] [Python ({}) {}]".format(
+            pyctest.PROJECT_NAME,
+            platform.uname()[0],
+            version_info,
+            platform.uname()[4],
+            platform.python_implementation(),
+            platform.python_version())
 
-    # submit after "Test" has been called
-    pyctest.TRIGGER = args.pyctest_trigger
+        # the Python to use with scripts
+        pyctest.PYTHON_EXECUTABLE = args.pyctest_python_exe
 
-    # how to checkout the code
-    pyctest.CHECKOUT_COMMAND = "${} -E copy_directory {} {}/".format(
-        "{CTEST_CMAKE_COMMAND}", source_dir, binary_dir)
+        # submit after "Test" has been called
+        pyctest.TRIGGER = args.pyctest_trigger
 
-    # the submission model in CDash (default = Nightly)
-    pyctest.MODEL = args.pyctest_model
+        # how to checkout the code
+        pyctest.CHECKOUT_COMMAND = "${} -E copy_directory {} {}/".format(
+            "{CTEST_CMAKE_COMMAND}", source_dir, binary_dir)
 
-    # custom variables
-    pyctest.CUSTOM_COVERAGE_EXCLUDE = "NONE"
-    pyctest.CUSTOM_MAXIMUM_NUMBER_OF_ERRORS = "200"
-    pyctest.CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS = "300"
-    pyctest.CUSTOM_MAXIMUM_PASSED_TEST_OUTPUT_SIZE = "104857600"
+        # the submission model in CDash (default = Nightly)
+        pyctest.MODEL = args.pyctest_model
 
-    if args.pyctest_token:
-        pyctest.set("CTEST_TOKEN", args.pyctest_token)
-    elif args.pyctest_token_file:
-        pyctest.set("CTEST_TOKEN_FILE", args.pyctest_token_file)
-    else:
-        home = GetHomePath()
-        if home is not None:
-            relpath = os.path.join(".tokens", pyctest.PROJECT_NAME)
-            token_path = os.path.join(home, relpath)
-            if os.path.exists(token_path):
-                print("Setting CTEST_TOKEN_FILE to '{}'...".format(token_path))
-                pyctest.set("CTEST_TOKEN_FILE", token_path)
-        if os.environ.get("CTEST_TOKEN") is not None:
-            pyctest.set("CTEST_TOKEN", os.environ.get("CTEST_TOKEN"))
+        # custom variables
+        pyctest.CUSTOM_COVERAGE_EXCLUDE = "NONE"
+        pyctest.CUSTOM_MAXIMUM_NUMBER_OF_ERRORS = "200"
+        pyctest.CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS = "300"
+        pyctest.CUSTOM_MAXIMUM_PASSED_TEST_OUTPUT_SIZE = "104857600"
 
-    # if the arguments were provided
-    if len(args.pyctest_ctest_args) > 0:
-        pyctest.ARGUMENTS.extend(args.pyctest_ctest_args)
+        if args.pyctest_token:
+            pyctest.set("CTEST_TOKEN", args.pyctest_token)
+        elif args.pyctest_token_file:
+            pyctest.set("CTEST_TOKEN_FILE", args.pyctest_token_file)
+        else:
+            home = GetHomePath()
+            if home is not None:
+                relpath = os.path.join(".tokens", pyctest.PROJECT_NAME)
+                token_path = os.path.join(home, relpath)
+                if os.path.exists(token_path):
+                    print("Setting CTEST_TOKEN_FILE to '{}'...".format(token_path))
+                    pyctest.set("CTEST_TOKEN_FILE", token_path)
+            if os.environ.get("CTEST_TOKEN") is not None:
+                pyctest.set("CTEST_TOKEN", os.environ.get("CTEST_TOKEN"))
 
-    # replace sys.argv with unknown args only
-    sys.argv = sys.argv[:1]+left
+        # if the arguments were provided
+        if len(args.pyctest_ctest_args) > 0:
+            pyctest.ARGUMENTS.extend(args.pyctest_ctest_args)
 
-    return args
+
+    #-------------------------------------------------------------------------#
+    def parse_args(self, *args, **kwargs):
+        # read arguments (fail if unknown option)
+        pargs = super(ArgumentParser, self).parse_args(*args, **kwargs)
+
+        # process PyCTest args
+        self.process_args(pargs)
+
+        # return all args
+        return pargs

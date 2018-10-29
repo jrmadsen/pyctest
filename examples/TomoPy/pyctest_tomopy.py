@@ -22,25 +22,13 @@ import pyctest.helpers as helpers
 
 def configure():
 
-    env_conda_prefix = os.environ.get("CONDA_PREFIX")
-    env_conda_env = os.environ.get("CONDA_ENVIRONMENT")
-
-    use_python_exe = "${CMAKE_CURRENT_LIST_DIR}/Miniconda/bin/python"
-    if env_conda_prefix is not None and env_conda_env is not None:
-        if not "envs" in env_conda_prefix:
-            use_python_exe = os.path.join(env_conda_prefix, "envs")
-            use_python_exe = os.path.join(use_python_exe, env_conda_env)
-        else:
-            use_python_exe = os.path.dirname(env_conda_prefix)
-            use_python_exe = os.path.join(use_python_exe, env_conda_env)
-        use_python_exe = os.path.join(use_python_exe, "bin")
-        use_python_exe = os.path.join(use_python_exe, "python")
-
-
-    helpers.ParseArgs(project_name="TomoPy",
-                      source_dir="tomopy-source",
-                      binary_dir="tomopy-ctest",
-                      python_exe=use_python_exe)
+    # Get pyctest argument parser that include PyCTest arguments
+    parser = helpers.ArgumentParser(project_name="TomoPy",
+                                    source_dir=os.getcwd(),
+                                    binary_dir=os.getcwd(),
+                                    python_exe=sys.executable,
+                                    stages=["Build", "Test", "Coverage"],
+                                    submit=True)
 
     # default algorithm choices
     available_algorithms = ['gridrec', 'art', 'fbp', 'bart', 'mlem', 'osem', 'sirt',
@@ -70,9 +58,6 @@ def configure():
 
     default_repo_url = "https://github.com/jrmadsen/tomopy.git"
     default_repo_branch = "tomopy-cxx"
-
-    # argument parser
-    parser = argparse.ArgumentParser()
 
     parser.add_argument("-n", "--ncores",
                         help="number of cores",
@@ -119,7 +104,6 @@ def configure():
             if itr == entry:
                 del itr
     #-----------------------------------#
-
     def remove_duplicates(container):
         container = list(set(container))
     #-----------------------------------#

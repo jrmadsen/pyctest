@@ -98,11 +98,12 @@ def run_pyctest():
     """
     Example of using pyctest
     """
-    args = helpers.ParseArgs(project_name="PyCTest-Basic-Example",
-                             source_dir=os.getcwd(),
-                             binary_dir=os.path.join(os.getcwd(), "workdir"),
-                             
-                             python_exe=sys.executable)
+    parser = helpers.ArgumentParser(project_name="PyCTest-Basic-Example",
+                                    source_dir=os.getcwd(),
+                                    binary_dir=os.path.join(
+                                        os.getcwd(), "workdir"),
+                                    python_exe=sys.executable)
+    args = parser.parse_args()
 
     #--------------------------------------------------------------------------#
     # echo the arguments
