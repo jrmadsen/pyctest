@@ -28,11 +28,5 @@ set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME ignore)
 # copy to build directory
 execute_process(COMMAND
     ${CMAKE_COMMAND} -E copy_directory
-    ${PROJECT_SOURCE_DIR}/pyctest
-    ${CMAKE_BINARY_DIR}/pyctest)
-
-# copy to build directory
-execute_process(COMMAND
-    ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_CURRENT_LIST_DIR}/kitware-cmake/Modules
     ${CMAKE_BINARY_DIR}/pyctest/share/cmake-${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}/Modules)

@@ -45,7 +45,7 @@ install:
   - set "PATH=%CONDA_ROOT%;%CONDA_ROOT%\Scripts;%CONDA_ROOT%\Library\bin;%PATH%"
   - echo CONDA_PREFIX %CONDA_PREFIX%
   - conda config --set always_yes yes
-  - conda config --set anaconda_upload yes
+  - conda config --set anaconda_upload no
   - conda install -n root conda-build anaconda-client --no-pin
   - "%CONDA_ROOT%\\Scripts\\activate root"
 
@@ -53,6 +53,4 @@ build_script:
   - echo CONDA_PREFIX %CONDA_PREFIX%
   - conda info -a
   - python update-conda-yaml.py
-  #- anaconda logout
-  #- anaconda login --user jrmadsen --password "%ANACONDA_PASSWD%"
   - conda-build --python "%PYTHON_VERSION%" .

@@ -500,7 +500,7 @@ setup(name='pyctest',
     # extra
     install_requires=[ ],
     setup_requires=[ ],
-    packages=[ 'pyctest' ],
+    #packages=[ 'pyctest' ],
     keywords=get_keywords(),
     classifiers=get_classifiers(),
     python_requires='>=2.6',

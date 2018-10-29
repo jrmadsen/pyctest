@@ -1,27 +1,11 @@
 ################################################################################
-#   Python files
-################################################################################
-file(GLOB PYTHON_FILES "${PROJECT_SOURCE_DIR}/pyctest/*.py")
-foreach(_FILE ${PYTHON_FILES})
-    get_filename_component(_FILE_NAME "${_FILE}" NAME)
-    configure_file(
-        ${PROJECT_SOURCE_DIR}/pyctest/${_FILE_NAME}
-        ${PROJECT_BINARY_DIR}/pyctest/${_FILE_NAME} @ONLY)
-    install(FILES ${PROJECT_BINARY_DIR}/pyctest/${_FILE_NAME}
-        DESTINATION ${CMAKE_INSTALL_PYTHONDIR}
-        COMPONENT python)
-endforeach(_FILE ${PYTHON_FILES})
-
-################################################################################
 #
-#        pyctest (Python)
+#        Configuration
 #
 ################################################################################
 
 get_property(CMAKE_PROJECT_LIBRARIES GLOBAL PROPERTY CMAKE_PROJECT_LIBRARIES)
-#message(STATUS "CMake project libraries: ${CMAKE_PROJECT_LIBRARIES}")
 get_property(CTEST_PROJECT_LIBRARIES GLOBAL PROPERTY CTEST_PROJECT_LIBRARIES)
-#message(STATUS "CTest project libraries: ${CTEST_PROJECT_LIBRARIES}")
 
 include_directories(SYSTEM ${PROJECT_SOURCE_DIR}/source/kitware-cmake/Source)
 include_directories(SYSTEM ${PROJECT_BINARY_DIR}/source/kitware-cmake/Source)
@@ -36,9 +20,11 @@ add_definitions(-D_PYTHON_MAJOR_VERSION=${PYTHON_MAJOR_VERSION})
 
 file(GLOB_RECURSE pybind_headers ${CMAKE_CURRENT_LIST_DIR}/pybind11/include/*.h)
 
-#----------------------------------------------------------------------------
-# PyBind11
+################################################################################
 #
+#        PyBind11
+#
+################################################################################
 pybind11_add_module(pycmake
     ${CMAKE_CURRENT_LIST_DIR}/pycmake.cpp
     ${CMAKE_CURRENT_LIST_DIR}/pycmake.hpp
@@ -58,9 +44,9 @@ set_target_properties(pycmake
 install(TARGETS pycmake DESTINATION ${CMAKE_INSTALL_PYTHONDIR}
     COMPONENT python)
 
-pybind11_add_module(pyctest 
+pybind11_add_module(pyctest
     ${CMAKE_CURRENT_LIST_DIR}/pyctest.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/pyctest.hpp 
+    ${CMAKE_CURRENT_LIST_DIR}/pyctest.hpp
     ${CMAKE_CURRENT_LIST_DIR}/pycmExecuteProcessCommand.cpp
     ${CMAKE_CURRENT_LIST_DIR}/pycmExecuteProcessCommand.hpp
     ${pybind_headers})
@@ -77,9 +63,37 @@ set_target_properties(pyctest
 install(TARGETS pyctest DESTINATION ${CMAKE_INSTALL_PYTHONDIR}
     COMPONENT python)
 
-configure_file(${PROJECT_SOURCE_DIR}/cmake/Templates/__init__.py.in
-    ${CMAKE_BINARY_DIR}/pyctest/__init__.py @ONLY)
+################################################################################
+#
+#        Python package files
+#
+################################################################################
+# glob all files
+file(GLOB_RECURSE PACKAGE_FILES ${PROJECT_SOURCE_DIR}/pyctest/*.py.in)
 
-install(FILES ${CMAKE_BINARY_DIR}/pyctest/__init__.py
-    DESTINATION ${CMAKE_INSTALL_PYTHONDIR}
-    COMPONENT python)
+# process package files
+foreach(_IN_FILE ${PACKAGE_FILES})
+
+    # get the relative path
+    file(RELATIVE_PATH _FILE_RELATIVE ${PROJECT_SOURCE_DIR}/pyctest ${_IN_FILE})
+
+    # get basename of file
+    get_filename_component(_IN_NAME ${_IN_FILE} NAME_WE)
+    # find if there is a directory underneath
+    get_filename_component(_REL_DIR ${_FILE_RELATIVE} PATH)
+
+    # if subdirectory
+    if(NOT "${_REL_DIR}" STREQUAL "")
+        set(_OUT_PATH ${CMAKE_BINARY_DIR}/pyctest/${_REL_DIR})
+    else()
+    # if no subdirectory
+        set(_OUT_PATH ${CMAKE_BINARY_DIR}/pyctest)
+    endif()
+
+    set(_OUT_FILE ${_OUT_PATH}/${_IN_NAME}.py)
+    message(STATUS "CONFIGURING OUTPUT FILE: ${_OUT_FILE}")
+    configure_file(${_IN_FILE} ${_OUT_FILE} @ONLY)
+    install(FILES ${_OUT_FILE} DESTINATION ${CMAKE_INSTALL_PYTHONDIR}
+        COMPONENT python)
+
+endforeach()

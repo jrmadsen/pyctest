@@ -4,21 +4,36 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/PyCTestPreInit.cmake")
 endif(EXISTS "${CMAKE_CURRENT_LIST_DIR}/PyCTestPreInit.cmake")
 
 if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
-    
+
     include("${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
     include_if("${CMAKE_CURRENT_LIST_DIR}/PyCTestPostInit.cmake")
 
-    message(STATUS " -- Starting ${MODEL} Coverage - ${CTEST_BUILD_NAME} --")
-    
+    message(STATUS "Starting ${MODEL} Coverage - ${CTEST_BUILD_NAME} --")
+
     setup(Coverage)
-    # run the tests
-    ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND SCHEDULE_RANDOM OFF RETURN_VALUE rctest)
-    # process the coverage
-    message(STATUS "Processing the coverage...")
+    if(NOT "${CTEST_COVERAGE_COMMAND}" STREQUAL "")
+        message(STATUS "Coverage command: ${CTEST_COVERAGE_COMMAND}")
+        execute_process(COMMAND ${CTEST_COVERAGE_COMMAND} ${CTEST_COVERAGE_EXTRA_FLAGS}
+            WORKING_DIRECTORY ${CTEST_BINARY_DIRECTORY}
+            RESULT_VARIABLE _CMD_RET
+            OUTPUT_VARIABLE _CMD_OUT
+            ERROR_VARIABLE _CMD_ERR)
+        message(STATUS "Coverage command return code: ${_CMD_RET}")
+        message(STATUS "Coverage command output: ${_CMD_OUT}")
+        message(STATUS "Coverage command error: ${_CMD_ERR}")
+    endif()
     ctest_coverage(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND RETURN_VALUE rccov)
-    # submit
+
+    # remove the "coverage.xml" file after it has been processed
+    # on macOS because the file-system is not case-sensitive
+    if(APPLE AND EXISTS "${CTEST_BINARY_DIRECTORY}/coverage.xml")
+        execute_process(COMMAND ${CTEST_CMAKE_COMMAND}
+            -E remove ${CTEST_BINARY_DIRECTORY}/coverage.xml
+            ERROR_QUIET)
+    endif()
+
     submit(Coverage)
-    
-    message(STATUS " -- Finished ${MODEL} Coverage - ${CTEST_BUILD_NAME} --")
+
+    message(STATUS "Finished ${MODEL} Coverage - ${CTEST_BUILD_NAME} --")
 
 endif(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
