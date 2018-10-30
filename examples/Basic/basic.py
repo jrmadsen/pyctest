@@ -101,7 +101,7 @@ def run_pyctest():
     parser = helpers.ArgumentParser(project_name="PyCTest-Basic-Example",
                                     source_dir=os.getcwd(),
                                     binary_dir=os.path.join(
-                                        os.getcwd(), "workdir"),
+                                        os.getcwd(), "work_dir"),
                                     python_exe=sys.executable)
     args = parser.parse_args()
 
@@ -111,19 +111,15 @@ def run_pyctest():
     print('Arguments:\n{}'.format(args))
 
     #--------------------------------------------------------------------------#
-    # run CMake for initialization
-    #
-    cm = pycmake.cmake(pyctest.BINARY_DIRECTORY, pyctest.PROJECT_NAME)
-
-    #--------------------------------------------------------------------------#
     # create some tests
     #
-    test_dir = os.path.join(os.getcwd(), "test_dir")
+    test_dir = os.path.join(pyctest.BINARY_DIRECTORY, "test_dir")
     env_check_script = os.path.join(os.getcwd(), "check_env.py")
+
     generate("make_test_directory", [ "mkdir", "-p", "-v", test_dir ])
-    generate("list_directories", [ "ls", os.getcwd() ])
-    generate("print_hostname", [ "hostname" ])
-    generate("check_environment", [ sys.executable, env_check_script ])
+    generate("list_directories",    [ "ls", pyctest.BINARY_DIRECTORY ])
+    generate("print_hostname",      [ "hostname" ])
+    generate("check_environment",   [ sys.executable, env_check_script ])
 
     #--------------------------------------------------------------------------#
     # generate the CTestConfig.cmake and CTestCustom.cmake

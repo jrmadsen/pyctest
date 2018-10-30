@@ -12,15 +12,8 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
 
     setup(Coverage)
     if(NOT "${CTEST_COVERAGE_COMMAND}" STREQUAL "")
-        message(STATUS "Coverage command: ${CTEST_COVERAGE_COMMAND}")
         execute_process(COMMAND ${CTEST_COVERAGE_COMMAND} ${CTEST_COVERAGE_EXTRA_FLAGS}
-            WORKING_DIRECTORY ${CTEST_BINARY_DIRECTORY}
-            RESULT_VARIABLE _CMD_RET
-            OUTPUT_VARIABLE _CMD_OUT
-            ERROR_VARIABLE _CMD_ERR)
-        message(STATUS "Coverage command return code: ${_CMD_RET}")
-        message(STATUS "Coverage command output: ${_CMD_OUT}")
-        message(STATUS "Coverage command error: ${_CMD_ERR}")
+            WORKING_DIRECTORY ${CTEST_BINARY_DIRECTORY})
     endif()
     ctest_coverage(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND RETURN_VALUE rccov)
 

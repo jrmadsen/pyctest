@@ -1,19 +1,19 @@
 //  MIT License
-//  
-//  Copyright (c) 2018, The Regents of the University of California, 
+//
+//  Copyright (c) 2018, The Regents of the University of California,
 //  through Lawrence Berkeley National Laboratory (subject to receipt of any
 //  required approvals from the U.S. Dept. of Energy).  All rights reserved.
-//  
+//
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
 //  in the Software without restriction, including without limitation the rights
 //  to use, copy, modify, merge, publish, distribute, sublicense, and
 //  copies of the Software, and to permit persons to whom the Software is
 //  furnished to do so, subject to the following conditions:
-//  
+//
 //  The above copyright notice and this permission notice shall be included in all
 //  copies or substantial portions of the Software.
-//  
+//
 //  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 //  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 //  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -721,8 +721,10 @@ PYBIND11_MODULE(pyctest, ct)
                  if not os.path.exists(_cdash_path):
                      print("Warning! CDash directory not found @ '{}'".format(_cdash_path))
                  else:
-                     for f in [ "Build", "Coverage", "Glob", "Init", "MemCheck",
-                                "Stages", "Submit", "Test", "Utilities"]:
+                     #types = [ "Build", "Coverage", "Glob", "Init", "MemCheck",
+                     #           "Stages", "Submit", "Test", "Utilities"]
+                     types = [ "Stages", "Init", "Utilities" ]
+                     for f in types:
                          fsrc = os.path.join(_cdash_path, "{}.cmake".format(f))
                          fdst = os.path.join(_dir, "{}.cmake".format(f))
                          copyfile(fsrc, fdst)

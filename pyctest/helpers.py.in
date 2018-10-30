@@ -170,13 +170,14 @@ class ArgumentParser(argparse.ArgumentParser):
                 binary_dir,
                 python_exe=sys.executable,
                 mode="Stages",
-                stages=["Build", "Test", "Coverage", "MemCheck"],
+                stages=["Start", "Update", "Configure", "Build", "Test", "Coverage", "MemCheck"],
                 trigger="None",
                 model="Continuous",
                 site=platform.node(),
                 jobs=1,
                 submit=False,
                 ctest_args=["-V"],
+                # standard argparse.ArgumentParser arguments
                 prog=None,
                 usage=None,
                 description=None,
@@ -187,28 +188,35 @@ class ArgumentParser(argparse.ArgumentParser):
                 fromfile_prefix_chars=None,
                 argument_default=None,
                 conflict_handler='error',
-                add_help=True,
-                allow_abbrev=True):
+                add_help=True):
 
         # init parent
-        super(ArgumentParser, self).__init__(prog, usage, description, epilog, parents, formatter_class,
-                                             prefix_chars, fromfile_prefix_chars, argument_default,
-                                             conflict_handler, add_help, allow_abbrev)
+        super(ArgumentParser, self).__init__(prog=prog,
+                                             usage=usage,
+                                             description=description,
+                                             epilog=epilog, parents=parents,
+                                             formatter_class=formatter_class,
+                                             prefix_chars=prefix_chars,
+                                             fromfile_prefix_chars=fromfile_prefix_chars,
+                                             argument_default=argument_default,
+                                             conflict_handler=conflict_handler,
+                                             add_help=add_help)
 
         # limit the mode choices
-        mode_choices = ["Build", "Test", "Coverage", "MemCheck", "Submit", "Stages"]
+        mode_choices = ["Start", "Update", "Configure", "Build",
+                        "Test", "Coverage", "MemCheck", "Submit", "Stages"]
         # stage choices
-        stage_choices = ["Build", "Test", "Coverage", "MemCheck"]
+        stage_choices = ["Start", "Update", "Configure", "Build",
+                         "Test", "Coverage", "MemCheck", "Submit"]
         # choices for submission model
         model_choices = ["Nightly", "Continuous", "Experimental"]
         # choices for submit trigger
         trigger_choices = ["Build", "Test", "Coverage", "MemCheck", "None"]
 
         # just a help message
-        default_pyexe_help = "{}. {}. Example: '{}'".format(
+        default_pyexe_help = "{}. {}.".format(
             "Python executable to use",
-            "This can be absolue, relative, or CMake path",
-            "${CMAKE_CURRENT_LIST_DIR}/miniconda/bin/python")
+            "This can be absolue, relative, or CMake path")
 
         self.add_argument("--pyctest-ctest-args",
                           help="CTest arguments",
@@ -291,20 +299,19 @@ class ArgumentParser(argparse.ArgumentParser):
         if not os.path.exists(binary_dir):
             os.makedirs(binary_dir)
 
-        # if submit was included in stages
-        if "Submit" in args.pyctest_stages:
-            args.pyctest_stages.remove("Submit")
-            nstages = len(args.pyctest_stages)
-            args.pyctest_trigger = args.pyctest_stages[nstages-1]
+        if args.pyctest_mode != "Stages":
+            args.pyctest_stages = [args.pyctest_mode]
+
+        # if submit enabled but was not included in stages
+        if args.pyctest_submit and not "Submit" in args.pyctest_stages:
+            args.pyctest_stages.append("Submit")
 
         # append the stages to the CTest args
-        if args.pyctest_mode == "Stages":
-            args.pyctest_ctest_args.append(
-                "-DSTAGES={}".format(";".join(args.pyctest_stages)))
+        args.pyctest_ctest_args.append(
+            "-DSTAGES={}".format(";".join(args.pyctest_stages)))
 
-        # append the mode to the CTest args
-        args.pyctest_ctest_args.extend(
-            ["-S", "{}.cmake".format(args.pyctest_mode)])
+        # instruct to execute Stages.cmake
+        args.pyctest_ctest_args.extend(["-S", "Stages.cmake"])
 
         # add the number of jobs
         if args.pyctest_jobs > 0:
@@ -348,8 +355,9 @@ class ArgumentParser(argparse.ArgumentParser):
         pyctest.TRIGGER = args.pyctest_trigger
 
         # how to checkout the code
-        pyctest.CHECKOUT_COMMAND = "${} -E copy_directory {} {}/".format(
-            "{CTEST_CMAKE_COMMAND}", source_dir, binary_dir)
+        #pyctest.CHECKOUT_COMMAND = "${} -E copy_directory {} {}/".format(
+        #    "{CTEST_CMAKE_COMMAND}", source_dir, binary_dir)
+        pyctest.CHECKOUT_COMMAND = ""
 
         # the submission model in CDash (default = Nightly)
         pyctest.MODEL = args.pyctest_model
