@@ -345,7 +345,7 @@ class ArgumentParser(argparse.ArgumentParser):
         pyctest.SITE = args.pyctest_site
 
         # build name for CDash
-        pyctest.BUILD_NAME = "[{} {} {}] [Python ({}) {}]".format(
+        pyctest.BUILD_NAME = "[{} {} {}] [Python {}]".format(
             platform.uname()[0],
             GetSystemVersionInfo(),
             platform.uname()[4],
@@ -358,8 +358,6 @@ class ArgumentParser(argparse.ArgumentParser):
         pyctest.TRIGGER = args.pyctest_trigger
 
         # how to checkout the code
-        #pyctest.CHECKOUT_COMMAND = "${} -E copy_directory {} {}/".format(
-        #    "{CTEST_CMAKE_COMMAND}", source_dir, binary_dir)
         pyctest.CHECKOUT_COMMAND = ""
 
         # the submission model in CDash (default = Nightly)

@@ -152,7 +152,7 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
         message(STATUS "[${CTEST_BUILD_NAME}] Running CTEST_COVERAGE stage...")
         message(STATUS "")
         execute_process(COMMAND ${CTEST_COVERAGE_COMMAND} ${CTEST_COVERAGE_EXTRA_FLAGS}
-            WORKING_DIRECTORY ${CTEST_BINARY_DIRECTORY}))
+            WORKING_DIRECTORY ${CTEST_BINARY_DIRECTORY})
         ctest_coverage(${_CTEST_APPEND}
                     ${_CTEST_COVERAGE_LABELS}
                     RETURN_VALUE cov_ret)
