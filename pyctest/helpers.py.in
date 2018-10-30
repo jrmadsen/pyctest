@@ -156,6 +156,21 @@ def GetHomePath():
 
 #------------------------------------------------------------------------------#
 #
+def GetSystemVersionInfo():
+    # version info for build name
+    version_info = "{}".format(platform.system())
+    if platform.system() == "Windows":
+        version_info = "Windows {}".format(platform.version())
+    if platform.system() == 'Darwin':
+        version_info = "macOS {}".format(platform.mac_ver()[0])
+    elif platform.system() == 'Linux':
+        version_info = "{} {}".format(platform.linux_distribution()[0],
+                                    platform.linux_distribution()[1])
+    return version_info
+
+
+#------------------------------------------------------------------------------#
+#
 class ArgumentParser(argparse.ArgumentParser):
 
     """
@@ -317,16 +332,6 @@ class ArgumentParser(argparse.ArgumentParser):
         if args.pyctest_jobs > 0:
             args.pyctest_ctest_args.append("-j{}".format(args.pyctest_jobs))
 
-        # version info for build name
-        version_info = None
-        if platform.system() == 'Darwin':
-            version_info = "macOS {}".format(platform.mac_ver()[0])
-        elif platform.system() == 'Linux':
-            version_info = "{} {}".format(platform.linux_distribution()[0],
-                                        platform.linux_distribution()[1])
-        else:
-            version_info = "Windows {}".format(platform.version())
-
         # the name of the project
         pyctest.PROJECT_NAME = args.pyctest_project_name
 
@@ -340,12 +345,10 @@ class ArgumentParser(argparse.ArgumentParser):
         pyctest.SITE = args.pyctest_site
 
         # build name for CDash
-        pyctest.BUILD_NAME = "[{}] [{} {} {}] [Python ({}) {}]".format(
-            pyctest.PROJECT_NAME,
+        pyctest.BUILD_NAME = "[{} {} {}] [Python ({}) {}]".format(
             platform.uname()[0],
-            version_info,
+            GetSystemVersionInfo(),
             platform.uname()[4],
-            platform.python_implementation(),
             platform.python_version())
 
         # the Python to use with scripts
