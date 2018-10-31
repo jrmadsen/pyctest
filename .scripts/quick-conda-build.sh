@@ -30,7 +30,7 @@ fi
 if [ -f "${PWD}/meta.yaml" ]; then
     ./update-conda-yaml.py
     conda config --set anaconda_upload yes
-    for i in 3.{5,6,7,4}
+    for i in 2.7 3.{5,6,7,4}
     do
         conda-build --no-test \
             --cache-dir=/tmp/pyctest-conda-build \
