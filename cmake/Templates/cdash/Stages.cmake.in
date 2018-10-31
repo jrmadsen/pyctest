@@ -156,6 +156,15 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
         ctest_coverage(${_CTEST_APPEND}
                     ${_CTEST_COVERAGE_LABELS}
                     RETURN_VALUE cov_ret)
+
+        # remove the "coverage.xml" file after it has been processed
+        # on macOS because the file-system is not case-sensitive
+        if(APPLE AND EXISTS "${CTEST_BINARY_DIRECTORY}/coverage.xml")
+            execute_process(COMMAND ${CTEST_CMAKE_COMMAND}
+                -E remove ${CTEST_BINARY_DIRECTORY}/coverage.xml
+                ERROR_QUIET)
+        endif()
+
     else()
         message(STATUS "")
         message(STATUS "[${CTEST_BUILD_NAME}] Skipping CTEST_COVERAGE stage...")
