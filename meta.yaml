@@ -1,9 +1,9 @@
 package:
   name: pyctest
-  version: '0.0.7'
+  version: '0.0.8'
 
 build:
-  number: 2
+  number: 0
   binary_relocation: False
   script_env:
   - TMPDIR

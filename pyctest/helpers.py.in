@@ -192,6 +192,9 @@ class ArgumentParser(argparse.ArgumentParser):
                 jobs=1,
                 submit=False,
                 ctest_args=["-V"],
+                vcs_type=None,
+                build_type=None,
+                build_choices = [ "Release", "RelWithDebInfo", "Debug", "MinSizeRel" ],
                 # standard argparse.ArgumentParser arguments
                 prog=None,
                 usage=None,
@@ -227,6 +230,9 @@ class ArgumentParser(argparse.ArgumentParser):
         model_choices = ["Nightly", "Continuous", "Experimental"]
         # choices for submit trigger
         trigger_choices = ["Build", "Test", "Coverage", "MemCheck", "None"]
+
+        # version control options
+        vcs_options = ["bzr", "cvs", "git", "hg", "p4", "svn"]
 
         # just a help message
         default_pyexe_help = "{}. {}.".format(
@@ -282,7 +288,8 @@ class ArgumentParser(argparse.ArgumentParser):
                           type=str,
                           default=site)
         self.add_argument("--pyctest-clean-first",
-                          help="Remove any old source/binary directories",
+                          help=("Remove standard PyCTest files and binary directory"
+                                + " (if not source directory)"),
                           action="store_true")
         self.add_argument("--pyctest-token",
                           help="CTest site token for submission",
@@ -294,7 +301,32 @@ class ArgumentParser(argparse.ArgumentParser):
                           help="Enable submission to dashboard",
                           action='store_true',
                           default=submit)
-
+        self.add_argument("--pyctest-clean-update",
+                          help=("Specify that you want the version control update"
+                            + " and eliminate any local modifications. Without"
+                            + " specifying this option, the update"
+                            + " command will only discover the current version that"
+                            + " is checked out, and not to update to a different"
+                            + " version"),
+                          default=False, action='store_true')
+        self.add_argument("--pyctest-vcs-type",
+                          help=("Set to enable revision ID discovery using"
+                                + " default settings for retriving the revision ID"
+                                + " during the Update stage"),
+                          default=vcs_type, type=str, choices=vcs_options)
+        self.add_argument("--pyctest-build-type",
+                          help=("Specify CMAKE_BUILD_TYPE (if using CMake) --"
+                                + " setting is accessible via pyctest.BUILD_TYPE"),
+                          default=build_type, type=str, choices=build_choices)
+        self.add_argument("--pyctest-c-compiler",
+                          help="Specify the C compiler (if needed)",
+                            default=os.environ.get("CC"), type=str)
+        self.add_argument("--pyctest-cxx-compiler",
+                          help="Specify C++ compiler (if needed)",
+                          default=os.environ.get("CXX"), type=str)
+        self.add_argument("--pyctest-fortran-compiler",
+                          help="Specify Fortan compiler (if needed)",
+                          default=os.environ.get("FC"), type=str)
 
     #-------------------------------------------------------------------------#
     #
@@ -305,10 +337,20 @@ class ArgumentParser(argparse.ArgumentParser):
         binary_dir = os.path.realpath(args.pyctest_binary_dir)
         source_dir = os.path.realpath(args.pyctest_source_dir)
 
+        if args.pyctest_c_compiler is not None:
+            os.environ["CC"] = "{}".format(args.pyctest_c_compiler)
+
+        if args.pyctest_cxx_compiler is not None:
+            os.environ["CXX"] = "{}".format(args.pyctest_cxx_compiler)
+
+        if args.pyctest_fortran_compiler is not None:
+            os.environ["FC"] = "{}".format(args.pyctest_fortran_compiler)
+
         # clean
         if args.pyctest_clean_first:
-            RemovePath(source_dir)
-            RemovePath(binary_dir)
+            Cleanup(binary_dir)
+            if source_dir != binary_dir:
+                RemovePath(binary_dir)
 
         # make binary directory
         if not os.path.exists(binary_dir):
@@ -321,17 +363,6 @@ class ArgumentParser(argparse.ArgumentParser):
         if args.pyctest_submit and not "Submit" in args.pyctest_stages:
             args.pyctest_stages.append("Submit")
 
-        # append the stages to the CTest args
-        args.pyctest_ctest_args.append(
-            "-DSTAGES={}".format(";".join(args.pyctest_stages)))
-
-        # instruct to execute Stages.cmake
-        args.pyctest_ctest_args.extend(["-S", "Stages.cmake"])
-
-        # add the number of jobs
-        if args.pyctest_jobs > 0:
-            args.pyctest_ctest_args.append("-j{}".format(args.pyctest_jobs))
-
         # the name of the project
         pyctest.PROJECT_NAME = args.pyctest_project_name
 
@@ -343,6 +374,10 @@ class ArgumentParser(argparse.ArgumentParser):
 
         # site of CDash submission
         pyctest.SITE = args.pyctest_site
+
+        # build type
+        if args.pyctest_build_type is not None:
+            pyctest.set("BUILD_TYPE", "{}".format(args.pyctest_build_type))
 
         # build name for CDash
         pyctest.BUILD_NAME = "[{} {} {}] [Python {}]".format(
@@ -362,6 +397,13 @@ class ArgumentParser(argparse.ArgumentParser):
 
         # the submission model in CDash (default = Nightly)
         pyctest.MODEL = args.pyctest_model
+
+        # if specified to not remove an revision
+        if not args.pyctest_clean_update:
+            pyctest.set("CTEST_UPDATE_VERSION_ONLY", "ON")
+
+        if args.pyctest_vcs_type is not None:
+            pyctest.set("CTEST_UPDATE_TYPE", "{}".format(args.pyctest_vcs_type))
 
         # custom variables
         pyctest.CUSTOM_COVERAGE_EXCLUDE = "NONE"
@@ -384,9 +426,22 @@ class ArgumentParser(argparse.ArgumentParser):
             if os.environ.get("CTEST_TOKEN") is not None:
                 pyctest.set("CTEST_TOKEN", os.environ.get("CTEST_TOKEN"))
 
+        # append the stages to the CTest args
+        args.pyctest_ctest_args.append(
+            "-DSTAGES={}".format(";".join(args.pyctest_stages)))
+
+        # instruct to execute Stages.cmake
+        args.pyctest_ctest_args.extend(["-S", "Stages.cmake"])
+
+        # add the number of jobs
+        if args.pyctest_jobs > 0:
+            args.pyctest_ctest_args.append("-j{}".format(args.pyctest_jobs))
+
         # if the arguments were provided
         if len(args.pyctest_ctest_args) > 0:
             pyctest.ARGUMENTS.extend(args.pyctest_ctest_args)
+
+        print("CTest arguments (default): '{}'".format(" ".join(pyctest.ARGUMENTS)))
 
 
     #-------------------------------------------------------------------------#

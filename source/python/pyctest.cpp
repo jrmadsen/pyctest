@@ -418,6 +418,8 @@ PYBIND11_MODULE(pyctest, ct)
                       << std::endl;
         else
             pyct::get_test_variables()->push_back(obj);
+
+        ct.attr(var.c_str()) = val.c_str();
         return new pyct::pycmVariableWrapper(obj);
     };
     //------------------------------------------------------------------------//

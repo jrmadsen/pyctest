@@ -49,6 +49,18 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
     set_if_defined(CTEST_COVERAGE_LABELS LABELS _CTEST_COVERAGE_LABELS)
 
     #-------------------------------------------------------------------------#
+    # if CTEST_{BZR,CVS,GIT,HG,P4,SVN}_COMMAND was specified instead of
+    #   CTEST_UPDATE_COMMAND
+    #
+    if(NOT "${DO_UPDATE}" GREATER -1)
+        foreach(_VC_TYPE BZR CVS GIT HG P4 SVN)
+            if(DEFINED CTEST_${_VC_TYPE}_COMMAND)
+                set(DO_UPDATE 0)
+            endif()
+        endforeach()
+    endif()
+
+    #-------------------------------------------------------------------------#
     # Start
     #
     ctest_start(${CTEST_MODEL} TRACK ${CTEST_MODEL} ${CTEST_SOURCE_DIRECTORY} ${CTEST_BINARY_DIRECTORY})
@@ -84,6 +96,12 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
         message(STATUS "[${CTEST_BUILD_NAME}] Skipping CTEST_UPDATE stage...")
         message(STATUS "")
     endif()
+
+    #-------------------------------------------------------------------------#
+    # Config (in case changes by update)
+    #
+    copy_ctest_config_files()
+    ctest_read_custom_files("${CTEST_BINARY_DIRECTORY}")
 
     #-------------------------------------------------------------------------#
     # Configure
