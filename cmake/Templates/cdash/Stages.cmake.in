@@ -63,7 +63,6 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
     #-------------------------------------------------------------------------#
     # Start
     #
-    ctest_start(${CTEST_MODEL} TRACK ${CTEST_MODEL} ${CTEST_SOURCE_DIRECTORY} ${CTEST_BINARY_DIRECTORY})
     if("${DO_START}" GREATER -1)
         message(STATUS "")
         message(STATUS "[${CTEST_BUILD_NAME}] Running CTEST_START stage...")
@@ -75,6 +74,8 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
         message(STATUS "")
         set(_CTEST_APPEND APPEND)
     endif()
+    ctest_start(${CTEST_MODEL} TRACK ${CTEST_MODEL} ${_CTEST_APPEND}
+        ${CTEST_SOURCE_DIRECTORY} ${CTEST_BINARY_DIRECTORY})
 
     #-------------------------------------------------------------------------#
     # Config

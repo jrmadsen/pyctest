@@ -59,7 +59,8 @@ ctest_read_custom_files("${CONFIG_FILE_PATH}")
 #-------------------------------------------------------------------------#
 # Standard
 #
-ctest_start(${CTEST_MODEL} TRACK ${CTEST_MODEL} ${CTEST_SOURCE_DIRECTORY} ${CTEST_BINARY_DIRECTORY})
+ctest_start(${CTEST_MODEL} TRACK ${CTEST_MODEL}
+    ${CTEST_SOURCE_DIRECTORY} ${CTEST_BINARY_DIRECTORY})
 ctest_update(SOURCE "${CTEST_SOURCE_DIRECTORY}" RETURN_VALUE up_ret)
 ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE build_ret)
 

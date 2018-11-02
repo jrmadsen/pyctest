@@ -49,7 +49,7 @@ endif(GOOD_CMAKE)
 
 message(STATUS "${PROJECT_NAME} version ${PYCTEST_VERSION}")
 
-set(CMAKE_MODULE_PATH 
+set(CMAKE_MODULE_PATH
     ${CMAKE_MODULE_PATH}
     ${CMAKE_CURRENT_LIST_DIR}/cmake/Modules
     ${CMAKE_CURRENT_LIST_DIR}/source/kitware-cmake/Modules)
