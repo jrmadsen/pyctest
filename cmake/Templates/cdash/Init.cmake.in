@@ -131,6 +131,9 @@ endmacro(COPY_CTEST_CONFIG_FILES)
 macro(READ_PRESUBMIT_SCRIPTS)
     ## check
     file(GLOB_RECURSE PRESUBMIT_SCRIPTS "${CTEST_BINARY_DIRECTORY}/*CTestPreSubmitScript.cmake")
+    if("${PRESUBMIT_SCRIPTS}" STREQUAL "")
+        message(STATUS "No scripts matching '${CTEST_BINARY_DIRECTORY}/*CTestPreSubmitScript.cmake' were found")
+    endif()
     foreach(_FILE ${PRESUBMIT_SCRIPTS})
         message(STATUS "Including pre-submit script: \"${_FILE}\"...")
         include("${_FILE}")
@@ -192,6 +195,8 @@ macro(SUBMIT_COMMAND)
 
     # check for token
     check_for_ctest_token()
+    read_notes()
+    read_presubmit_scripts()
 
     if(NOT CTEST_USE_TOKEN)
         # standard submit
@@ -212,13 +217,9 @@ endmacro(SUBMIT_COMMAND)
 macro(SUBMIT KEY)
 
     if("${CTEST_TRIGGER}" STREQUAL "Any" OR "${CTEST_TRIGGER}" STREQUAL "Submit")
-        read_notes()
-        read_presubmit_scripts()
         submit_command(${ARGN})
     else("${CTEST_TRIGGER}" STREQUAL "Any" OR "${CTEST_TRIGGER}" STREQUAL "Submit")
         if("${CTEST_TRIGGER}" STREQUAL "${KEY}")
-            read_notes()
-            read_presubmit_scripts()
             submit_command(${ARGN})
         endif("${CTEST_TRIGGER}" STREQUAL "${KEY}")
     endif("${CTEST_TRIGGER}" STREQUAL "Any" OR "${CTEST_TRIGGER}" STREQUAL "Submit")

@@ -121,7 +121,7 @@ if(CONDA_PACKAGE_INSTALL)
     message(STATUS "    packages        : ${CONDA_PACKAGES}")
     message(STATUS "")
 
-    configure_conda(UPDATE
+    configure_conda(
         PYTHON_VERSION      ${PYTHON_VERSION}
         PREFIX              ${CONDA_PREFIX}
         ENVIRONMENT         ${CONDA_ENVIRONMENT}

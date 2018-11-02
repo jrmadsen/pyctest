@@ -480,7 +480,7 @@ strvec_t& get_config_attributes()
     return _instance;
 }
 //----------------------------------------------------------------------------//
-strvec_t& get_reqired_attributes()
+strvec_t& get_required_attributes()
 {
     static strvec_t _instance =
     {

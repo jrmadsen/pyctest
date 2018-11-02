@@ -9,6 +9,7 @@ import traceback
 
 import pyctest.pyctest as pyctest
 import pyctest.pycmake as pycmake
+import pyctest.helpers as helpers
 
 #------------------------------------------------------------------------------#
 def modify(test):
@@ -45,37 +46,50 @@ def generate(name, cmd):
 
     #--------------------------------------------------------------------------#
     # create a Test object (automatically stored in a list of tests with pyctest)
+    #
     test = pyctest.test()
 
     #--------------------------------------------------------------------------#
     # set the test name
+    #
     test.SetName(name)
 
     #--------------------------------------------------------------------------#
     # set the test command
+    #
     test.SetCommand(cmd)
 
     #--------------------------------------------------------------------------#
     # set some properties -- reference:
     # https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#properties-on-tests
+    #
+    test.SetProperty("WORKING_DIRECTORY", pyctest.BINARY_DIRECTORY)
+
     #--------------------------------------------------------------------------#
-
-    # the working directory of the test
-    test.SetProperty("WORKING_DIRECTORY", os.getcwd())
-
     # this test should not be run in parallel with any other tests
+    #
     test.SetProperty("RUN_SERIAL", "0")
 
+    #--------------------------------------------------------------------------#
     # set some environment variables for the test
+    #
     test.SetProperty("ENVIRONMENT", "EXAMPLE_ENV_A={};EXAMPLE_ENV_B={}".format(
                      "Successfully set example environment variable A",
                      "Successfully set example environment variable B"))
 
+    #--------------------------------------------------------------------------#
     # print info on test
+    #
     info(name)
+
+    #--------------------------------------------------------------------------#
     # modify the test
+    #
     modify(test)
+
+    #--------------------------------------------------------------------------#
     # show info updated
+    #
     info(name)
 
 
@@ -84,63 +98,44 @@ def run_pyctest():
     """
     Example of using pyctest
     """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", help="Output directory", type=str,
-                        default="pycm-example")
-    parser.add_argument("-p", "--project-name", help="Project name", type=str,
-                        default="PyCTest-Basic-Example")
-    parser.add_argument("-M", "--cmake-args", help="CMake arguments", nargs='*',
-        type=str, default=["-V"])
-    parser.add_argument('-T', "--ctest-args", help="CTest arguments", nargs='*',
-        type=str, default=["-V"])
-
+    parser = helpers.ArgumentParser(project_name="PyCTest-Basic-Example",
+                                    source_dir=os.getcwd(),
+                                    binary_dir=os.path.join(
+                                        os.getcwd(), "work_dir"),
+                                    python_exe=sys.executable)
     args = parser.parse_args()
 
-    try:
-        if os.path.exists(args.directory):
-            shutil.rmtree(args.directory)
-    except:
-        pass
-
     #--------------------------------------------------------------------------#
-    # Some CTest configuration attributes
-    # -- see DATA section of:
-    #       python -c "import pyctest; help(pyctest.pyctest)"
-    pyctest.PROJECT_NAME = args.project_name
-    pyctest.SOURCE_DIRECTORY = os.path.realpath(args.directory)
-    pyctest.BINARY_DIRECTORY = os.path.realpath(args.directory)
-    pyctest.MODEL = "Continuous"
-    pyctest.SITE = platform.node()
-    pyctest.BUILD_NAME = "[{}] [{} {} {}] [{} {}]".format(
-        pyctest.PROJECT_NAME,
-        platform.uname()[0],
-        platform.mac_ver()[0],
-        platform.uname()[4],
-        platform.python_implementation(),
-        platform.python_version())
-
-    #--------------------------------------------------------------------------#
-    # run CMake for initialization
-    cm = pycmake.cmake(args.directory, args.project_name)
+    # echo the arguments
+    #
+    print('Arguments:\n{}'.format(args))
 
     #--------------------------------------------------------------------------#
     # create some tests
-    test_dir = os.path.join(os.getcwd(), "test_dir")
+    #
+    test_dir = os.path.join(pyctest.BINARY_DIRECTORY, "test_dir")
     env_check_script = os.path.join(os.getcwd(), "check_env.py")
+
     generate("make_test_directory", [ "mkdir", "-p", "-v", test_dir ])
-    generate("list_directories", [ "ls", os.getcwd() ])
-    generate("print_hostname", [ "hostname" ])
-    generate("check_environment", [ sys.executable, env_check_script ])
+    generate("list_directories",    [ "ls", pyctest.BINARY_DIRECTORY ])
+    generate("print_hostname",      [ "hostname" ])
+    generate("check_environment",   [ sys.executable, env_check_script ])
 
+    #--------------------------------------------------------------------------#
     # generate the CTestConfig.cmake and CTestCustom.cmake
-    pyctest.generate_config(args.directory)
+    #
+    pyctest.generate_config(pyctest.BINARY_DIRECTORY)
 
+    #--------------------------------------------------------------------------#
     # generate the CTestTestfile.cmake file
     # CRITICAL: call after creating/running dummy pyctest.pycmake.cmake object
-    pyctest.generate_test_file(args.directory)
+    #
+    pyctest.generate_test_file(pyctest.BINARY_DIRECTORY)
 
+    #--------------------------------------------------------------------------#
     # run CTest -- e.g. ctest -VV <binary_dir>
-    pyctest.run(args.ctest_args, args.directory)
+    #
+    pyctest.run(pyctest.ARGUMENTS, pyctest.BINARY_DIRECTORY)
 
 
 #------------------------------------------------------------------------------#

@@ -118,7 +118,7 @@ macro(FIND_CONDA CONDA_PREFIX CONDA_ENVIRONMENT)
     # search paths
     set(ENV{PATH} "${CONDA_PREFIX}/envs/${CONDA_ENVIRONMENT}/bin:${CONDA_PREFIX}/bin:$ENV{PATH}")
     set(SEARCH_PATHS
-        ${CONDA_PERFIX}/envs/${CONDA_ENVIRONMENT}
+        ${CONDA_PREFIX}/envs/${CONDA_ENVIRONMENT}
         ${CONDA_PREFIX}
         ${ARGN}
     )
@@ -217,24 +217,19 @@ macro(CONFIGURE_CONDA)
     find_conda(${CONDA_PREFIX} ${CONDA_ENVIRONMENT})
 
     # add channels
+    set(CHANNEL_ARGS )
     foreach(_CHANNEL ${CONDA_CHANNELS})
-        execute_process(COMMAND ${CONDA_EXE} config --add channels ${_CHANNEL}
-            OUTPUT_QUIET ERROR_QUIET)
+        list(APPEND CHANNEL_ARGS -c ${_CHANNEL})
     endforeach()
-
-    # ensure no interactive
-    execute_process(COMMAND ${CONDA_EXE} config --set always_yes yes)
 
     # changeps1
     if(CONDA_CHANGE_PS1)
         execute_process(COMMAND ${CONDA_EXE} config --set changeps1 yes)
-    else()
-        execute_process(COMMAND ${CONDA_EXE} config --set changeps1 no)
     endif()
 
     # update conda
     if(CONDA_UPDATE)
-        execute_process(COMMAND ${CONDA_EXE} update -n ${CONDA_ENVIRONMENT} conda
+        execute_process(COMMAND ${CONDA_EXE} update -y -n ${CONDA_ENVIRONMENT} conda
             ERROR_QUIET)
     endif()
 
@@ -245,21 +240,21 @@ macro(CONFIGURE_CONDA)
 
     # remove message
     message(STATUS "")
-    message(STATUS "Running: '${CONDA_EXE} remove -n ${CONDA_ENVIRONMENT} --all'...")
+    message(STATUS "Running: '${CONDA_EXE} remove -y -n ${CONDA_ENVIRONMENT} --all'...")
     message(STATUS "")
 
     # remove existing environment
-    execute_process(COMMAND ${CONDA_EXE} remove -n ${CONDA_ENVIRONMENT} --all
+    execute_process(COMMAND ${CONDA_EXE} remove -y -n ${CONDA_ENVIRONMENT} --all
         ERROR_QUIET)
 
     # install message
     message(STATUS "")
-    message(STATUS "Running: '${CONDA_EXE} create -n ${CONDA_ENVIRONMENT} python=${CONDA_PYTHON_VERSION} _license ${CONDA_PACKAGES} ${NO_PIN_OPT}'...")
+    message(STATUS "Running: '${CONDA_EXE} create -y ${CHANNEL_ARGS} -n ${CONDA_ENVIRONMENT} python=${CONDA_PYTHON_VERSION} ${CONDA_PACKAGES} ${NO_PIN_OPT}'...")
     message(STATUS "")
 
     # install packages
-    execute_process(COMMAND ${CONDA_EXE} create -n ${CONDA_ENVIRONMENT}
-        python=${CONDA_PYTHON_VERSION} _license ${CONDA_PACKAGES} ${NO_PIN_OPT})
+    execute_process(COMMAND ${CONDA_EXE} create -y ${CHANNEL_ARGS} -n ${CONDA_ENVIRONMENT}
+        python=${CONDA_PYTHON_VERSION} ${CONDA_PACKAGES} ${NO_PIN_OPT})
 
 endmacro()
 

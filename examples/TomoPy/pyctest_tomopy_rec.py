@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-TomoPy example script to reconstruct a single data set.
+TomoPy script to reconstruct a TomoBank file
 """
 
 from __future__ import print_function
@@ -18,7 +18,7 @@ import h5py
 import tomopy
 import dxchange
 import timemory
-from tomopy_test_utils import *
+from pyctest_tomopy_utils import *
 
 
 #------------------------------------------------------------------------------#

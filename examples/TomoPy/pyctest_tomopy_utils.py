@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+Utilities for TomoPy + PyCTest
+"""
 
 import os
 import sys

@@ -1,12 +1,18 @@
 
 set(COPY_DIR ${PROJECT_BINARY_DIR}/examples/TomoPy)
 set(FILES
-    PyCTestPreInit.cmake
+    # info
     README.md
-    tomopy_phantom.py
-    tomopy.py
-    tomopy_rec.py
-    tomopy_test_utils.py
+    # configures conda
+    PyCTestPreInit.cmake
+    # drivers
+    pyctest_tomopy.py
+    pyctest_tomopy.sh
+    # reconstruction files
+    pyctest_tomopy_phantom.py
+    pyctest_tomopy_rec.py
+    # helpers
+    pyctest_tomopy_utils.py
 )
 
 foreach(_FILE ${FILES})

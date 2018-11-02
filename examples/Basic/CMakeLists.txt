@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 2.8.12)
 
 set(COPY_DIR ${PROJECT_BINARY_DIR}/examples/Basic)
 set(FILES

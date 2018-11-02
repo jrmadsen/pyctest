@@ -11,7 +11,7 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
     include("${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
     include_if("PyCTestPostInit.cmake")
 
-    message(STATUS " -- Starting ${MODEL} Glob - ${CTEST_BUILD_NAME} --")
+    message(STATUS "Starting ${MODEL} Glob - ${CTEST_BUILD_NAME} --")
     
     include("${CMAKE_CURRENT_LIST_DIR}/Build.cmake")
     # CDashTest.cmake is essentially called in CDashCoverage
@@ -20,7 +20,7 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
     include_if("${CMAKE_CURRENT_LIST_DIR}/MemCheck.cmake")
     include("${CMAKE_CURRENT_LIST_DIR}/Submit.cmake")
     
-    message(STATUS " -- Finished ${MODEL} Glob - ${CTEST_BUILD_NAME} --")
+    message(STATUS "Finished ${MODEL} Glob - ${CTEST_BUILD_NAME} --")
 
 endif(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
     
