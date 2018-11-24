@@ -1,6 +1,6 @@
 package:
   name: pyctest
-  version: '0.0.8'
+  version: '0.0.9'
 
 build:
   number: 0
@@ -19,7 +19,7 @@ build:
   - PYCTEST_CMAKE_LIBRARY_PATH
 
 source:
-  git_rev: b040d27ac77f7283b6620398833920651a3f1072
+  git_rev: b0c4b5a6b1b7444a8dc789ef695b25698b8a6ba9
   git_url: https://github.com/jrmadsen/pyctest.git
 
 requirements:
