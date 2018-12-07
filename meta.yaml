@@ -21,7 +21,7 @@ build:
     - "{{ PYTHON }} setup.py install"
 
 source:
-  git_rev: 10c9c02ea847a21c8be748a3a1bdf4ea8ffac1a0
+  git_rev: 5b807b64d6dec1e2fe696685f09e1680a086cafd
   git_url: https://github.com/jrmadsen/pyctest.git
 
 requirements:
