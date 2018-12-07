@@ -38,6 +38,7 @@ if(GOOD_CMAKE)
     cmake_policy(SET CMP0042 NEW)
     #cmake_policy(SET CMP0054 NEW)
     project(pyctest LANGUAGES C CXX VERSION ${PYCTEST_VERSION})
+    set(CMAKE_INSTALL_MESSAGE LAZY CACHE STRING "Installation message")
 else(GOOD_CMAKE)
     project(pyctest C CXX)
     set(PROJECT_VERSION ${PYCTEST_VERSION})
@@ -93,6 +94,7 @@ set(CTEST_TEST_CTEST OFF CACHE BOOL "Disable CTest testing of CTest" FORCE)
 set(CMAKE_RUN_LONG_TESTS OFF CACHE BOOL "Disable CMake long tests" FORCE)
 set(CMake_INSTALL_COMPONENTS OFF CACHE BOOL "Using components when installing" FORCE)
 set(CMake_INSTALL_DEPENDENCIES OFF CACHE BOOL "Whether to install 3rd-party runtime dependencies" FORCE)
+set(BUILD_TESTING OFF CACHE BOOL "Build testing" FORCE)
 
 ################################################################################
 #   pyctest source

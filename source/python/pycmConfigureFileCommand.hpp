@@ -11,8 +11,8 @@
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 //
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -25,14 +25,14 @@
 #ifndef pycmConfigureFileCommand_hpp
 #define pycmConfigureFileCommand_hpp
 
-#include "cmConfigure.h" // IWYU pragma: keep
+#include "cmConfigure.h"  // IWYU pragma: keep
 #include "cmsys/RegularExpression.hxx"
 
-#include <string>
-#include <vector>
-#include <map>
 #include "cmCommand.h"
 #include "cmNewLineStyle.h"
+#include <map>
+#include <string>
+#include <vector>
 
 //============================================================================//
 
@@ -40,7 +40,6 @@ class cmExecutionStatus;
 
 namespace pyct
 {
-
 //
 // CMake invocation format
 //
@@ -56,9 +55,9 @@ public:
     cmCommand* Clone() override { return new cmConfigureFileCommand; }
 
     /**
-   * This is called when the command is first encountered in
-   * the input file.
-   */
+     * This is called when the command is first encountered in
+     * the input file.
+     */
     bool InitialPass(std::vector<std::string> const& args,
                      cmExecutionStatus&) override;
 
@@ -68,30 +67,24 @@ public:
     }
 
 private:
-    int ConfigureFile();
-    int ConfigureFile(const char* infile,
-                      const char* outfile,
-                      bool copyonly,
-                      bool atOnly,
-                      bool escapeQuotes,
-                      cmNewLineStyle newLine);
-    void ConfigureString(const std::string& input,
-                         std::string& output,
-                         bool atOnly, bool
-                         escapeQuotes) const;
+    int  ConfigureFile();
+    int  ConfigureFile(const char* infile, const char* outfile, bool copyonly,
+                       bool atOnly, bool escapeQuotes, cmNewLineStyle newLine);
+    void ConfigureString(const std::string& input, std::string& output,
+                         bool atOnly, bool escapeQuotes) const;
     const char* GetDefinition(const std::string& key);
 
     cmNewLineStyle NewLineStyle;
 
-    std::string InputFile;
-    std::string OutputFile;
-    bool CopyOnly = false;
-    bool EscapeQuotes = false;
-    bool AtOnly = true;
-    mutable cmsys::RegularExpression cmDefineRegex;
-    mutable cmsys::RegularExpression cmDefine01Regex;
-    mutable cmsys::RegularExpression cmAtVarRegex;
-    mutable cmsys::RegularExpression cmNamedCurly;
+    std::string                        InputFile;
+    std::string                        OutputFile;
+    bool                               CopyOnly     = false;
+    bool                               EscapeQuotes = false;
+    bool                               AtOnly       = true;
+    mutable cmsys::RegularExpression   cmDefineRegex;
+    mutable cmsys::RegularExpression   cmDefine01Regex;
+    mutable cmsys::RegularExpression   cmAtVarRegex;
+    mutable cmsys::RegularExpression   cmNamedCurly;
     std::map<std::string, std::string> m_definitions;
 };
 

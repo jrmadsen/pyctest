@@ -31,18 +31,6 @@ set(__compilers_is_loaded ON)
 
 
 ################################################################################
-# macro generate a test compile file
-################################################################################
-macro(generate_test_project)
-    if(EXISTS ${CMAKE_SOURCE_DIR}/cmake/Templates/compile-test.cc.in)
-        set(HEADER_FILE "stdlib.h")
-        configure_file(${CMAKE_SOURCE_DIR}/cmake/Templates/compile-test.cc.in
-            ${CMAKE_BINARY_DIR}/CMakeFiles/compile-testing/compile-test.cc @ONLY)
-    endif()
-endmacro()
-
-
-################################################################################
 # macro converting string to list
 ################################################################################
 macro(to_list _VAR _STR)

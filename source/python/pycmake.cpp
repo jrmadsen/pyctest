@@ -1,54 +1,54 @@
 //  MIT License
-//  
-//  Copyright (c) 2018, The Regents of the University of California, 
+//
+//  Copyright (c) 2018, The Regents of the University of California,
 //  through Lawrence Berkeley National Laboratory (subject to receipt of any
 //  required approvals from the U.S. Dept. of Energy).  All rights reserved.
-//  
+//
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
-//  of this software and associated documentation files (the "Software"), to deal
-//  in the Software without restriction, including without limitation the rights
-//  to use, copy, modify, merge, publish, distribute, sublicense, and
+//  of this software and associated documentation files (the "Software"), to
+//  deal in the Software without restriction, including without limitation the
+//  rights to use, copy, modify, merge, publish, distribute, sublicense, and
 //  copies of the Software, and to permit persons to whom the Software is
 //  furnished to do so, subject to the following conditions:
-//  
-//  The above copyright notice and this permission notice shall be included in all
-//  copies or substantial portions of the Software.
-//  
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
 //  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 //  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 //  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 //  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-//  SOFTWARE.
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+//  IN THE SOFTWARE.
 
 #include "pycmake.hpp"
 
 //============================================================================//
 
 // define helper macros
-#define pyobj_cast(_var, _type, _pyobject) _type * _var = _pyobject.cast< _type * >()
+#define pyobj_cast(_var, _type, _pyobject)                                     \
+    _type* _var = _pyobject.cast<_type*>()
 
 //============================================================================//
 
-typedef std::vector<std::string>    strvec_t;
-typedef std::vector<char*>          charvec_t;
+typedef std::stringstream     sstream_t;
+typedef std::string           string_t;
+typedef std::vector<string_t> strvec_t;
+typedef std::vector<char*>    charvec_t;
 
 //============================================================================//
 
-static const char* cmDocumentationName[][2] =
-{
+static const char* cmDocumentationName[][2] = {
     { nullptr, "  cmake - Cross-Platform Makefile Generator." },
     { nullptr, nullptr }
 };
 
 //============================================================================//
 
-static const char* cmDocumentationUsage[][2] =
-{
-    { nullptr,
-      "  cmake [options] <path-to-source>\n"
-      "  cmake [options] <path-to-existing-build>" },
+static const char* cmDocumentationUsage[][2] = {
+    { nullptr, "  cmake [options] <path-to-source>\n"
+               "  cmake [options] <path-to-existing-build>" },
     { nullptr,
       "Specify a source directory to (re-)generate a build system for "
       "it in the current working directory.  Specify an existing build "
@@ -58,36 +58,34 @@ static const char* cmDocumentationUsage[][2] =
 
 //============================================================================//
 
-static const char* cmDocumentationUsageNote[][2] =
-{
+static const char* cmDocumentationUsageNote[][2] = {
     { nullptr, "Run 'cmake --help' for more information." },
     { nullptr, nullptr }
 };
 
 //============================================================================//
 
-#  define CMAKE_BUILD_OPTIONS                                                 \
-    "  <dir>          = Project binary directory to be built.\n"              \
-    "  -j [<jobs>] --parallel [<jobs>] = Build in parallel using\n"           \
-    "                   the given number of jobs. If <jobs> is omitted\n"     \
-    "                   the native build tool's default number is used.\n"    \
-    "                   The CMAKE_BUILD_PARALLEL_LEVEL environment "          \
-    "variable\n"                                                              \
-    "                   specifies a default parallel level when this "        \
-    "option\n"                                                                \
-    "                   is not given.\n"                                      \
-    "  --target <tgt> = Build <tgt> instead of default targets.\n"            \
-    "                   May only be specified once.\n"                        \
-    "  --config <cfg> = For multi-configuration tools, choose <cfg>.\n"       \
-    "  --clean-first  = Build target 'clean' first, then build.\n"            \
-    "                   (To clean only, use --target 'clean'.)\n"             \
-    "  --use-stderr   = Ignored.  Behavior is default in CMake >= 3.0.\n"     \
+#define CMAKE_BUILD_OPTIONS                                                    \
+    "  <dir>          = Project binary directory to be built.\n"               \
+    "  -j [<jobs>] --parallel [<jobs>] = Build in parallel using\n"            \
+    "                   the given number of jobs. If <jobs> is omitted\n"      \
+    "                   the native build tool's default number is used.\n"     \
+    "                   The CMAKE_BUILD_PARALLEL_LEVEL environment "           \
+    "variable\n"                                                               \
+    "                   specifies a default parallel level when this "         \
+    "option\n"                                                                 \
+    "                   is not given.\n"                                       \
+    "  --target <tgt> = Build <tgt> instead of default targets.\n"             \
+    "                   May only be specified once.\n"                         \
+    "  --config <cfg> = For multi-configuration tools, choose <cfg>.\n"        \
+    "  --clean-first  = Build target 'clean' first, then build.\n"             \
+    "                   (To clean only, use --target 'clean'.)\n"              \
+    "  --use-stderr   = Ignored.  Behavior is default in CMake >= 3.0.\n"      \
     "  --             = Pass remaining options to the native tool.\n"
 
 //============================================================================//
 
-static const char* cmDocumentationOptions[][2] =
-{
+static const char* cmDocumentationOptions[][2] = {
     CMAKE_STANDARD_OPTIONS_TABLE,
     { "-E", "CMake command mode." },
     { "-L[A][H]", "List non-advanced cached variables." },
@@ -96,13 +94,11 @@ static const char* cmDocumentationOptions[][2] =
     { "-N", "View mode only." },
     { "-P <file>", "Process script mode." },
     { "--find-package", "Run in pkg-config like mode." },
-    { "--graphviz=[file]",
-      "Generate graphviz of dependencies, see "
-      "CMakeGraphVizOptions.cmake for more." },
+    { "--graphviz=[file]", "Generate graphviz of dependencies, see "
+                           "CMakeGraphVizOptions.cmake for more." },
     { "--system-information [file]", "Dump information about this system." },
-    { "--debug-trycompile",
-      "Do not delete the try_compile build tree. Only "
-      "useful on one try_compile at a time." },
+    { "--debug-trycompile", "Do not delete the try_compile build tree. Only "
+                            "useful on one try_compile at a time." },
     { "--debug-output", "Put cmake in a debug mode." },
     { "--trace", "Put cmake in trace mode." },
     { "--trace-expand", "Put cmake in trace mode with variable expansion." },
@@ -111,15 +107,15 @@ static const char* cmDocumentationOptions[][2] =
     { "--warn-uninitialized", "Warn about uninitialized values." },
     { "--warn-unused-vars", "Warn about unused variables." },
     { "--no-warn-unused-cli", "Don't warn about command line options." },
-    { "--check-system-vars",
-      "Find problems with variable usage in system "
-      "files." },
+    { "--check-system-vars", "Find problems with variable usage in system "
+                             "files." },
     { nullptr, nullptr }
 };
 
 //============================================================================//
 
-int pycm::do_command(int ac, char const* const* av)
+int
+pycm::do_command(int ac, char const* const* av)
 {
     std::vector<std::string> args;
     args.reserve(ac - 1);
@@ -130,13 +126,14 @@ int pycm::do_command(int ac, char const* const* av)
 
 //============================================================================//
 
-cmMakefile* pycm::cmakemainGetMakefile(void* clientdata)
+cmMakefile*
+pycm::cmakemainGetMakefile(void* clientdata)
 {
     cmake* cm = static_cast<cmake*>(clientdata);
-    if (cm && cm->GetDebugOutput())
+    if(cm && cm->GetDebugOutput())
     {
         cmGlobalGenerator* gg = cm->GetGlobalGenerator();
-        if (gg)
+        if(gg)
         {
             return gg->GetCurrentMakefile();
         }
@@ -146,14 +143,15 @@ cmMakefile* pycm::cmakemainGetMakefile(void* clientdata)
 
 //============================================================================//
 
-std::string pycm::cmakemainGetStack(void* clientdata)
+std::string
+pycm::cmakemainGetStack(void* clientdata)
 {
     std::string msg;
     cmMakefile* mf = cmakemainGetMakefile(clientdata);
-    if (mf)
+    if(mf)
     {
         msg = mf->FormatListFileStack();
-        if (!msg.empty())
+        if(!msg.empty())
         {
             msg = "\n   Called from: " + msg;
         }
@@ -164,30 +162,31 @@ std::string pycm::cmakemainGetStack(void* clientdata)
 
 //============================================================================//
 
-void pycm::cmakemainMessageCallback(const char* m, const char* /*unused*/,
-                                    bool& /*unused*/, void* clientdata)
+void
+pycm::cmakemainMessageCallback(const char* m, const char* /*unused*/,
+                               bool& /*unused*/, void* clientdata)
 {
     std::cerr << m << cmakemainGetStack(clientdata) << std::endl << std::flush;
 }
 
 //============================================================================//
 
-void pycm::cmakemainProgressCallback(const char* m, float prog,
-                                     void* clientdata)
+void
+pycm::cmakemainProgressCallback(const char* m, float prog, void* clientdata)
 {
     cmMakefile* mf = cmakemainGetMakefile(clientdata);
     std::string dir;
-    if ((mf) && (strstr(m, "Configuring") == m) && (prog < 0))
+    if((mf) && (strstr(m, "Configuring") == m) && (prog < 0))
     {
         dir = " ";
         dir += mf->GetCurrentSourceDirectory();
-    } else if ((mf) && (strstr(m, "Generating") == m))
+    } else if((mf) && (strstr(m, "Generating") == m))
     {
         dir = " ";
         dir += mf->GetCurrentBinaryDirectory();
     }
 
-    if ((prog < 0) || (!dir.empty()))
+    if((prog < 0) || (!dir.empty()))
     {
         std::cout << "-- " << m << dir << cmakemainGetStack(clientdata)
                   << std::endl;
@@ -198,9 +197,10 @@ void pycm::cmakemainProgressCallback(const char* m, float prog,
 
 //============================================================================//
 
-int pycm::do_cmake(int ac, char const* const* av)
+int
+pycm::do_cmake(int ac, char const* const* av)
 {
-    if (cmSystemTools::GetCurrentWorkingDirectory().empty())
+    if(cmSystemTools::GetCurrentWorkingDirectory().empty())
     {
         std::cerr << "Current working directory cannot be established."
                   << std::endl;
@@ -209,11 +209,11 @@ int pycm::do_cmake(int ac, char const* const* av)
 
     cmDocumentation doc;
     doc.addCMakeStandardDocSections();
-    if (doc.CheckOptions(ac, av))
+    if(doc.CheckOptions(ac, av))
     {
         // Construct and print requested documentation.
         pycm::cmake_role() = cmake::RoleInternal;
-        cmake& hcm = *pycm::cmake_instance();
+        cmake& hcm         = *pycm::cmake_instance();
         hcm.SetHomeDirectory("");
         hcm.SetHomeOutputDirectory("");
         hcm.AddCMakePaths();
@@ -230,7 +230,7 @@ int pycm::do_cmake(int ac, char const* const* av)
         doc.SetName("cmake");
         doc.SetSection("Name", cmDocumentationName);
         doc.SetSection("Usage", cmDocumentationUsage);
-        if (ac == 1)
+        if(ac == 1)
             doc.AppendSection("Usage", cmDocumentationUsageNote);
         doc.AppendSection("Generators", generators);
         doc.PrependSection("Options", cmDocumentationOptions);
@@ -238,16 +238,16 @@ int pycm::do_cmake(int ac, char const* const* av)
         return doc.PrintRequestedDocumentation(std::cout) ? 0 : 1;
     }
 
-    bool sysinfo = false;
-    bool list_cached = false;
-    bool list_all_cached = false;
-    bool list_help = false;
-    bool view_only = false;
-    cmake::WorkingMode workingMode = cmake::NORMAL_MODE;
+    bool                     sysinfo         = false;
+    bool                     list_cached     = false;
+    bool                     list_all_cached = false;
+    bool                     list_help       = false;
+    bool                     view_only       = false;
+    cmake::WorkingMode       workingMode     = cmake::NORMAL_MODE;
     std::vector<std::string> args;
-    for (int i = 0; i < ac; ++i)
+    for(int i = 0; i < ac; ++i)
     {
-        if (strcmp(av[i], "-i") == 0)
+        if(strcmp(av[i], "-i") == 0)
         {
             /* clang-format off */
             std::cerr << "The \"cmake -i\" wizard mode is no longer supported.\n"
@@ -256,26 +256,25 @@ int pycm::do_cmake(int ac, char const* const* av)
             /* clang-format on */
             return 1;
         }
-        if (strcmp(av[i], "--system-information") == 0)
+        if(strcmp(av[i], "--system-information") == 0)
             sysinfo = true;
-        else if (strcmp(av[i], "-N") == 0)
+        else if(strcmp(av[i], "-N") == 0)
             view_only = true;
-        else if (strcmp(av[i], "-L") == 0)
+        else if(strcmp(av[i], "-L") == 0)
             list_cached = true;
-        else if (strcmp(av[i], "-LA") == 0)
+        else if(strcmp(av[i], "-LA") == 0)
             list_all_cached = true;
-        else if (strcmp(av[i], "-LH") == 0)
+        else if(strcmp(av[i], "-LH") == 0)
         {
             list_cached = true;
-            list_help = true;
-        }
-        else if (strcmp(av[i], "-LAH") == 0) {
-            list_all_cached = true;
-            list_help = true;
-        }
-        else if (cmHasLiteralPrefix(av[i], "-P"))
+            list_help   = true;
+        } else if(strcmp(av[i], "-LAH") == 0)
         {
-            if (i == ac - 1)
+            list_all_cached = true;
+            list_help       = true;
+        } else if(cmHasLiteralPrefix(av[i], "-P"))
+        {
+            if(i == ac - 1)
                 cmSystemTools::Error("No script specified for argument -P");
             else
             {
@@ -284,28 +283,27 @@ int pycm::do_cmake(int ac, char const* const* av)
                 i++;
                 args.push_back(av[i]);
             }
-        }
-        else if (cmHasLiteralPrefix(av[i], "--find-package"))
+        } else if(cmHasLiteralPrefix(av[i], "--find-package"))
         {
             workingMode = cmake::FIND_PACKAGE_MODE;
             args.push_back(av[i]);
-        }
-        else
+        } else
             args.push_back(av[i]);
     }
-    if (sysinfo)
+    if(sysinfo)
     {
         pycm::cmake_role() = cmake::RoleProject;
-        cmake& cm = *pycm::cmake_instance();
+        cmake& cm          = *pycm::cmake_instance();
         cm.SetHomeDirectory("");
         cm.SetHomeOutputDirectory("");
         int ret = cm.GetSystemInformation(args);
         return ret;
     }
     cmake::Role const role = workingMode == cmake::SCRIPT_MODE
-                             ? cmake::RoleScript : cmake::RoleProject;
+                                 ? cmake::RoleScript
+                                 : cmake::RoleProject;
     pycm::cmake_role() = role;
-    cmake& cm = *pycm::cmake_instance();
+    cmake& cm          = *pycm::cmake_instance();
 
     cm.SetHomeDirectory("");
     cm.SetHomeOutputDirectory("");
@@ -314,29 +312,32 @@ int pycm::do_cmake(int ac, char const* const* av)
     cm.SetWorkingMode(workingMode);
 
     int res = cm.Run(args, view_only);
-    if (list_cached || list_all_cached)
+    if(list_cached || list_all_cached)
     {
         std::cout << "-- Cache values" << std::endl;
         std::vector<std::string> keys = cm.GetState()->GetCacheEntryKeys();
-        for (std::string const& k : keys)
+        for(std::string const& k : keys)
         {
-            cmStateEnums::CacheEntryType t = cm.GetState()->GetCacheEntryType(k);
-            if (t != cmStateEnums::INTERNAL && t != cmStateEnums::STATIC &&
-                t != cmStateEnums::UNINITIALIZED)
+            cmStateEnums::CacheEntryType t =
+                cm.GetState()->GetCacheEntryType(k);
+            if(t != cmStateEnums::INTERNAL && t != cmStateEnums::STATIC &&
+               t != cmStateEnums::UNINITIALIZED)
             {
                 const char* advancedProp =
-                        cm.GetState()->GetCacheEntryProperty(k, "ADVANCED");
-                if (list_all_cached || !advancedProp)
+                    cm.GetState()->GetCacheEntryProperty(k, "ADVANCED");
+                if(list_all_cached || !advancedProp)
                 {
-                    if (list_help)
+                    if(list_help)
                     {
                         std::cout << "// "
-                                  << cm.GetState()->GetCacheEntryProperty(k, "HELPSTRING")
+                                  << cm.GetState()->GetCacheEntryProperty(
+                                         k, "HELPSTRING")
                                   << std::endl;
                     }
-                    std::cout << k << ":" << cmState::CacheEntryTypeToString(t) << "="
-                              << cm.GetState()->GetCacheEntryValue(k) << std::endl;
-                    if (list_help)
+                    std::cout << k << ":" << cmState::CacheEntryTypeToString(t)
+                              << "=" << cm.GetState()->GetCacheEntryValue(k)
+                              << std::endl;
+                    if(list_help)
                     {
                         std::cout << std::endl;
                     }
@@ -352,15 +353,16 @@ int pycm::do_cmake(int ac, char const* const* av)
 
 //============================================================================//
 
-int pycm::do_build(int ac, char const* const* av)
+int
+pycm::do_build(int ac, char const* const* av)
 {
-    int jobs = cmake::NO_BUILD_PARALLEL_LEVEL;
-    std::string target;
-    std::string config = "Debug";
-    std::string dir;
+    int                      jobs = cmake::NO_BUILD_PARALLEL_LEVEL;
+    std::string              target;
+    std::string              config = "Debug";
+    std::string              dir;
     std::vector<std::string> nativeOptions;
-    bool clean = false;
-    bool hasTarget = false;
+    bool                     clean     = false;
+    bool                     hasTarget = false;
 
     enum Doing
     {
@@ -373,83 +375,77 @@ int pycm::do_build(int ac, char const* const* av)
     };
 
     Doing doing = DoingDir;
-    for (int i = 2; i < ac; ++i)
+    for(int i = 2; i < ac; ++i)
     {
-        if (doing == DoingNative)
+        if(doing == DoingNative)
         {
             nativeOptions.push_back(av[i]);
-        }
-        else if ((strcmp(av[i], "-j") == 0) ||
-                 (strcmp(av[i], "--parallel") == 0))
+        } else if((strcmp(av[i], "-j") == 0) ||
+                  (strcmp(av[i], "--parallel") == 0))
         {
             jobs = cmake::DEFAULT_BUILD_PARALLEL_LEVEL;
             /* does the next argument start with a number? */
-            if ((i + 1 < ac) && (isdigit(*av[i + 1])))
+            if((i + 1 < ac) && (isdigit(*av[i + 1])))
             {
                 doing = DoingJobs;
             }
-        }
-        else if (strcmp(av[i], "--target") == 0)
+        } else if(strcmp(av[i], "--target") == 0)
         {
-            if (!hasTarget) {
-                doing = DoingTarget;
+            if(!hasTarget)
+            {
+                doing     = DoingTarget;
                 hasTarget = true;
-            } else {
-                std::cerr << "'--target' may not be specified more than once.\n\n";
+            } else
+            {
+                std::cerr
+                    << "'--target' may not be specified more than once.\n\n";
                 dir.clear();
                 break;
             }
-        }
-        else if (strcmp(av[i], "--config") == 0)
+        } else if(strcmp(av[i], "--config") == 0)
         {
             doing = DoingConfig;
-        }
-        else if (strcmp(av[i], "--clean-first") == 0)
+        } else if(strcmp(av[i], "--clean-first") == 0)
         {
             clean = true;
             doing = DoingNone;
-        }
-        else if (strcmp(av[i], "--use-stderr") == 0)
+        } else if(strcmp(av[i], "--use-stderr") == 0)
         {
             /* tolerate legacy option */
-        }
-        else if (strcmp(av[i], "--") == 0)
+        } else if(strcmp(av[i], "--") == 0)
         {
             doing = DoingNative;
-        }
-        else
+        } else
         {
-            switch (doing)
+            switch(doing)
             {
                 case DoingJobs:
                 {
                     unsigned long numJobs = 0;
-                    if (cmSystemTools::StringToULong(av[i], &numJobs))
+                    if(cmSystemTools::StringToULong(av[i], &numJobs))
                     {
-                        jobs = int(numJobs);
+                        jobs  = int(numJobs);
                         doing = DoingNone;
-                    }
-                    else
+                    } else
                     {
-                        std::cerr << "'" << av[i - 1]
-                                  << "' invalid number '" << av[i]
-                                     << "' given.\n\n";
+                        std::cerr << "'" << av[i - 1] << "' invalid number '"
+                                  << av[i] << "' given.\n\n";
                         dir.clear();
                         break;
                     }
                 }
-                    break;
+                break;
                 case DoingDir:
-                    dir = cmSystemTools::CollapseFullPath(av[i]);
+                    dir   = cmSystemTools::CollapseFullPath(av[i]);
                     doing = DoingNone;
                     break;
                 case DoingTarget:
                     target = av[i];
-                    doing = DoingNone;
+                    doing  = DoingNone;
                     break;
                 case DoingConfig:
                     config = av[i];
-                    doing = DoingNone;
+                    doing  = DoingNone;
                     break;
                 default:
                     std::cerr << "Unknown argument " << av[i] << std::endl;
@@ -459,33 +455,32 @@ int pycm::do_build(int ac, char const* const* av)
         }
     }
 
-    if (jobs == cmake::NO_BUILD_PARALLEL_LEVEL)
+    if(jobs == cmake::NO_BUILD_PARALLEL_LEVEL)
     {
         std::string parallel;
-        if (cmSystemTools::GetEnv("CMAKE_BUILD_PARALLEL_LEVEL", parallel))
+        if(cmSystemTools::GetEnv("CMAKE_BUILD_PARALLEL_LEVEL", parallel))
         {
-            if (parallel.empty())
+            if(parallel.empty())
             {
                 jobs = cmake::DEFAULT_BUILD_PARALLEL_LEVEL;
-            }
-            else
+            } else
             {
                 unsigned long numJobs = 0;
-                if (cmSystemTools::StringToULong(parallel.c_str(), &numJobs))
+                if(cmSystemTools::StringToULong(parallel.c_str(), &numJobs))
                 {
                     jobs = int(numJobs);
-                }
-                else
+                } else
                 {
-                    std::cerr << "'CMAKE_BUILD_PARALLEL_LEVEL' environment variable\n"
-                              << "invalid number '" << parallel << "' given.\n\n";
+                    std::cerr
+                        << "'CMAKE_BUILD_PARALLEL_LEVEL' environment variable\n"
+                        << "invalid number '" << parallel << "' given.\n\n";
                     dir.clear();
                 }
             }
         }
     }
 
-    if (dir.empty())
+    if(dir.empty())
     {
         /* clang-format off */
         std::cerr <<
@@ -505,7 +500,8 @@ int pycm::do_build(int ac, char const* const* av)
 
 //============================================================================//
 
-int pycm::do_open(int ac, char const* const* av)
+int
+pycm::do_open(int ac, char const* const* av)
 {
     std::string dir;
 
@@ -515,12 +511,12 @@ int pycm::do_open(int ac, char const* const* av)
         DoingDir,
     };
     Doing doing = DoingDir;
-    for (int i = 2; i < ac; ++i)
+    for(int i = 2; i < ac; ++i)
     {
-        switch (doing)
+        switch(doing)
         {
             case DoingDir:
-                dir = cmSystemTools::CollapseFullPath(av[i]);
+                dir   = cmSystemTools::CollapseFullPath(av[i]);
                 doing = DoingNone;
                 break;
             default:
@@ -529,7 +525,7 @@ int pycm::do_open(int ac, char const* const* av)
                 break;
         }
     }
-    if (dir.empty())
+    if(dir.empty())
     {
         std::cerr << "Usage: cmake --open <dir>\n";
         return 1;
@@ -541,10 +537,10 @@ int pycm::do_open(int ac, char const* const* av)
     return cm.Open(dir, false) ? 0 : 1;
 }
 
-
 //============================================================================//
 
-int pycm::do_finalize()
+int
+pycm::do_finalize()
 {
     cmDynamicLoader::FlushCache();
     uv_loop_close(uv_default_loop());
@@ -553,7 +549,8 @@ int pycm::do_finalize()
 
 //============================================================================//
 
-int pycm::cmake_main_driver(int ac, char const* const* av)
+int
+pycm::cmake_main_driver(int ac, char const* const* av)
 {
 #if defined(_WIN32)
     // Replace streambuf so we can output Unicode to console
@@ -565,20 +562,20 @@ int pycm::cmake_main_driver(int ac, char const* const* av)
 
     std::cout << "argv[0] = " << av[0] << std::endl;
     cmsys::Encoding::CommandLineArguments args =
-            cmsys::Encoding::CommandLineArguments::Main(ac, av);
+        cmsys::Encoding::CommandLineArguments::Main(ac, av);
     ac = args.argc();
     av = args.argv();
 
     cmSystemTools::EnableMSVCDebugHook();
     cmSystemTools::InitializeLibUV();
     cmSystemTools::FindCMakeResources(av[0]);
-    if (ac > 1)
+    if(ac > 1)
     {
-        if (strcmp(av[1], "--build") == 0)
+        if(strcmp(av[1], "--build") == 0)
             return do_build(ac, av);
-        if (strcmp(av[1], "--open") == 0)
+        if(strcmp(av[1], "--open") == 0)
             return do_open(ac, av);
-        if (strcmp(av[1], "-E") == 0)
+        if(strcmp(av[1], "-E") == 0)
             return do_command(ac, av);
     }
     int ret = do_cmake(ac, av);
@@ -592,10 +589,9 @@ PYBIND11_MODULE(pycmake, cm)
     py::add_ostream_redirect(cm, "ostream_redirect");
 
     //------------------------------------------------------------------------//
-    auto exe_path = [=] ()
-    {
+    auto exe_path = [=]() {
         std::string _pycmake_file = cm.attr("__file__").cast<std::string>();
-        auto locals = py::dict("_pycmake_file"_a = _pycmake_file);
+        auto        locals        = py::dict("_pycmake_file"_a = _pycmake_file);
         py::exec(R"(
                  import os
                  _cmake_path = os.path.join(os.path.dirname(_pycmake_file),
@@ -607,54 +603,58 @@ PYBIND11_MODULE(pycmake, cm)
         return locals["_cmake_path"].cast<std::string>();
     };
     //------------------------------------------------------------------------//
-    auto str2char_convert = [] (const std::string& _str)
-    {
-        char* pc = new char[_str.size()+1];
+    auto str2char_convert = [](const std::string& _str) {
+        char* pc = new char[_str.size() + 1];
         std::strcpy(pc, _str.c_str());
         pc[_str.size()] = '\0';
         return pc;
     };
     //------------------------------------------------------------------------//
-    auto run = [=] (std::vector<std::string> pargs, std::string working_dir)
-    {
+    auto run = [=](std::vector<std::string> pargs, std::string binary_dir) {
         charvec_t cargs;
+
+        // add the arguments
+        for(auto itr : cm.attr("ARGUMENTS").cast<py::list>())
+            cargs.push_back(str2char_convert(itr.cast<string_t>()));
+
         // convert list elements to char*
-        for(auto itr : pargs)
-            cargs.push_back(str2char_convert(itr));
+        for(auto itr : pargs) cargs.push_back(str2char_convert(itr));
+
+        // add the source directory
+        cargs.push_back(
+            str2char_convert(cm.attr("SOURCE_DIR").cast<string_t>()));
 
         // structures passed
-        int argc = pargs.size() + 1;
+        int    argc = pargs.size() + 1;
         char** argv = new char*[argc];
 
         // cmake executable
         auto _exe = exe_path();
-        argv[0] = str2char_convert(_exe);
+        argv[0]   = str2char_convert(_exe);
 
         // fill argv
-        for(unsigned i = 1; i < argc; ++i)
-            argv[i] = cargs[i-1];
+        for(unsigned i = 1; i < argc; ++i) argv[i] = cargs[i - 1];
 
         // change working directory
-        auto locals = py::dict("working_dir"_a = working_dir);
+        auto locals = py::dict("binary_dir"_a = binary_dir);
         py::exec(R"(
                  import os
 
-                 origwd = os.getcwd()
-                 if len(working_dir) > 0:
-                     if not os.path.exists(working_dir):
-                         os.makedirs(working_dir)
-                     os.chdir(working_dir)
+                 _cwd = os.getcwd()
+                 if len(binary_dir) > 0:
+                     if not os.path.exists(binary_dir):
+                         os.makedirs(binary_dir)
+                     os.chdir(binary_dir)
                  )",
                  py::globals(), locals);
 
-        std::string origwd = locals["origwd"].cast<std::string>();
-        int ret = pycm::cmake_main_driver(argc, argv);
+        std::string _cwd = locals["_cwd"].cast<std::string>();
+        int         ret  = pycm::cmake_main_driver(argc, argv);
 
-        locals = py::dict("working_dir"_a = origwd);
+        locals = py::dict("binary_dir"_a = _cwd);
         py::exec(R"(
                  import os
-
-                 os.chdir(working_dir)
+                 os.chdir(binary_dir)
                  )",
                  py::globals(), locals);
 
@@ -663,21 +663,24 @@ PYBIND11_MODULE(pycmake, cm)
     };
     //------------------------------------------------------------------------//
     // create a new test and add to test list
-    auto cmake_init = [=] (std::string working_dir, std::string prjname)
-    {
+    auto cmake_init = [=](std::string source_dir, std::string binary_dir,
+                          std::string prjname) {
         // change working directory
-        auto locals = py::dict("working_dir"_a = working_dir,
-                               "project_name"_a = prjname);
+        auto locals =
+            py::dict("source_dir"_a = source_dir, "binary_dir"_a = binary_dir,
+                     "project_name"_a = prjname);
+        cm.attr("SOURCE_DIR") = source_dir;
+        cm.attr("BINARY_DIR") = binary_dir;
         py::exec(R"(
                  import os
 
-                 origwd = os.getcwd()
-                 if len(working_dir) > 0:
-                     if not os.path.exists(working_dir):
-                         os.makedirs(working_dir)
-                     os.chdir(working_dir)
+                 _cwd = os.getcwd()
+                 if len(binary_dir) > 0:
+                     if not os.path.exists(binary_dir):
+                         os.makedirs(binary_dir)
+                     os.chdir(binary_dir)
 
-                 _path = os.path.join(os.getcwd(), 'CMakeLists.txt')
+                 _path = os.path.join(source_dir, 'CMakeLists.txt')
                  if not os.path.exists(_path):
                      contents =  "{}\n{}\n{}\n{}\n{}\n{}\n".format(
                          'cmake_minimum_required(VERSION 2.8.12)',
@@ -692,20 +695,20 @@ PYBIND11_MODULE(pycmake, cm)
                  )",
                  py::globals(), locals);
 
-        std::string origwd = locals["origwd"].cast<std::string>();
-        int argc = 2;
-        char** argv = new char*[argc];
-        auto _exe = exe_path();
-        argv[0] = str2char_convert(_exe);
-        argv[1] = str2char_convert(".");
+        std::string _cwd = locals["_cwd"].cast<std::string>();
+        int         argc = 2;
+        char**      argv = new char*[argc];
+        auto        _exe = exe_path();
+        argv[0]          = str2char_convert(_exe);
+        argv[1]          = str2char_convert(".");
         pycm::cmake_main_driver(argc, argv);
         cmake* _cmake = pycm::cmake_instance(false);
 
-        locals = py::dict("working_dir"_a = origwd);
+        locals = py::dict("binary_dir"_a = _cwd);
         py::exec(R"(
                  import os
 
-                 os.chdir(working_dir)
+                 os.chdir(binary_dir)
                  )",
                  py::globals(), locals);
 
@@ -715,15 +718,16 @@ PYBIND11_MODULE(pycmake, cm)
 
     py::class_<pycm::cmakeWrapper> _cmake(cm, "cmake");
 
-    _cmake.def(py::init(cmake_init), "Initialize CMake",
-               py::arg("working_dir") = "pycm",
-               py::arg("project_name") = "PyCMake");
+    cm.attr("ARGUMENTS")  = py::list();
+    cm.attr("SOURCE_DIR") = ".";
+    cm.attr("BINARY_DIR") = ".";
+
+    _cmake.def(py::init(cmake_init), "Initialize CMake", py::arg("source_dir"),
+               py::arg("binary_dir"), py::arg("project_name") = "PyCMake");
 
     cm.def("exe_path", exe_path, "Path to cmake executable");
-    cm.def("run", run, "Run CMake",
-           py::arg("args") = py::list(),
-           py::arg("working_directory") = "");
-
+    cm.def("run", run, "Run CMake", py::arg("args") = cm.attr("ARGUMENTS"),
+           py::arg("binary_dir") = cm.attr("BINARY_DIR"));
 }
 
 //============================================================================//

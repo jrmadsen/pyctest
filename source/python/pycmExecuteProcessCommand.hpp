@@ -11,8 +11,8 @@
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 //
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -27,14 +27,14 @@
 
 #include "cmConfigure.h"
 
+#include <sstream>
 #include <string>
 #include <vector>
-#include <sstream>
 
+#include "cmAlgorithms.h"
 #include "cmCommand.h"
 #include "cmExecutionStatus.h"
 #include "cmListFileCache.h"
-#include "cmAlgorithms.h"
 #include "cmMakefile.h"
 #include "cmProcessOutput.h"
 #include "cmSystemTools.h"
@@ -44,7 +44,6 @@
 
 namespace pyct
 {
-
 //
 // CMake invocation format
 //
@@ -71,13 +70,13 @@ namespace pyct
 class pycmExecuteProcessCommand : public cmCommand
 {
 public:
-    typedef std::string                     string_t;
-    typedef std::stringstream               sstream_t;
-    typedef std::vector<string_t>           strvec_t;
-    typedef std::vector<strvec_t>           cmdvec_t;
-    typedef std::vector<const char*>        charvec_t;
-    typedef std::pair<string_t, string_t>   strpair_t;
-    typedef cmProcessOutput::Encoding       encoding_t;
+    typedef std::string                   string_t;
+    typedef std::stringstream             sstream_t;
+    typedef std::vector<string_t>         strvec_t;
+    typedef std::vector<strvec_t>         cmdvec_t;
+    typedef std::vector<const char*>      charvec_t;
+    typedef std::pair<string_t, string_t> strpair_t;
+    typedef cmProcessOutput::Encoding     encoding_t;
 
 public:
     pycmExecuteProcessCommand();
@@ -91,12 +90,11 @@ public:
     }
 
     cmCommand* Clone() override { return new pycmExecuteProcessCommand; }
-    bool InvokeInitialPass(const std::vector<cmListFileArgument>& args,
-                           cmExecutionStatus& status) override
+    bool       InvokeInitialPass(const std::vector<cmListFileArgument>& args,
+                                 cmExecutionStatus& status) override
     {
         strvec_t expandedArgs;
-        for(const auto& itr : args)
-            expandedArgs.push_back(itr.Value);
+        for(const auto& itr : args) expandedArgs.push_back(itr.Value);
         return InitialPass(expandedArgs, status);
     }
 
@@ -106,43 +104,43 @@ public:
         return (*this)();
     }
 
-    //------------------------------------------------------------------------//
-    //      variables that can be get and set
-    //------------------------------------------------------------------------//
-    #define STANDARD_GET_SET(type, func, var) \
-    const type & func () const              { return var ; } \
-    void         func ( type val )  { var = val; }
+//------------------------------------------------------------------------//
+//      variables that can be get and set
+//------------------------------------------------------------------------//
+#define STANDARD_GET_SET(type, func, var)                                      \
+    const type& func() const { return var; }                                   \
+    void        func(type val) { var = val; }
 
-    STANDARD_GET_SET(string_t,      working_directory,  m_working_directory)
-    STANDARD_GET_SET(string_t,      timeout,            m_timeout)
-    STANDARD_GET_SET(string_t,      input_file,         m_inp_file)
-    STANDARD_GET_SET(string_t,      output_file,        m_out_file)
-    STANDARD_GET_SET(string_t,      error_file,         m_err_file)
-    STANDARD_GET_SET(bool,          output_quiet,       m_out_quiet)
-    STANDARD_GET_SET(bool,          error_quiet,        m_err_quiet)
-    STANDARD_GET_SET(bool,          strip_output,       m_out_strip)
-    STANDARD_GET_SET(bool,          strip_error,        m_err_strip)
-    STANDARD_GET_SET(encoding_t,    encoding,           m_encoding)
+    STANDARD_GET_SET(string_t, working_directory, m_working_directory)
+    STANDARD_GET_SET(string_t, timeout, m_timeout)
+    STANDARD_GET_SET(string_t, input_file, m_inp_file)
+    STANDARD_GET_SET(string_t, output_file, m_out_file)
+    STANDARD_GET_SET(string_t, error_file, m_err_file)
+    STANDARD_GET_SET(bool, output_quiet, m_out_quiet)
+    STANDARD_GET_SET(bool, error_quiet, m_err_quiet)
+    STANDARD_GET_SET(bool, strip_output, m_out_strip)
+    STANDARD_GET_SET(bool, strip_error, m_err_strip)
+    STANDARD_GET_SET(encoding_t, encoding, m_encoding)
 
-    #undef STANDARD_GET_SET
-    //------------------------------------------------------------------------//
+#undef STANDARD_GET_SET
+//------------------------------------------------------------------------//
 
-    //------------------------------------------------------------------------//
-    //      variables that can be get
-    //------------------------------------------------------------------------//
-    #define STANDARD_GET(type, func, var) \
-    const type & func () const              { return var ; }
+//------------------------------------------------------------------------//
+//      variables that can be get
+//------------------------------------------------------------------------//
+#define STANDARD_GET(type, func, var)                                          \
+    const type& func() const { return var; }
 
-    STANDARD_GET(string_t, result,  m_result)
+    STANDARD_GET(string_t, result, m_result)
     STANDARD_GET(string_t, results, m_results)
-    STANDARD_GET(string_t, output,  m_out)
-    STANDARD_GET(string_t, error,   m_err)
+    STANDARD_GET(string_t, output, m_out)
+    STANDARD_GET(string_t, error, m_err)
 
-    #undef STANDARD_GET
+#undef STANDARD_GET
     //------------------------------------------------------------------------//
 
     //------------------------------------------------------------------------//
-    void add_command(strvec_t arr) { m_args_list.push_back(arr); }
+    void     add_command(strvec_t arr) { m_args_list.push_back(arr); }
     string_t command_string() const
     {
         sstream_t ss;
@@ -152,10 +150,10 @@ public:
             for(unsigned i = 0; i < m_args_list.at(j).size(); ++i)
             {
                 ss << m_args_list.at(j).at(i);
-                if(i+1 < m_args_list.at(j).size())
+                if(i + 1 < m_args_list.at(j).size())
                     ss << " ";
             }
-            if(j+1 < m_args_list.size())
+            if(j + 1 < m_args_list.size())
                 ss << std::endl;
         }
         return ss.str();
@@ -166,38 +164,37 @@ protected:
     // GET variables
     //------------------------------------------------------------------------//
     // command list
-    cmdvec_t    m_args_list;
+    cmdvec_t m_args_list;
     // variables set during execution
-    string_t    m_result;
-    string_t    m_results;
-    string_t    m_out;
-    string_t    m_err;
+    string_t m_result;
+    string_t m_results;
+    string_t m_out;
+    string_t m_err;
 
 protected:
     //------------------------------------------------------------------------//
     // GET/SET variables
     //------------------------------------------------------------------------//
     // extra
-    string_t    m_working_directory;
-    string_t    m_timeout;
+    string_t m_working_directory;
+    string_t m_timeout;
     // file
-    string_t    m_inp_file;
-    string_t    m_out_file;
-    string_t    m_err_file;
+    string_t m_inp_file;
+    string_t m_out_file;
+    string_t m_err_file;
     // quiet
-    bool        m_out_quiet;
-    bool        m_err_quiet;
+    bool m_out_quiet;
+    bool m_err_quiet;
     // strip
-    bool        m_out_strip;
-    bool        m_err_strip;
+    bool m_out_strip;
+    bool m_err_strip;
     // encoding
-    encoding_t  m_encoding;
-
+    encoding_t m_encoding;
 };
 
 //============================================================================//
 
-} // namespace pyct
+}  // namespace pyct
 
 //============================================================================//
 

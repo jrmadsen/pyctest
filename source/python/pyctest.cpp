@@ -5,115 +5,99 @@
 //  required approvals from the U.S. Dept. of Energy).  All rights reserved.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
-//  of this software and associated documentation files (the "Software"), to deal
-//  in the Software without restriction, including without limitation the rights
-//  to use, copy, modify, merge, publish, distribute, sublicense, and
+//  of this software and associated documentation files (the "Software"), to
+//  deal in the Software without restriction, including without limitation the
+//  rights to use, copy, modify, merge, publish, distribute, sublicense, and
 //  copies of the Software, and to permit persons to whom the Software is
 //  furnished to do so, subject to the following conditions:
 //
-//  The above copyright notice and this permission notice shall be included in all
-//  copies or substantial portions of the Software.
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
 //
 //  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 //  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 //  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 //  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-//  SOFTWARE.
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+//  IN THE SOFTWARE.
 
 #include "pyctest.hpp"
 
 //============================================================================//
 
 // define helper macros
-#define pyobj_cast(_var, _type, _pyobject) _type * _var = _pyobject.cast< _type * >()
+#define pyobj_cast(_var, _type, _pyobject)                                     \
+    _type* _var = _pyobject.cast<_type*>()
 
 //============================================================================//
 
-typedef std::stringstream                   sstream_t;
-typedef std::string                         string_t;
-typedef std::vector<string_t>               strvec_t;
-typedef std::vector<char*>                  charvec_t;
-typedef pyct::pycmExecuteProcessCommand     execProcCmd_t;
+typedef std::stringstream               sstream_t;
+typedef std::string                     string_t;
+typedef std::vector<string_t>           strvec_t;
+typedef std::vector<char*>              charvec_t;
+typedef pyct::pycmExecuteProcessCommand execProcCmd_t;
 
 //============================================================================//
 
-static const char* cmDocumentationName[][2] =
-{
+static const char* cmDocumentationName[][2] = {
     { nullptr, "  ctest - Testing driver provided by CMake." },
     { nullptr, nullptr }
 };
 
 //============================================================================//
 
-static const char* cmDocumentationUsage[][2] =
-{
-    { nullptr, "  ctest [options]" },
-    { nullptr, nullptr }
-};
+static const char* cmDocumentationUsage[][2] = { { nullptr,
+                                                   "  ctest [options]" },
+                                                 { nullptr, nullptr } };
 
 //============================================================================//
 
-static const char* cmDocumentationOptions[][2] =
-{
+static const char* cmDocumentationOptions[][2] = {
     { "-C <cfg>, --build-config <cfg>", "Choose configuration to test." },
     { "-V,--verbose", "Enable verbose output from tests." },
     { "-VV,--extra-verbose", "Enable more verbose output from tests." },
     { "--debug", "Displaying more verbose internals of CTest." },
-    { "--output-on-failure",
-      "Output anything outputted by the test program "
-      "if the test should fail." },
-    { "--test-output-size-passed <size>",
-      "Limit the output for passed tests "
-      "to <size> bytes" },
-    { "--test-output-size-failed <size>",
-      "Limit the output for failed tests "
-      "to <size> bytes" },
+    { "--output-on-failure", "Output anything outputted by the test program "
+                             "if the test should fail." },
+    { "--test-output-size-passed <size>", "Limit the output for passed tests "
+                                          "to <size> bytes" },
+    { "--test-output-size-failed <size>", "Limit the output for failed tests "
+                                          "to <size> bytes" },
     { "-F", "Enable failover." },
-    { "-j <jobs>, --parallel <jobs>",
-      "Run the tests in parallel using the "
-      "given number of jobs." },
+    { "-j <jobs>, --parallel <jobs>", "Run the tests in parallel using the "
+                                      "given number of jobs." },
     { "-Q,--quiet", "Make ctest quiet." },
     { "-O <file>, --output-log <file>", "Output to log file" },
     { "-N,--show-only", "Disable actual execution of tests." },
-    { "-L <regex>, --label-regex <regex>",
-      "Run tests with labels matching "
-      "regular expression." },
-    { "-R <regex>, --tests-regex <regex>",
-      "Run tests matching regular "
-      "expression." },
-    { "-E <regex>, --exclude-regex <regex>",
-      "Exclude tests matching regular "
-      "expression." },
-    { "-LE <regex>, --label-exclude <regex>",
-      "Exclude tests with labels "
-      "matching regular expression." },
-    { "-FA <regex>, --fixture-exclude-any <regex>",
-      "Do not automatically "
-      "add any tests for "
-      "fixtures matching "
-      "regular expression." },
-    { "-FS <regex>, --fixture-exclude-setup <regex>",
-      "Do not automatically "
-      "add setup tests for "
-      "fixtures matching "
-      "regular expression." },
-    { "-FC <regex>, --fixture-exclude-cleanup <regex>",
-      "Do not automatically "
-      "add cleanup tests for "
-      "fixtures matching "
-      "regular expression." },
+    { "-L <regex>, --label-regex <regex>", "Run tests with labels matching "
+                                           "regular expression." },
+    { "-R <regex>, --tests-regex <regex>", "Run tests matching regular "
+                                           "expression." },
+    { "-E <regex>, --exclude-regex <regex>", "Exclude tests matching regular "
+                                             "expression." },
+    { "-LE <regex>, --label-exclude <regex>", "Exclude tests with labels "
+                                              "matching regular expression." },
+    { "-FA <regex>, --fixture-exclude-any <regex>", "Do not automatically "
+                                                    "add any tests for "
+                                                    "fixtures matching "
+                                                    "regular expression." },
+    { "-FS <regex>, --fixture-exclude-setup <regex>", "Do not automatically "
+                                                      "add setup tests for "
+                                                      "fixtures matching "
+                                                      "regular expression." },
+    { "-FC <regex>, --fixture-exclude-cleanup <regex>", "Do not automatically "
+                                                        "add cleanup tests for "
+                                                        "fixtures matching "
+                                                        "regular expression." },
     { "-D <dashboard>, --dashboard <dashboard>", "Execute dashboard test" },
     { "-D <var>:<type>=<value>", "Define a variable for script mode" },
     { "-M <model>, --test-model <model>", "Sets the model for a dashboard" },
-    { "-T <action>, --test-action <action>",
-      "Sets the dashboard action to "
-      "perform" },
+    { "-T <action>, --test-action <action>", "Sets the dashboard action to "
+                                             "perform" },
     { "--track <track>", "Specify the track to submit dashboard to" },
-    { "-S <script>, --script <script>",
-      "Execute a dashboard for a "
-      "configuration" },
+    { "-S <script>, --script <script>", "Execute a dashboard for a "
+                                        "configuration" },
     { "-SP <script>, --script-new-process <script>",
       "Execute a dashboard for a "
       "configuration" },
@@ -122,15 +106,13 @@ static const char* cmDocumentationOptions[][2] =
       "Run a specific number of tests by number." },
     { "-U, --union", "Take the Union of -I and -R" },
     { "--rerun-failed", "Run only the tests that failed previously" },
-    { "--repeat-until-fail <n>",
-      "Require each test to run <n> "
-      "times without failing in order to pass" },
+    { "--repeat-until-fail <n>", "Require each test to run <n> "
+                                 "times without failing in order to pass" },
     { "--max-width <width>", "Set the max width for a test name to output" },
     { "--interactive-debug-mode [0|1]", "Set the interactive mode to 0 or 1." },
     { "--no-label-summary", "Disable timing summary information for labels." },
-    { "--no-subproject-summary",
-      "Disable timing summary information for "
-      "subprojects." },
+    { "--no-subproject-summary", "Disable timing summary information for "
+                                 "subprojects." },
     { "--build-and-test", "Configure, build and run a test." },
     { "--build-target", "Specify a specific target to build." },
     { "--build-nocmake", "Run the build without running cmake first." },
@@ -138,7 +120,8 @@ static const char* cmDocumentationOptions[][2] =
     { "--build-two-config", "Run CMake twice" },
     { "--build-exe-dir", "Specify the directory for the executable." },
     { "--build-generator", "Specify the generator to use." },
-    { "--build-generator-platform", "Specify the generator-specific platform." },
+    { "--build-generator-platform",
+      "Specify the generator-specific platform." },
     { "--build-generator-toolset", "Specify the generator-specific toolset." },
     { "--build-project", "Specify the name of the project to build." },
     { "--build-makeprogram", "Specify the make program to use." },
@@ -152,7 +135,8 @@ static const char* cmDocumentationOptions[][2] =
     { "--test-load", "CPU load threshold for starting new parallel tests." },
     { "--tomorrow-tag", "Nightly or experimental starts with next day tag." },
     { "--overwrite", "Overwrite CTest configuration option." },
-    { "--extra-submit <file>[;<file>]", "Submit extra files to the dashboard." },
+    { "--extra-submit <file>[;<file>]",
+      "Submit extra files to the dashboard." },
     { "--force-new-ctest-process",
       "Run child CTest instances as new processes" },
     { "--schedule-random", "Use a random order for scheduling tests" },
@@ -171,37 +155,38 @@ static const char* cmDocumentationOptions[][2] =
 
 namespace pyct
 {
-
 //============================================================================//
 
 pycmTestGenerator::pycmTestGenerator(pycmTest* test)
-: cmScriptGenerator("CTEST_CONFIGURATION_TYPE", std::vector<string_t>()),
-  m_test(test),
-  m_test_generated(false)
-{ }
+: cmScriptGenerator("CTEST_CONFIGURATION_TYPE", std::vector<string_t>())
+, m_test(test)
+, m_test_generated(false)
+{}
 
 //============================================================================//
 
-pycmTestGenerator::~pycmTestGenerator()
-{ }
+pycmTestGenerator::~pycmTestGenerator() {}
 
 //============================================================================//
 
-bool pycmTestGenerator::TestsForConfig(const string_t& config)
+bool
+pycmTestGenerator::TestsForConfig(const string_t& config)
 {
     return this->GeneratesForConfig(config);
 }
 
 //============================================================================//
 
-pycmTest* pycmTestGenerator::GetTest() const
+pycmTest*
+pycmTestGenerator::GetTest() const
 {
     return m_test;
 }
 
 //============================================================================//
 
-void pycmTestGenerator::GenerateScriptConfigs(std::ostream& os, Indent indent)
+void
+pycmTestGenerator::GenerateScriptConfigs(std::ostream& os, Indent indent)
 {
     // Create the tests.
     this->cmScriptGenerator::GenerateScriptConfigs(os, indent);
@@ -209,16 +194,16 @@ void pycmTestGenerator::GenerateScriptConfigs(std::ostream& os, Indent indent)
 
 //============================================================================//
 
-void pycmTestGenerator::GenerateScriptActions(std::ostream& os, Indent indent)
+void
+pycmTestGenerator::GenerateScriptActions(std::ostream& os, Indent indent)
 {
-    if (this->ActionsPerConfig)
+    if(this->ActionsPerConfig)
     {
         // This is the per-config generation in a single-configuration
         // build generator case.  The superclass will call our per-config
         // method.
         this->cmScriptGenerator::GenerateScriptActions(os, indent);
-    }
-    else
+    } else
     {
         // This is an old-style test, so there is only one config.
         // assert(m_test->GetOldStyle());
@@ -228,33 +213,36 @@ void pycmTestGenerator::GenerateScriptActions(std::ostream& os, Indent indent)
 
 //============================================================================//
 
-void pycmTestGenerator::GenerateScriptForConfig(std::ostream& os,
-                                              const string_t&,
-                                              Indent indent)
+void
+pycmTestGenerator::GenerateScriptForConfig(std::ostream& os, const string_t&,
+                                           Indent        indent)
 {
     GenerateOldStyle(os, indent);
 }
 
 //============================================================================//
 
-void pycmTestGenerator::GenerateScriptNoConfig(std::ostream& os, Indent indent)
+void
+pycmTestGenerator::GenerateScriptNoConfig(std::ostream& os, Indent indent)
 {
     os << indent << "add_test(" << m_test->GetName() << " NOT_AVAILABLE)\n";
 }
 
 //============================================================================//
 
-bool pycmTestGenerator::NeedsScriptNoConfig() const
+bool
+pycmTestGenerator::NeedsScriptNoConfig() const
 {
-    return (m_test_generated &&    // test generated for at least one config
-            this->ActionsPerConfig && // test is config-aware
-            this->Configurations.empty() &&      // test runs in all configs
-            !this->ConfigurationTypes->empty()); // config-dependent command
+    return (m_test_generated &&        // test generated for at least one config
+            this->ActionsPerConfig &&  // test is config-aware
+            this->Configurations.empty() &&       // test runs in all configs
+            !this->ConfigurationTypes->empty());  // config-dependent command
 }
 
 //============================================================================//
 
-void pycmTestGenerator::GenerateOldStyle(std::ostream& fout, Indent indent)
+void
+pycmTestGenerator::GenerateOldStyle(std::ostream& fout, Indent indent)
 {
     m_test_generated = true;
 
@@ -267,16 +255,19 @@ void pycmTestGenerator::GenerateOldStyle(std::ostream& fout, Indent indent)
     fout << "add_test(";
     fout << m_test->GetName() << " \"" << exe << "\"";
 
-    for (std::vector<string_t>::const_iterator argit = command.begin() + 1;
-         argit != command.end(); ++argit) {
+    for(std::vector<string_t>::const_iterator argit = command.begin() + 1;
+        argit != command.end(); ++argit)
+    {
         // Just double-quote all arguments so they are re-parsed
         // correctly by the test system.
         fout << " \"";
-        for (char c : *argit) {
+        for(char c : *argit)
+        {
             // Escape quotes within arguments.  We should escape
             // backslashes too but we cannot because it makes the result
             // inconsistent with previous behavior of this command.
-            if (c == '"') {
+            if(c == '"')
+            {
                 fout << '\\';
             }
             fout << c;
@@ -287,10 +278,12 @@ void pycmTestGenerator::GenerateOldStyle(std::ostream& fout, Indent indent)
 
     // Output properties for the test.
     cmPropertyMap& pm = m_test->GetProperties();
-    if (!pm.empty()) {
+    if(!pm.empty())
+    {
         fout << indent << "set_tests_properties(" << m_test->GetName()
              << " PROPERTIES ";
-        for (auto const& i : pm) {
+        for(auto const& i : pm)
+        {
             fout << " " << i.first << " "
                  << cmOutputConverter::EscapeForCMake(i.second.GetValue());
         }
@@ -298,8 +291,10 @@ void pycmTestGenerator::GenerateOldStyle(std::ostream& fout, Indent indent)
     }
 }
 
+//============================================================================//
 // this is a test driver program for cmCTest.
-int ctest_main_driver(int argc, char const* const* argv)
+int
+ctest_main_driver(int argc, char const* const* argv)
 {
 #if defined(_WIN32)
     // Replace streambuf so we can output Unicode to console
@@ -310,7 +305,7 @@ int ctest_main_driver(int argc, char const* const* argv)
 #endif
 
     cmsys::Encoding::CommandLineArguments encoding_args =
-            cmsys::Encoding::CommandLineArguments::Main(argc, argv);
+        cmsys::Encoding::CommandLineArguments::Main(argc, argv);
     argc = encoding_args.argc();
     argv = encoding_args.argv();
 
@@ -320,43 +315,42 @@ int ctest_main_driver(int argc, char const* const* argv)
     cmSystemTools::FindCMakeResources(argv[0]);
 
     // Dispatch 'ctest --launch' mode directly.
-    if (argc >= 2 && strcmp(argv[1], "--launch") == 0)
+    if(argc >= 2 && strcmp(argv[1], "--launch") == 0)
     {
         return cmCTestLaunch::Main(argc, argv);
     }
 
     cmCTest inst;
 
-    if (cmSystemTools::GetCurrentWorkingDirectory().empty())
+    if(cmSystemTools::GetCurrentWorkingDirectory().empty())
     {
         cmCTestLog(&inst, ERROR_MESSAGE,
                    "Current working directory cannot be established."
-                   << std::endl);
+                       << std::endl);
         return 1;
     }
 
     // If there is a testing input file, check for documentation options
     // only if there are actually arguments.  We want running without
     // arguments to run tests.
-    if (argc > 1 ||
-        !(cmSystemTools::FileExists("CTestTestfile.cmake") ||
-          cmSystemTools::FileExists("DartTestfile.txt")))
+    if(argc > 1 || !(cmSystemTools::FileExists("CTestTestfile.cmake") ||
+                     cmSystemTools::FileExists("DartTestfile.txt")))
     {
-        if (argc == 1)
+        if(argc == 1)
         {
             cmCTestLog(&inst, ERROR_MESSAGE,
                        "*********************************"
-                       << std::endl
-                       << "No test configuration file found!" << std::endl
-                       << "*********************************" << std::endl);
+                           << std::endl
+                           << "No test configuration file found!" << std::endl
+                           << "*********************************" << std::endl);
         }
         cmDocumentation doc;
         doc.addCTestStandardDocSections();
-        if (doc.CheckOptions(argc, argv))
+        if(doc.CheckOptions(argc, argv))
         {
             // Construct and print requested documentation.
             cmCTestScriptHandler* ch =
-                    static_cast<cmCTestScriptHandler*>(inst.GetHandler("script"));
+                static_cast<cmCTestScriptHandler*>(inst.GetHandler("script"));
             ch->CreateCMake();
 
             doc.SetShowGenerators(false);
@@ -371,13 +365,13 @@ int ctest_main_driver(int argc, char const* const* argv)
     // copy the args to a vector
     std::vector<string_t> args;
     args.reserve(argc);
-    for (int i = 0; i < argc; ++i)
+    for(int i = 0; i < argc; ++i)
     {
         args.push_back(argv[i]);
     }
     // run ctest
     string_t output;
-    int res = inst.Run(args, &output);
+    int      res = inst.Run(args, &output);
     cmCTestLog(&inst, OUTPUT, output);
 
     return res;
@@ -385,8 +379,14 @@ int ctest_main_driver(int argc, char const* const* argv)
 
 //============================================================================//
 
-} // namespace pycm
+}  // namespace pycm
 
+//============================================================================//
+//
+//
+//                          Python module definition
+//
+//
 //============================================================================//
 
 PYBIND11_MODULE(pyctest, ct)
@@ -399,18 +399,28 @@ PYBIND11_MODULE(pyctest, ct)
     //
     //------------------------------------------------------------------------//
     // create a new test and add to test list
-    auto test_init = [=] ()
-    {
+    auto test_init = [=](string_t cmdname, py::list cmd, py::dict cmdprops) {
         auto obj = new pyct::pycmTest();
+        // set the test name
+        if(cmdname.length() > 0)
+            obj->SetName(cmdname);
+        // convert the args
+        pyct::strvec_t _args;
+        for(auto itr : cmd) _args.push_back(itr.cast<string_t>());
+        if(!_args.empty())
+            obj->SetCommand(_args);
+        // set the properties
+        for(auto itr : cmdprops)
+            obj->SetProperty(itr.first.cast<string_t>(),
+                             itr.second.cast<string_t>().c_str());
         pyct::get_test_list()->push_back(obj);
         return new pyct::pycmTestWrapper(obj);
     };
     //------------------------------------------------------------------------//
     // create a new test and add to test list
-    auto var_init = [=] (string_t var, string_t val,
-                    pyct::pycmVariable::cache_t cache,
-                    string_t doc, bool force)
-    {
+    auto var_init = [=](string_t var, string_t val,
+                        pyct::pycmVariable::cache_t cache, string_t doc,
+                        bool force) {
         auto obj = new pyct::pycmVariable(var, val, cache, doc, force);
         if(var.length() == 0)
             std::cerr << "Warning! Variable name must be longer than zero. "
@@ -423,11 +433,9 @@ PYBIND11_MODULE(pyctest, ct)
         return new pyct::pycmVariableWrapper(obj);
     };
     //------------------------------------------------------------------------//
-    auto proc_init = [=] (py::list cmd)
-    {
+    auto proc_init = [=](py::list cmd) {
         pyct::strvec_t _cmd;
-        for(const auto& itr : cmd)
-            _cmd.push_back(itr.cast<string_t>());
+        for(auto itr : cmd) _cmd.push_back(itr.cast<string_t>());
         return new pyct::pycmExecuteProcessCommand(_cmd);
     };
     //------------------------------------------------------------------------//
@@ -438,8 +446,7 @@ PYBIND11_MODULE(pyctest, ct)
     //
     //------------------------------------------------------------------------//
     // attributes that should be filled by user
-    std::vector<string_t> blank_attr =
-    {
+    std::vector<string_t> blank_attr = {
         "CHECKOUT_COMMAND",
         "UPDATE_COMMAND",
         "CONFIGURE_COMMAND",
@@ -458,10 +465,8 @@ PYBIND11_MODULE(pyctest, ct)
         "CUSTOM_COVERAGE_EXCLUDE"
     };
     //------------------------------------------------------------------------//
-    auto upperstr = [] (string_t tmp)
-    {
-        for(auto& itr : tmp)
-            itr = toupper(itr);
+    auto upperstr = [](string_t tmp) {
+        for(auto& itr : tmp) itr = toupper(itr);
         return tmp;
     };
 
@@ -470,34 +475,33 @@ PYBIND11_MODULE(pyctest, ct)
     //      Binding functions
     //
     //------------------------------------------------------------------------//
-    auto test_add = [=] (py::object obj)
-    {
+    auto test_add = [=](py::object obj) {
         pyobj_cast(_obj, pyct::pycmTestWrapper, obj);
         pyct::test_list_t* test_list = pyct::get_test_list();
         if(test_list)
         {
-            auto itr = std::find(test_list->begin(), test_list->end(), _obj->get());
+            auto itr =
+                std::find(test_list->begin(), test_list->end(), _obj->get());
             if(itr == test_list->end())
                 test_list->push_back(_obj->get());
         }
     };
     //------------------------------------------------------------------------//
-    auto test_remove = [=] (py::object obj)
-    {
+    auto test_remove = [=](py::object obj) {
         pyobj_cast(_obj, pyct::pycmTestWrapper, obj);
         pyct::test_list_t* test_list = pyct::get_test_list();
         if(test_list)
         {
-            auto itr = std::find(test_list->begin(), test_list->end(), _obj->get());
+            auto itr =
+                std::find(test_list->begin(), test_list->end(), _obj->get());
             if(itr != test_list->end())
                 test_list->erase(itr);
         }
     };
     //------------------------------------------------------------------------//
-    auto test_find = [=] (string_t test_name)
-    {
-        pyct::test_list_t* test_list = pyct::get_test_list();
-        pyct::pycmTestWrapper* test = nullptr;
+    auto test_find = [=](string_t test_name) {
+        pyct::test_list_t*     test_list = pyct::get_test_list();
+        pyct::pycmTestWrapper* test      = nullptr;
         if(test_list)
         {
             for(auto itr : *test_list)
@@ -507,23 +511,21 @@ PYBIND11_MODULE(pyctest, ct)
         return test;
     };
     //------------------------------------------------------------------------//
-    auto proc_exec = [=] (py::object obj, py::list args)
-    {
+    auto proc_exec = [=](py::object obj, py::list args) {
         pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
         bool ret = true;
         if(args.size() > 0)
         {
             pyct::strvec_t _args;
-            for(const auto& itr : args)
-                _args.push_back(itr.cast<string_t>());
+            for(auto itr : args) _args.push_back(itr.cast<string_t>());
             ret = (*_obj)(_args);
-        }
-        else
+        } else
+        {
             ret = (*_obj)();
-
+        }
         if(!ret)
         {
-            std::stringstream ss;
+            sstream_t ss;
             ss << "Error running command!\n" << std::endl;
             ss << _obj->command_string() << std::endl;
             ss << "Result code: " << _obj->result() << std::endl;
@@ -533,109 +535,92 @@ PYBIND11_MODULE(pyctest, ct)
         }
     };
     //------------------------------------------------------------------------//
-    auto proc_cmd = [=] (py::object obj)
-    {
+    auto proc_cmd = [=](py::object obj) {
         pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
         return _obj->command_string();
     };
     //------------------------------------------------------------------------//
-    auto proc_out = [=] (py::object obj)
-    {
+    auto proc_out = [=](py::object obj) {
         pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
         return _obj->output();
     };
     //------------------------------------------------------------------------//
-    auto proc_err = [=] (py::object obj)
-    {
+    auto proc_err = [=](py::object obj) {
         pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
         return _obj->error();
     };
     //------------------------------------------------------------------------//
-    auto proc_ret = [=] (py::object obj)
-    {
+    auto proc_ret = [=](py::object obj) {
         pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
         return _obj->result();
     };
     //------------------------------------------------------------------------//
-    auto proc_rets = [=] (py::object obj)
-    {
+    auto proc_rets = [=](py::object obj) {
         pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
         return _obj->results();
     };
     //------------------------------------------------------------------------//
-    auto proc_cmd_add = [=] (py::object obj, py::list args)
-    {
+    auto proc_cmd_add = [=](py::object obj, py::list args) {
         pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
         pyct::strvec_t _args;
-        for(const auto& itr : args)
-            _args.push_back(itr.cast<string_t>());
+        for(auto itr : args) _args.push_back(itr.cast<string_t>());
         _obj->add_command(_args);
     };
     //------------------------------------------------------------------------//
-    auto proc_dir_set = [=] (py::object obj, string_t val)
-    {
+    auto proc_dir_set = [=](py::object obj, string_t val) {
         pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
         _obj->working_directory(val);
     };
     //------------------------------------------------------------------------//
-    auto proc_timeout_set = [=] (py::object obj, string_t val)
-    {
+    auto proc_timeout_set = [=](py::object obj, string_t val) {
         pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
         _obj->timeout(val);
     };
     //------------------------------------------------------------------------//
-    auto proc_inpf_set = [=] (py::object obj, string_t val)
-    {
+    auto proc_inpf_set = [=](py::object obj, string_t val) {
         pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
         _obj->input_file(val);
     };
     //------------------------------------------------------------------------//
-    auto proc_outf_set = [=] (py::object obj, string_t val)
-    {
+    auto proc_outf_set = [=](py::object obj, string_t val) {
         pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
         _obj->output_file(val);
     };
     //------------------------------------------------------------------------//
-    auto proc_errf_set = [=] (py::object obj, string_t val)
-    {
+    auto proc_errf_set = [=](py::object obj, string_t val) {
         pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
         _obj->error_file(val);
     };
     //------------------------------------------------------------------------//
-    auto proc_out_quiet_set = [=] (py::object obj, bool val)
-    {
+    auto proc_out_quiet_set = [=](py::object obj, bool val) {
         pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
         _obj->output_quiet(val);
     };
     //------------------------------------------------------------------------//
-    auto proc_err_quiet_set = [=] (py::object obj, bool val)
-    {
+    auto proc_err_quiet_set = [=](py::object obj, bool val) {
         pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
         _obj->error_quiet(val);
     };
     //------------------------------------------------------------------------//
-    auto proc_out_strip_set = [=] (py::object obj, bool val)
-    {
+    auto proc_out_strip_set = [=](py::object obj, bool val) {
         pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
         _obj->strip_output(val);
     };
     //------------------------------------------------------------------------//
-    auto proc_err_strip_set = [=] (py::object obj, bool val)
-    {
+    auto proc_err_strip_set = [=](py::object obj, bool val) {
         pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
         _obj->strip_error(val);
     };
     //------------------------------------------------------------------------//
-    auto proc_encoding_set = [=] (py::object obj, execProcCmd_t::encoding_t val)
-    {
+    auto proc_encoding_set = [=](py::object                obj,
+                                 execProcCmd_t::encoding_t val) {
         pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
         _obj->encoding(val);
     };
     //------------------------------------------------------------------------//
-    auto exe_path = [=] ()
-    {
+    auto exe_path = [=]() {
         string_t _pyctest_file = ct.attr("__file__").cast<string_t>();
-        auto locals = py::dict("_pyctest_file"_a = _pyctest_file);
+        auto     locals        = py::dict("_pyctest_file"_a = _pyctest_file);
         py::exec(R"(
                  import os
                  _ctest_path = os.path.join(os.path.dirname(_pyctest_file),
@@ -647,70 +632,19 @@ PYBIND11_MODULE(pyctest, ct)
         return locals["_ctest_path"].cast<string_t>();
     };
     //------------------------------------------------------------------------//
-    auto str2char_convert = [] (const string_t& _str)
-    {
-        char* pc = new char[_str.size()+1];
+    auto str2char_convert = [](const string_t& _str) {
+        char* pc = new char[_str.size() + 1];
         std::strcpy(pc, _str.c_str());
         pc[_str.size()] = '\0';
         return pc;
     };
     //------------------------------------------------------------------------//
-    auto run = [=] (std::vector<string_t> pargs, string_t working_dir)
-    {
-        charvec_t cargs;
-        // pyctest.ARGUMENTS attributes
-        for(auto itr : ct.attr("ARGUMENTS").cast<py::list>())
-            cargs.push_back(str2char_convert(itr.cast<std::string>()));
-
-        // convert list elements to char*
-        for(auto itr : pargs)
-            cargs.push_back(str2char_convert(itr));
-
-        // structures passed
-        int argc = pargs.size() + 1;
-        char** argv = new char*[argc];
-
-        // ctest executable
-        auto _exe = exe_path();
-        argv[0] = str2char_convert(_exe);
-
-        // fill argv
-        for(unsigned i = 1; i < argc; ++i)
-            argv[i] = cargs[i-1];
-
-        // change working directory
-        auto locals = py::dict("working_dir"_a = working_dir);
-        py::exec(R"(
-                 import os
-
-                 origwd = os.getcwd()
-                 if len(working_dir) > 0:
-                     if not os.path.exists(working_dir):
-                         os.makedirs(working_dir)
-                     os.chdir(working_dir)
-                 )",
-                 py::globals(), locals);
-
-        string_t origwd = locals["origwd"].cast<string_t>();
-        int ret = pyct::ctest_main_driver(argc, argv);
-
-        locals = py::dict("working_dir"_a = origwd);
-        py::exec(R"(
-                 import os
-
-                 os.chdir(working_dir)
-                 )",
-                 py::globals(), locals);
-
-        if(ret > 0)
-            std::cerr << "Error! Non-zero exit code: " << ret << std::endl;
-    };
-    //------------------------------------------------------------------------//
-    auto copy_cdash = [=] (string_t dir)
-    {
+    auto copy_cdash = [=](string_t dir) {
+        if(dir.empty())
+            dir = ct.attr("BINARY_DIRECTORY").cast<string_t>();
         string_t _pyctest_file = ct.attr("__file__").cast<string_t>();
-        auto locals = py::dict("_pyctest_file"_a = _pyctest_file,
-                               "_dir"_a = dir);
+        auto     locals =
+            py::dict("_pyctest_file"_a = _pyctest_file, "_dir"_a = dir);
         py::exec(R"(
                  import os
                  from shutil import copyfile
@@ -734,16 +668,17 @@ PYBIND11_MODULE(pyctest, ct)
                  py::globals(), locals);
     };
     //------------------------------------------------------------------------//
-    auto generate_ctest_config = [=] (string_t dir)
-    {
+    auto generate_ctest_config = [=](string_t dir) {
         string_t fname = "CTestConfig.cmake";
+        if(dir.empty())
+            dir = ct.attr("BINARY_DIRECTORY").cast<string_t>();
         pyct::configure_filepath(dir, fname);
 
-        std::stringstream ssfs;
+        sstream_t ssfs;
         for(const auto& itr : pyct::get_config_attributes())
         {
-            string_t attr_var = "CTEST_" + itr;
-            string_t attr_val = ct.attr(itr.c_str()).cast<string_t>();
+            string_t           attr_var = "CTEST_" + itr;
+            string_t           attr_val = ct.attr(itr.c_str()).cast<string_t>();
             pyct::pycmVariable _pyvar(attr_var, attr_val);
             if(attr_val.length() == 0)
                 ssfs << "# ";
@@ -753,30 +688,30 @@ PYBIND11_MODULE(pyctest, ct)
         std::ofstream ofs(fname.c_str());
         if(!ofs)
         {
-            std::cerr << "pyct::generate_ctest_config -- Error opening " << fname
-                      << "!!!" << std::endl;
+            std::cerr << "pyct::generate_ctest_config -- Error opening "
+                      << fname << "!!!" << std::endl;
             std::cout << ssfs.str() << std::endl;
-        }
-        else
+        } else
         {
             ofs << ssfs.str() << std::endl;
         }
         ofs.close();
-
     };
     //------------------------------------------------------------------------//
-    auto generate_custom_config = [=] (string_t dir)
-    {
+    auto generate_custom_config = [=](string_t dir) {
         string_t fname = "CTestCustom.cmake";
+        if(dir.empty())
+            dir = ct.attr("BINARY_DIRECTORY").cast<string_t>();
         pyct::configure_filepath(dir, fname);
 
         //--------------------------------------------------------------------//
-        auto generate_attr = [=] (sstream_t& ssfs, string_t itr, bool required)
-        {
+        auto generate_attr = [=](sstream_t& ssfs, string_t itr, bool required) {
             string_t attr_var = "CTEST_" + itr;
             string_t attr_val = "";
-            try { attr_val = ct.attr(itr.c_str()).cast<string_t>(); }
-            catch (...)
+            try
+            {
+                attr_val = ct.attr(itr.c_str()).cast<string_t>();
+            } catch(...)
             {
                 sstream_t msg;
                 msg << itr << " (i.e. " << attr_var << ") is not set.";
@@ -792,7 +727,7 @@ PYBIND11_MODULE(pyctest, ct)
         };
         //--------------------------------------------------------------------//
 
-        std::stringstream ssfs;
+        sstream_t ssfs;
         for(const auto& itr : pyct::get_required_attributes())
             generate_attr(ssfs, itr, true);
 
@@ -805,30 +740,114 @@ PYBIND11_MODULE(pyctest, ct)
         std::ofstream ofs(fname.c_str());
         if(!ofs)
         {
-            std::cerr << "pyct::generate_custom_config -- Error opening " << fname
-                      << "!!!" << std::endl;
+            std::cerr << "pyct::generate_custom_config -- Error opening "
+                      << fname << "!!!" << std::endl;
             std::cout << ssfs.str() << std::endl;
-        }
-        else
+        } else
         {
             ofs << ssfs.str() << std::endl;
         }
         ofs.close();
     };
     //------------------------------------------------------------------------//
-    auto generate_config = [=] (string_t dir)
-    {
+    auto generate_config = [=](string_t dir) {
+        if(dir.empty())
+            dir = ct.attr("BINARY_DIRECTORY").cast<string_t>();
         generate_ctest_config(dir);
         generate_custom_config(dir);
         copy_cdash(dir);
     };
     //------------------------------------------------------------------------//
-    auto copy_files = [=] (py::list files,
-                           std::string from_dir,
-                           std::string target_dir)
-    {
-        auto locals = py::dict("files"_a = files,
-                               "from_dir"_a = from_dir,
+    auto generate_test_file = [=](string_t dir) {
+        if(dir.empty())
+            dir = ct.attr("BINARY_DIRECTORY").cast<string_t>();
+        pyct::generate_test_file(dir);
+    };
+    //------------------------------------------------------------------------//
+    auto run = [=](std::vector<string_t> pargs, string_t working_dir) {
+        string_t binary_dir = ct.attr("BINARY_DIRECTORY").cast<string_t>();
+        if(working_dir.empty())
+            working_dir = binary_dir;
+
+        auto locals = py::dict("binary_dir"_a  = binary_dir,
+                               "working_dir"_a = working_dir);
+
+        /*py::exec(R"(
+                import os, sys
+                _ctest_config = False
+                _ctest_custom = False
+                _cdash_config = False
+                _ctest_testfile = False
+                if os.path.exists(os.path.join(binary_dir,
+        "CTestConfig.cmake")): _ctest_config = True if
+        os.path.exists(os.path.join(binary_dir, "CTestCustom.cmake")):
+                    _ctest_custom = True
+                if os.path.exists(os.path.join(binary_dir, "Init.cmake")):
+                    _cdash_config = True
+                if os.path.exists(os.path.join(working_dir,
+        "CTestTestfile.cmake")): _ctest_testfile = True
+                )",
+                 py::globals(), locals);
+
+        bool _ctest_config   = locals["_ctest_config"].cast<bool>();
+        bool _ctest_custom   = locals["_ctest_custom"].cast<bool>();
+        bool _cdash_config   = locals["_cdash_config"].cast<bool>();
+        bool _ctest_testfile = locals["_ctest_testfile"].cast<bool>();*/
+
+        generate_ctest_config(binary_dir);
+        generate_custom_config(binary_dir);
+        copy_cdash(binary_dir);
+        generate_test_file(working_dir);
+
+        charvec_t cargs;
+        // pyctest.ARGUMENTS attributes
+        for(auto itr : ct.attr("ARGUMENTS").cast<py::list>())
+            cargs.push_back(str2char_convert(itr.cast<string_t>()));
+
+        // convert list elements to char*
+        for(auto itr : pargs) cargs.push_back(str2char_convert(itr));
+
+        // structures passed
+        int    argc = pargs.size() + 1;
+        char** argv = new char*[argc];
+
+        // ctest executable
+        auto _exe = exe_path();
+        argv[0]   = str2char_convert(_exe);
+
+        // fill argv
+        for(unsigned i = 1; i < argc; ++i) argv[i] = cargs[i - 1];
+
+        // change working directory
+        py::exec(R"(
+                 import os
+
+                 origwd = os.getcwd()
+                 if len(working_dir) > 0:
+                     if not os.path.exists(working_dir):
+                         os.makedirs(working_dir)
+                     os.chdir(working_dir)
+                 )",
+                 py::globals(), locals);
+
+        string_t origwd = locals["origwd"].cast<string_t>();
+        int      ret    = pyct::ctest_main_driver(argc, argv);
+
+        locals = py::dict("working_dir"_a = origwd);
+        py::exec(R"(
+                 import os
+
+                 os.chdir(working_dir)
+                 )",
+                 py::globals(), locals);
+
+        if(ret > 0)
+            std::cerr << "Error! Non-zero exit code: " << ret << std::endl;
+    };
+    //------------------------------------------------------------------------//
+    auto copy_files = [=](py::list files, string_t from_dir,
+                          string_t target_dir) {
+        auto locals       = py::dict("files"_a = files, "from_dir"_a = from_dir,
                                "target_dir"_a = target_dir);
         locals["pyctest"] = ct;
         py::exec(R"(
@@ -867,15 +886,11 @@ PYBIND11_MODULE(pyctest, ct)
                  py::globals(), locals);
     };
     //------------------------------------------------------------------------//
-    auto git_checkout = [=] (std::string repo_url,
-                        std::string source_dir,
-                        std::string branch,
-                        bool update)
-    {
-        auto locals = py::dict("repo_url"_a = repo_url,
-                               "source_dir"_a = source_dir,
-                               "branch"_a = branch,
-                               "update"_a = update);
+    auto git_checkout = [=](string_t repo_url, string_t source_dir,
+                            string_t branch, bool update) {
+        auto locals =
+            py::dict("repo_url"_a = repo_url, "source_dir"_a = source_dir,
+                     "branch"_a = branch, "update"_a = update);
         locals["pyctest"] = ct;
         py::exec(R"(
                  import os
@@ -925,8 +940,7 @@ PYBIND11_MODULE(pyctest, ct)
                  py::globals(), locals);
     };
     //------------------------------------------------------------------------//
-    auto add_note = [=] (string_t dir, string_t file, bool clobber)
-    {
+    auto add_note = [=](string_t dir, string_t file, bool clobber) {
         string_t fname = "CTestNotes.cmake";
         pyct::configure_filepath(dir, fname);
 
@@ -934,21 +948,19 @@ PYBIND11_MODULE(pyctest, ct)
         if(clobber)
             ofs.open(fname.c_str());
         else
-            ofs.open(fname.c_str(),
-                     std::ios_base::out | std::ios_base::app);
+            ofs.open(fname.c_str(), std::ios_base::out | std::ios_base::app);
 
         if(ofs)
         {
-            std::stringstream ssfs;
-            string_t quote = "\"";
+            sstream_t ssfs;
+            string_t  quote = "\"";
             ssfs << "\nlist(APPEND CTEST_NOTES_FILES " << quote << file << quote
                  << ")" << std::endl;
             ofs << ssfs.str() << std::endl;
         }
     };
     //------------------------------------------------------------------------//
-    auto add_presubmit_command = [=] (string_t dir, py::list cmd, bool clobber)
-    {
+    auto add_presubmit_command = [=](string_t dir, py::list cmd, bool clobber) {
         string_t fname = "CTestPreSubmitScript.cmake";
         pyct::configure_filepath(dir, fname);
 
@@ -956,109 +968,102 @@ PYBIND11_MODULE(pyctest, ct)
         if(clobber)
             ofs.open(fname.c_str());
         else
-            ofs.open(fname.c_str(),
-                     std::ios_base::out | std::ios_base::app);
+            ofs.open(fname.c_str(), std::ios_base::out | std::ios_base::app);
 
         if(ofs)
         {
-            std::stringstream ssfs;
+            sstream_t ssfs;
             ssfs << "\nexecute_process(COMMAND ";
             string_t quote = "\"";
-            for(const auto& itr : cmd)
-                ssfs << quote << itr << quote << " ";
+            for(auto itr : cmd) ssfs << quote << itr << quote << " ";
             ssfs << "\n";
-            ssfs << "WORKING_DIRECTORY " << dir
-                 << ")";
+            ssfs << "WORKING_DIRECTORY " << dir << ")";
             ofs << ssfs.str() << std::endl;
         }
     };
     //------------------------------------------------------------------------//
 
-    py::class_<pyct::pycmTestWrapper>           _test   (ct,    "test",
-                                                         "CTest test object -- works like add_test(...)");
-    py::class_<pyct::pycmVariableWrapper>       _var    (ct,    "set",
-                                                         "Set a variable -- works like set(...)");
-    py::class_<pyct::pycmExecuteProcessCommand> _cmd    (ct,    "command",
-                                                         "Run a command -- works like execute_process(...)");
-    py::enum_<pyct::pycmVariable::cache_t>      _cache  (ct, "cache", py::arithmetic(),
-                                                         "Cache types");
-    py::enum_<execProcCmd_t::encoding_t>        _encode (ct, "encoding", py::arithmetic(),
-                                                         "Encoding types");
+    py::class_<pyct::pycmTestWrapper> _test(
+        ct, "test", "CTest test object -- works like add_test(...)");
+    py::class_<pyct::pycmVariableWrapper> _var(
+        ct, "set", "Set a variable -- works like set(...)");
+    py::class_<pyct::pycmExecuteProcessCommand> _cmd(
+        ct, "command", "Run a command -- works like execute_process(...)");
+    py::enum_<pyct::pycmVariable::cache_t> _cache(ct, "cache", py::arithmetic(),
+                                                  "Cache types");
+    py::enum_<execProcCmd_t::encoding_t>   _encode(
+        ct, "encoding", py::arithmetic(), "Encoding types");
 
-    _cache.value    ("NONE",        pyct::pycmVariable::cache_t::NONE)
-            .value  ("BOOL",        pyct::pycmVariable::cache_t::BOOL)
-            .value  ("FILEPATH",    pyct::pycmVariable::cache_t::FILEPATH)
-            .value  ("PATH",        pyct::pycmVariable::cache_t::PATH)
-            .value  ("STRING",      pyct::pycmVariable::cache_t::STRING)
-            .value  ("INTERNAL",    pyct::pycmVariable::cache_t::INTERNAL);
+    _cache.value("NONE", pyct::pycmVariable::cache_t::NONE)
+        .value("BOOL", pyct::pycmVariable::cache_t::BOOL)
+        .value("FILEPATH", pyct::pycmVariable::cache_t::FILEPATH)
+        .value("PATH", pyct::pycmVariable::cache_t::PATH)
+        .value("STRING", pyct::pycmVariable::cache_t::STRING)
+        .value("INTERNAL", pyct::pycmVariable::cache_t::INTERNAL);
 
-    _encode.value   ("None",        cmProcessOutput::Encoding::None)
-            .value  ("Auto",        cmProcessOutput::Encoding::Auto)
-            .value  ("UTF8",        cmProcessOutput::Encoding::UTF8)
-            .value  ("ANSI",        cmProcessOutput::Encoding::ANSI)
-            .value  ("OEM",         cmProcessOutput::Encoding::OEM);
+    _encode.value("None", cmProcessOutput::Encoding::None)
+        .value("Auto", cmProcessOutput::Encoding::Auto)
+        .value("UTF8", cmProcessOutput::Encoding::UTF8)
+        .value("ANSI", cmProcessOutput::Encoding::ANSI)
+        .value("OEM", cmProcessOutput::Encoding::OEM);
 
-    ct.attr("ARGUMENTS") = py::list();
-    ct.attr("PROJECT_NAME") = "";
+    ct.attr("ARGUMENTS")          = py::list();
+    ct.attr("PROJECT_NAME")       = "";
     ct.attr("NIGHTLY_START_TIME") = "01:00:00 UTC";
-    ct.attr("DROP_METHOD") = "https";
-    ct.attr("DROP_SITE") = "cdash.nersc.gov";
-    ct.attr("DROP_LOCATION") = "/submit.php?project=${CTEST_PROJECT_NAME}";
-    ct.attr("CDASH_VERSION") = "1.6";
+    ct.attr("DROP_METHOD")        = "https";
+    ct.attr("DROP_SITE")          = "cdash.nersc.gov";
+    ct.attr("DROP_LOCATION")      = "/submit.php?project=${CTEST_PROJECT_NAME}";
+    ct.attr("CDASH_VERSION")      = "1.6";
     ct.attr("CDASH_QUERY_VERSION") = "TRUE";
-    ct.attr("TIMEOUT") = "7200";
+    ct.attr("TIMEOUT")             = "7200";
 
-    for(const auto& itr : blank_attr)
-        ct.attr(upperstr(itr).c_str()) = "";
+    for(const auto& itr : blank_attr) ct.attr(upperstr(itr).c_str()) = "";
 
     ct.def("add_test", test_add, "Add a test");
     ct.def("remove_test", test_remove, "Remove a test");
     ct.def("find_test", test_find, "Find a test by name");
-    ct.def("generate_test_file", &pyct::generate_test_file,
+    ct.def("generate_test_file", generate_test_file,
            "Generate a CTestTestfile.cmake",
-           py::arg("output_dir") = "");
+           py::arg("output_directory") = ct.attr("BINARY_DIRECTORY"));
     ct.def("copy_files", copy_files,
            "Helper method to copy files over to binary dir",
-           py::arg("files") = py::list(),
-           py::arg("from_dir") = "",
+           py::arg("files") = py::list(), py::arg("from_dir") = "",
            py::arg("target_dir") = "");
-    ct.def("git_checkout", git_checkout,
-           "Perform git checkout a code and optionally update if already exists",
-           py::arg("repo_url"),
-           py::arg("source_dir"),
-           py::arg("branch") = "master",
-           py::arg("update") = true);
+    ct.def(
+        "git_checkout", git_checkout,
+        "Perform git checkout a code and optionally update if already exists",
+        py::arg("repo_url"), py::arg("source_dir"),
+        py::arg("branch") = "master", py::arg("update") = true);
     ct.def("generate_config", generate_config,
-           "Generate PyCTestConfig.cmake file",
-           py::arg("output_dir") = "");
+           "Generate CTestConfig.cmake, CTestCustom.cmake, and copy over "
+           "PyCTest CMake files",
+           py::arg("output_directory") = ct.attr("BINARY_DIRECTORY"));
     ct.def("add_presubmit_command", add_presubmit_command,
            "Add a command to be executed before submission",
            py::arg("dir") = "", py::arg("cmd") = py::list(),
            py::arg("clobber") = false);
-    ct.def("add_note", add_note,
-           "Add a note to the dashboard",
+    ct.def("add_note", add_note, "Add a note to the dashboard",
            py::arg("dir") = "", py::arg("file") = "",
            py::arg("clobber") = false);
     ct.def("exe_path", exe_path, "Path to ctest executable");
-    ct.def("run", run, "Run CTest",
-           py::arg("args") = py::list(),
-           py::arg("working_directory") = "");
+    ct.def("run", run, "Run CTest", py::arg("args") = ct.attr("ARGUMENTS"),
+           py::arg("working_directory") = ct.attr("BINARY_DIRECTORY"));
 
-    _test.def(py::init(test_init), "Test for CTest");
+    _test.def(py::init(test_init), "Test for CTest", py::arg("name") = "",
+              py::arg("cmd") = py::list(), py::arg("properties") = py::dict());
     _test.def("SetName", &pyct::set_name, "Set test name");
     _test.def("GetName", &pyct::get_name, "Get test name");
     _test.def("SetCommand", &pyct::set_command, "Set the command for the test");
     _test.def("GetCommand", &pyct::get_command, "Get the command for the test");
     _test.def("SetProperty", &pyct::set_property, "Set a test property");
     _test.def("GetProperty", &pyct::get_property, "Get a test property");
-    _test.def("GetPropertyAsBool", &pyct::get_property_as_bool, "Get property as boolean");
+    _test.def("GetPropertyAsBool", &pyct::get_property_as_bool,
+              "Get property as boolean");
 
     _var.def(py::init(var_init), "Set a variable in CTestInit.cmake",
-             py::arg("variable") = "",
-             py::arg("value") = "",
+             py::arg("variable") = "", py::arg("value") = "",
              py::arg("cache") = pyct::pycmVariable::cache_t::NONE,
-             py::arg("doc") = "",
-             py::arg("force") = false);
+             py::arg("doc") = "", py::arg("force") = false);
 
     _cmd.def(py::init(proc_init), "Object to execute a process",
              py::arg("args") = py::list());
@@ -1080,16 +1085,17 @@ PYBIND11_MODULE(pyctest, ct)
     _cmd.def("SetErrorFile", proc_errf_set, "Set the error file");
     _cmd.def("SetOutputQuiet", proc_out_quiet_set, "Suppress output");
     _cmd.def("SetErrorQuiet", proc_err_quiet_set, "Suppress error");
-    _cmd.def("SetOutputStripTrailingWhitespace", proc_out_strip_set, "Strip trailing whitespace from output");
-    _cmd.def("SetErrorStripTrailingWhitespace", proc_err_strip_set, "Strip trailing whitespace from error");
+    _cmd.def("SetOutputStripTrailingWhitespace", proc_out_strip_set,
+             "Strip trailing whitespace from output");
+    _cmd.def("SetErrorStripTrailingWhitespace", proc_err_strip_set,
+             "Strip trailing whitespace from error");
     _cmd.def("SetEncoding", proc_encoding_set, "Set the process encoding");
 
     //------------------------------------------------------------------------//
-    auto get_git_branch = [=] (string_t dir)
-    {
-        auto locals = py::dict("_dir"_a = dir);
+    auto get_git_branch = [=](string_t dir) {
+        auto locals       = py::dict("_dir"_a = dir);
         locals["pyctest"] = ct;
-        auto globals = py::globals();
+        auto globals      = py::globals();
         py::exec(R"(
                  import os
                  from shutil import copyfile
@@ -1112,5 +1118,3 @@ PYBIND11_MODULE(pyctest, ct)
 }
 
 //============================================================================//
-
-
