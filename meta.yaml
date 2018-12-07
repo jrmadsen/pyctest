@@ -43,8 +43,6 @@ test:
   - pyctest.pyctest
   - pyctest.pycmake
   - pyctest.helpers
-  commands:
-  - cd examples/Basic && ./basic.py
 
 about:
   home: https://jrmadsen.github.io/pyctest/
