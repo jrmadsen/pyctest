@@ -34,7 +34,7 @@ matrix:
         - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_TEST=1"
     # macOS
     - os: osx
-      osx_image: xcode9.4
+      osx_image: xcode10
       language: ruby
       env:
         - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=2.7 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_TEST=1"
@@ -62,7 +62,7 @@ matrix:
         - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_TEST=1"
     # macOS
     - os: osx
-      osx_image: xcode9.4
+      osx_image: xcode10
       language: ruby
       env:
         - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.4 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_TEST=1"
@@ -90,7 +90,7 @@ matrix:
         - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_TEST=1"
     # macOS
     - os: osx
-      osx_image: xcode9.4
+      osx_image: xcode10
       language: ruby
       env:
         - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.5 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_TEST=1"
@@ -118,7 +118,7 @@ matrix:
         - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_TEST=1"
     # macOS
     - os: osx
-      osx_image: xcode9.4
+      osx_image: xcode10
       language: ruby
       env:
         - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.6 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_TEST=1"
@@ -168,12 +168,6 @@ install:
     - conda config --set anaconda_upload no ;
     - python update-conda-yaml.py ;
     - conda-build --verify --python=${TRAVIS_PYTHON_VERSION} . ;
-    - if [[ -n "$(which python${TRAVIS_PYTHON_VERSION})" ]] ; then
-          python${TRAVIS_PYTHON_VERSION} setup.py install ;
-          mkdir -p ${HOME}/pyctest-test ;
-          cd ${HOME}/pyctest-test ;
-          python${TRAVIS_PYTHON_VERSION} -c "import pyctest; import pyctest.pyctest; import pyctest.pycmake" ;
-      fi
 
 script:
     #
