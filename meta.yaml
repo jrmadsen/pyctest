@@ -17,9 +17,11 @@ build:
   - PYCTEST_CMAKE_PREFIX_PATH
   - PYCTEST_CMAKE_INCLUDE_PATH
   - PYCTEST_CMAKE_LIBRARY_PATH
+  script:
+    - "{{ PYTHON }} setup.py install"
 
 source:
-  git_rev: a0e3a296c9804851d16e4a9a8ada71a8423d2c7f
+  git_rev: da2e6ab435467d8e51cc6488750f87a96ab7c227
   git_url: https://github.com/jrmadsen/pyctest.git
 
 requirements:
@@ -28,6 +30,8 @@ requirements:
   - setuptools
   - cmake
   - openssl
+  - {{ compiler('c') }} # [not win]
+  - {{ compiler('cxx') }} # [not win]
   run:
   - python
   - openssl
@@ -38,6 +42,8 @@ test:
   - pyctest.pyctest
   - pyctest.pycmake
   - pyctest.helpers
+  commands:
+  - cd examples/Basic && ./basic.py
 
 about:
   home: https://jrmadsen.github.io/pyctest/
