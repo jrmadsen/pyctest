@@ -29,7 +29,7 @@ fi
 
 if [ -f "${PWD}/meta.yaml" ]; then
     ./update-conda-yaml.py
-    conda config --set anaconda_upload no
+    conda config --set anaconda_upload yes
     for i in 2.7 3.{6,7,4,5}
     do
         conda-build --no-test \
