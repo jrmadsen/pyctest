@@ -45,7 +45,7 @@ Contribute
 ==========
 
 * Issue Tracker: https://github.com/jrmadsen/pyctest/issues
-* Documentation: https://github.com/jrmadsen/pyctest/tree/master/docs
+* Documentation: https://pyctest.readthedocs.io/en/latest/
 * Source Code: https://github.com/jrmadsen/pyctest/tree/master
 
 Table of Contents

@@ -1,5 +1,9 @@
 # pyctest
 
+## Documentation
+
+[PyCTest documentation](https://pyctest.readthedocs.io/en/latest/)
+
 ## Available on PyPi and Anaconda
 
 - PyPi has the source distribution
@@ -146,8 +150,6 @@ pyctest.run(pyctest.ARGUMENTS, pyctest.BINARY_DIRECTORY)
     - The warnings and errors are enumerated in CDash (no more parsing stdout logs for errors)
 - Easily create platform-independent testing
 - No need to migrate build system to CMake -- just specify `pyctest.BUILD_COMMAND`
-- Easily download Miniconda/Anaconda in workflow before build + testing
-    - Using default python: `pip install pyctest` and follow recipe in [TomoPy PyCTestPreInit.cmake example](examples/TomoPy/PyCTestPreInit.cmake)
 
 
 ### Standard Configuration Variables
