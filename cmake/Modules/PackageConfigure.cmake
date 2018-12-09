@@ -12,7 +12,7 @@ endif(EXISTS "${CMAKE_SOURCE_DIR}/CTestConfig.cmake")
 
 set(_SOURCE ${CMAKE_SOURCE_DIR}/cmake/Templates/cdash)
 set(_BINARY ${CMAKE_BINARY_DIR}/pyctest/cdash)
-set(cdash_templates Init Build Test Submit Glob Stages Coverage MemCheck Utilities)
+set(cdash_templates Init Stages Utilities)
 
 foreach(_type ${cdash_templates})
     ## -- CTest Setup
@@ -29,8 +29,4 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/cmake/Templates/CTestCustom.cmake.in")
     configure_file(${CMAKE_SOURCE_DIR}/cmake/Templates/CTestCustom.cmake.in
         ${CMAKE_BINARY_DIR}/CTestCustom.cmake @ONLY)
 endif(EXISTS "${CMAKE_SOURCE_DIR}/cmake/Templates/CTestCustom.cmake.in")
-
-# testing
-#ENABLE_TESTING()
-#include(CTest)
 

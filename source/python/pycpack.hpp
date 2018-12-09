@@ -22,32 +22,26 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 //  IN THE SOFTWARE.
 
-#ifndef pycmake_hpp_
-#define pycmake_hpp_
+#ifndef pycpack_hpp_
+#define pycpack_hpp_
 
 //============================================================================//
 
-#include "cm_uv.h"
-
-#include "cmAlgorithms.h"
+#include "cmCPackGenerator.h"
+#include "cmCPackGeneratorFactory.h"
+#include "cmCPackLog.h"
+#include "cmDocumentation.h"
 #include "cmDocumentationEntry.h"
 #include "cmGlobalGenerator.h"
 #include "cmMakefile.h"
-#include "cmState.h"
-#include "cmStateTypes.h"
+#include "cmStateSnapshot.h"
 #include "cmSystemTools.h"
 #include "cmake.h"
-#include "cmcmd.h"
-
-#include "cmDocumentation.h"
-#include "cmDynamicLoader.h"
-
+#include "cmsys/CommandLineArguments.hxx"
 #include "cmsys/Encoding.hxx"
-#if defined(_WIN32)
+
+#if defined(_WIN32) && defined(CMAKE_BUILD_WITH_CMAKE)
 #    include "cmsys/ConsoleBuf.hxx"
-#    ifndef NOMINMAX
-#        define NOMINMAX
-#    endif
 #endif
 
 //============================================================================//
@@ -63,9 +57,11 @@
 #include <memory>
 #include <mutex>
 #include <sstream>
+#include <stddef.h>
 #include <string.h>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 //============================================================================//
@@ -83,11 +79,15 @@
 
 //============================================================================//
 
-#include "cmDefinitions.h"
+#include "cmCPackGenerator.h"
+#include "cmCPackGeneratorFactory.h"
+#include "cmCPackLog.h"
+#include "cmDocumentation.h"
+#include "cmDocumentationEntry.h"
+#include "cmGlobalGenerator.h"
 #include "cmMakefile.h"
-#include "cmState.h"
-#include "cmTest.h"
-#include "cmTestGenerator.h"
+#include "cmStateSnapshot.h"
+#include "cmSystemTools.h"
 #include "cmake.h"
 
 //============================================================================//
@@ -98,104 +98,56 @@ using namespace std::placeholders;  // for _1, _2, _3...
 
 //============================================================================//
 
-namespace pycm
+namespace pycp
 {
-//----------------------------------------------------------------------------//
-// typedefs
-typedef cmake::Role                          role_t;
-typedef std::unique_ptr<cmake, py::nodelete> unique_cm_t;
-
 //----------------------------------------------------------------------------//
 // forward declarations
-cmMakefile*
-cmakemainGetMakefile(void* clientdata);
-std::string
-cmakemainGetStack(void* clientdata);
-int
-do_command(int ac, char const* const* av);
-int
-do_cmake(int ac, char const* const* av);
-int
-do_build(int ac, char const* const* av);
-int
-do_open(int ac, char const* const* av);
-int
-do_finalize();
-int
-cmake_main_driver(int ac, char const* const* av);
-void
-cmakemainMessageCallback(const char* m, const char*, bool&, void* clientdata);
-void
-cmakemainProgressCallback(const char* m, float prog, void* clientdata);
-
-//----------------------------------------------------------------------------//
-
-role_t&
-cmake_role()
+struct cpackDefinitions
 {
-    static role_t _instance = role_t::RoleProject;
-    return _instance;
-}
+    typedef std::map<std::string, std::string> MapType;
+    MapType                                    Map;
+    cmCPackLog*                                Log;
+};
+
+//----------------------------------------------------------------------------//
+int
+cpackUnknownArgument(const char* /*unused*/, void* /*unused*/);
+
+//----------------------------------------------------------------------------//
+int
+cpackDefinitionArgument(const char* argument, const char* cValue,
+                        void* call_data);
+
+//----------------------------------------------------------------------------//
+int
+cpack_main_driver(int ac, char const* const* av);
 
 //----------------------------------------------------------------------------//
 
-cmake*&
-cmake_instance(bool _create = true)
-{
-    static cmake* _instance  = nullptr;
-    static role_t _role_type = cmake_role();
-
-    // if the role changed
-    if(_role_type != cmake_role())
-    {
-        delete _instance;
-        _instance  = nullptr;
-        _role_type = cmake_role();
-    }
-
-    // create a cmake instance;
-    if(_create && !_instance)
-    {
-        /*switch(_role_type)
-        {
-            case role_t::RoleProject:
-                std::cout << "Running cmake with project role" << std::endl;
-                break;
-            case role_t::RoleInternal:
-                std::cout << "Running cmake with internal role" << std::endl;
-                break;
-            case role_t::RoleScript:
-                std::cout << "Running cmake with script role" << std::endl;
-                break;
-            default:
-                break;
-        }*/
-        _instance = new cmake(_role_type);
-    }
-    return _instance;
-}
+class pycpack
+{};
 
 //----------------------------------------------------------------------------//
 
-class cmakeWrapper
+class cpackWrapper
 {
 public:
-    cmakeWrapper(cmake* obj)
-    : m_cmake(obj)
+    cpackWrapper(pycpack* obj)
+    : m_cpack(obj)
     {}
 
-    ~cmakeWrapper() {}
+    ~cpackWrapper() {}
 
-           operator cmake*() { return m_cmake; }
-    cmake* get() const { return m_cmake; }
+             operator pycpack*() { return m_cpack; }
+    pycpack* get() const { return m_cpack; }
 
 protected:
-    cmake* m_cmake;
+    pycpack* m_cpack;
 };
 
 //----------------------------------------------------------------------------//
 
-}  // namespace pycm
+}  // namespace pycp
 
 //----------------------------------------------------------------------------//
 

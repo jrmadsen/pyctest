@@ -11,8 +11,8 @@
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 //
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -27,12 +27,12 @@
 #include <sstream>
 #include <vector>
 
-#include "cmMakefile.h"
-#include "cmSystemTools.h"
-#include "cmake.h"
 #include "cmAlgorithms.h"
 #include "cmListFileCache.h"
+#include "cmMakefile.h"
 #include "cmNewLineStyle.h"
+#include "cmSystemTools.h"
+#include "cmake.h"
 #include "cmsys/FStream.hxx"
 #include "cmsys/RegularExpression.hxx"
 
@@ -42,27 +42,27 @@ class cmExecutionStatus;
 
 namespace pyct
 {
-
 //============================================================================//
 
 // cmConfigureFileCommand
-bool pycmConfigureFileCommand::InitialPass(std::vector<std::string> const& args,
-                                           cmExecutionStatus&)
+bool
+pycmConfigureFileCommand::InitialPass(std::vector<std::string> const& args,
+                                      cmExecutionStatus&)
 {
-    if (args.size() < 2)
+    if(args.size() < 2)
     {
         this->SetError("called with incorrect number of arguments, expected 2");
         return false;
     }
 
     std::string const& inFile = args[0];
-    if (!cmSystemTools::FileIsFullPath(inFile))
+    if(!cmSystemTools::FileIsFullPath(inFile))
         this->SetError("Full path to input file required");
 
     this->InputFile += inFile;
 
     // If the input location is a directory, error out.
-    if (cmSystemTools::FileIsDirectory(this->InputFile))
+    if(cmSystemTools::FileIsDirectory(this->InputFile))
     {
         std::ostringstream e;
         /* clang-format off */
@@ -75,7 +75,7 @@ bool pycmConfigureFileCommand::InitialPass(std::vector<std::string> const& args,
     }
 
     std::string const& outFile = args[1];
-    if (!cmSystemTools::FileIsFullPath(outFile))
+    if(!cmSystemTools::FileIsFullPath(outFile))
     {
         this->OutputFile = this->Makefile->GetCurrentBinaryDirectory();
         this->OutputFile += "/";
@@ -83,13 +83,13 @@ bool pycmConfigureFileCommand::InitialPass(std::vector<std::string> const& args,
     this->OutputFile += outFile;
 
     // If the output location is already a directory put the file in it.
-    if (cmSystemTools::FileIsDirectory(this->OutputFile))
+    if(cmSystemTools::FileIsDirectory(this->OutputFile))
     {
         this->OutputFile += "/";
         this->OutputFile += cmSystemTools::GetFilenameName(inFile);
     }
 
-    if (!this->Makefile->CanIWriteThisFile(this->OutputFile))
+    if(!this->Makefile->CanIWriteThisFile(this->OutputFile))
     {
         std::string e = "attempted to configure a file: " + this->OutputFile +
                         " into a source directory.";
@@ -98,60 +98,56 @@ bool pycmConfigureFileCommand::InitialPass(std::vector<std::string> const& args,
         return false;
     }
     std::string errorMessage;
-    if (!this->NewLineStyle.ReadFromArguments(args, errorMessage))
+    if(!this->NewLineStyle.ReadFromArguments(args, errorMessage))
     {
         this->SetError(errorMessage);
         return false;
     }
-    this->CopyOnly = false;
+    this->CopyOnly     = false;
     this->EscapeQuotes = false;
 
     std::string unknown_args;
     this->AtOnly = false;
-    for (unsigned int i = 2; i < args.size(); ++i)
+    for(unsigned int i = 2; i < args.size(); ++i)
     {
-        if (args[i] == "COPYONLY")
+        if(args[i] == "COPYONLY")
         {
             this->CopyOnly = true;
-            if (this->NewLineStyle.IsValid())
+            if(this->NewLineStyle.IsValid())
             {
                 this->SetError("COPYONLY could not be used in combination "
                                "with NEWLINE_STYLE");
                 return false;
             }
-        }
-        else if (args[i] == "ESCAPE_QUOTES")
+        } else if(args[i] == "ESCAPE_QUOTES")
         {
             this->EscapeQuotes = true;
-        }
-        else if (args[i] == "@ONLY")
+        } else if(args[i] == "@ONLY")
         {
             this->AtOnly = true;
-        }
-        else if (args[i] == "IMMEDIATE")
+        } else if(args[i] == "IMMEDIATE")
         {
             /* Ignore legacy option.  */
-        }
-        else if (args[i] == "NEWLINE_STYLE" || args[i] == "LF" ||
-                 args[i] == "UNIX" || args[i] == "CRLF" || args[i] == "WIN32" ||
-                 args[i] == "DOS") {
+        } else if(args[i] == "NEWLINE_STYLE" || args[i] == "LF" ||
+                  args[i] == "UNIX" || args[i] == "CRLF" ||
+                  args[i] == "WIN32" || args[i] == "DOS")
+        {
             /* Options handled by NewLineStyle member above.  */
-        }
-        else
+        } else
         {
             unknown_args += " ";
             unknown_args += args[i];
             unknown_args += "\n";
         }
     }
-    if (!unknown_args.empty())
+    if(!unknown_args.empty())
     {
         std::string msg = "configure_file called with unknown argument(s):\n";
         msg += unknown_args;
         this->Makefile->IssueMessage(cmake::AUTHOR_WARNING, msg);
     }
 
-    if (!this->ConfigureFile())
+    if(!this->ConfigureFile())
     {
         this->SetError("Problem configuring file");
         return false;
@@ -162,84 +158,87 @@ bool pycmConfigureFileCommand::InitialPass(std::vector<std::string> const& args,
 
 //============================================================================//
 
-int pycmConfigureFileCommand::ConfigureFile()
+int
+pycmConfigureFileCommand::ConfigureFile()
 {
     this->cmDefineRegex.compile("#([ \t]*)cmakedefine[ \t]+([A-Za-z_0-9]*)");
-    this->cmDefine01Regex.compile("#([ \t]*)cmakedefine01[ \t]+([A-Za-z_0-9]*)");
+    this->cmDefine01Regex.compile(
+        "#([ \t]*)cmakedefine01[ \t]+([A-Za-z_0-9]*)");
     this->cmAtVarRegex.compile("(@[A-Za-z_0-9/.+-]+@)");
     this->cmNamedCurly.compile("^[A-Za-z0-9/_.+-]+{");
 
     return this->Makefile->ConfigureFile(
-                this->InputFile.c_str(), this->OutputFile.c_str(), this->CopyOnly,
-                this->AtOnly, this->EscapeQuotes, this->NewLineStyle);
+        this->InputFile.c_str(), this->OutputFile.c_str(), this->CopyOnly,
+        this->AtOnly, this->EscapeQuotes, this->NewLineStyle);
 }
 
 //============================================================================//
 
-const char* pycmConfigureFileCommand::GetDefinition(const std::string& key)
+const char*
+pycmConfigureFileCommand::GetDefinition(const std::string& key)
 {
     return (m_definitions.find(key) != m_definitions.end())
-            ? m_definitions.find(key)->second.c_str() : nullptr;
+               ? m_definitions.find(key)->second.c_str()
+               : nullptr;
 }
 
 //============================================================================//
 
-void pycmConfigureFileCommand::ConfigureString(const std::string& input,
-                                               std::string& output,
-                                               bool atOnly, bool
-                                               escapeQuotes) const
+void
+pycmConfigureFileCommand::ConfigureString(const std::string& input,
+                                          std::string& output, bool atOnly,
+                                          bool escapeQuotes) const
 {
     // Split input to handle one line at a time.
     std::string::const_iterator lineStart = input.begin();
-    while (lineStart != input.end())
+    while(lineStart != input.end())
     {
         // Find the end of this line.
         std::string::const_iterator lineEnd = lineStart;
-        while (lineEnd != input.end() && *lineEnd != '\n')
-            ++lineEnd;
+        while(lineEnd != input.end() && *lineEnd != '\n') ++lineEnd;
 
         // Copy the line.
         std::string line(lineStart, lineEnd);
 
         // Skip the newline character.
         bool haveNewline = (lineEnd != input.end());
-        if (haveNewline)
+        if(haveNewline)
             ++lineEnd;
 
         // Replace #cmakedefine instances.
-        if (this->cmDefineRegex.find(line))
+        if(this->cmDefineRegex.find(line))
         {
             const char* def = this->GetDefinition(this->cmDefineRegex.match(2));
-            if (!cmSystemTools::IsOff(def))
+            if(!cmSystemTools::IsOff(def))
             {
                 const std::string indentation = this->cmDefineRegex.match(1);
-                cmSystemTools::ReplaceString(line, "#" + indentation + "cmakedefine",
+                cmSystemTools::ReplaceString(line,
+                                             "#" + indentation + "cmakedefine",
                                              "#" + indentation + "define");
                 output += line;
-            }
-            else
+            } else
             {
                 output += "/* #undef ";
                 output += this->cmDefineRegex.match(2);
                 output += " */";
             }
-        }
-        else if (this->cmDefine01Regex.find(line))
+        } else if(this->cmDefine01Regex.find(line))
         {
             const std::string indentation = this->cmDefine01Regex.match(1);
-            const char* def = this->GetDefinition(this->cmDefine01Regex.match(2));
-            cmSystemTools::ReplaceString(line, "#" + indentation + "cmakedefine01",
+            const char*       def =
+                this->GetDefinition(this->cmDefine01Regex.match(2));
+            cmSystemTools::ReplaceString(line,
+                                         "#" + indentation + "cmakedefine01",
                                          "#" + indentation + "define");
             output += line;
-            if (!cmSystemTools::IsOff(def))
+            if(!cmSystemTools::IsOff(def))
                 output += " 1";
             else
                 output += " 0";
-        }
-        else
+        } else
             output += line;
 
-        if (haveNewline)
+        if(haveNewline)
             output += "\n";
 
         // Move to the next line.
@@ -251,71 +250,70 @@ void pycmConfigureFileCommand::ConfigureString(const std::string& input,
                                   -1, true, true);
 }
 
-int pycmConfigureFileCommand::ConfigureFile(const char* infile,
-                                            const char* outfile,
-                                            bool copyonly,
-                                            bool atOnly,
-                                            bool escapeQuotes,
-                                            cmNewLineStyle newLine)
+int
+pycmConfigureFileCommand::ConfigureFile(const char* infile, const char* outfile,
+                                        bool copyonly, bool atOnly,
+                                        bool           escapeQuotes,
+                                        cmNewLineStyle newLine)
 {
     int res = 1;
-    if (!cmSystemTools::FileExists(infile))
+    if(!cmSystemTools::FileExists(infile))
     {
         cmSystemTools::Error("File ", infile, " does not exist.");
         return 0;
     }
     std::string soutfile = outfile;
-    std::string sinfile = infile;
+    std::string sinfile  = infile;
     cmSystemTools::ConvertToUnixSlashes(soutfile);
 
     mode_t perm = 0;
     cmSystemTools::GetPermissions(sinfile, perm);
     std::string::size_type pos = soutfile.rfind('/');
-    if (pos != std::string::npos)
+    if(pos != std::string::npos)
     {
         std::string path = soutfile.substr(0, pos);
         cmSystemTools::MakeDirectory(path);
     }
 
-    if (copyonly)
+    if(copyonly)
     {
-        if (!cmSystemTools::CopyFileIfDifferent(sinfile.c_str(),
-                                                soutfile.c_str()))
+        if(!cmSystemTools::CopyFileIfDifferent(sinfile.c_str(),
+                                               soutfile.c_str()))
             return 0;
-    }
-    else
+    } else
     {
-        std::string newLineCharacters;
+        std::string        newLineCharacters;
         std::ios::openmode omode = std::ios::out | std::ios::trunc;
-        if (newLine.IsValid())
+        if(newLine.IsValid())
         {
             newLineCharacters = newLine.GetCharacters();
             omode |= std::ios::binary;
-        }
-        else
+        } else
         {
             newLineCharacters = "\n";
         }
         std::string tempOutputFile = soutfile;
         tempOutputFile += ".tmp";
         cmsys::ofstream fout(tempOutputFile.c_str(), omode);
-        if (!fout)
+        if(!fout)
         {
-            cmSystemTools::Error("Could not open file for write in copy operation ",
-                                 tempOutputFile.c_str());
+            cmSystemTools::Error(
+                "Could not open file for write in copy operation ",
+                tempOutputFile.c_str());
             cmSystemTools::ReportLastSystemError("");
             return 0;
         }
         cmsys::ifstream fin(sinfile.c_str());
-        if (!fin)
+        if(!fin)
         {
-            cmSystemTools::Error("Could not open file for read in copy operation ",
-                                 sinfile.c_str());
+            cmSystemTools::Error(
+                "Could not open file for read in copy operation ",
+                sinfile.c_str());
             return 0;
         }
 
         cmsys::FStream::BOM bom = cmsys::FStream::ReadBOM(fin);
-        if (bom != cmsys::FStream::BOM_None && bom != cmsys::FStream::BOM_UTF8)
+        if(bom != cmsys::FStream::BOM_None && bom != cmsys::FStream::BOM_UTF8)
         {
             std::ostringstream e;
             e << "File starts with a Byte-Order-Mark that is not UTF-8:\n  "
@@ -330,7 +328,7 @@ int pycmConfigureFileCommand::ConfigureFile(const char* infile,
         // input file at the same time
         std::string inLine;
         std::string outLine;
-        while (cmSystemTools::GetLineFromStream(fin, inLine))
+        while(cmSystemTools::GetLineFromStream(fin, inLine))
         {
             outLine.clear();
             this->ConfigureString(inLine, outLine, atOnly, escapeQuotes);
@@ -339,12 +337,11 @@ int pycmConfigureFileCommand::ConfigureFile(const char* infile,
         // close the files before attempting to copy
         fin.close();
         fout.close();
-        if (!cmSystemTools::CopyFileIfDifferent(tempOutputFile.c_str(),
-                                                soutfile.c_str()))
+        if(!cmSystemTools::CopyFileIfDifferent(tempOutputFile.c_str(),
+                                               soutfile.c_str()))
         {
             res = 0;
-        }
-        else
+        } else
         {
             cmSystemTools::SetPermissions(soutfile, perm);
         }
@@ -355,6 +352,6 @@ int pycmConfigureFileCommand::ConfigureFile(const char* infile,
 
 //============================================================================//
 
-} // namespace pyct
+}  // namespace pyct
 
 //============================================================================//

@@ -31,41 +31,13 @@ matrix:
             - build-essential
             - cmake
       env:
-        - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_TEST=1"
+        - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo"
     # macOS
     - os: osx
-      osx_image: xcode9.4
+      osx_image: xcode10
       language: ruby
       env:
-        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=2.7 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_TEST=1"
-    # ------------------------------------------------------------------------ #
-    #
-    #   Python 3.4
-    #
-    # ------------------------------------------------------------------------ #
-    # GCC 4.9
-    - os: linux
-      dist: trusty
-      sudo: false
-      language: python
-      python: '3.4'
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - gcc-4.9
-            - g++-4.9
-            - build-essential
-            - cmake3
-      env:
-        - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_TEST=1"
-    # macOS
-    - os: osx
-      osx_image: xcode9.4
-      language: ruby
-      env:
-        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.4 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_TEST=1"
+        - MATRIX_EVAL="CC=$(which clang) && CXX=$(which clang++) && TRAVIS_PYTHON_VERSION=2.7 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo"
     # ------------------------------------------------------------------------ #
     #
     #   Python 3.5
@@ -87,13 +59,13 @@ matrix:
             - build-essential
             - cmake3
       env:
-        - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_TEST=1"
+        - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo"
     # macOS
     - os: osx
-      osx_image: xcode9.4
+      osx_image: xcode10
       language: ruby
       env:
-        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.5 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_TEST=1"
+        - MATRIX_EVAL="CC=$(which clang) && CXX=$(which clang++) && TRAVIS_PYTHON_VERSION=3.5 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo"
     # ------------------------------------------------------------------------ #
     #
     #   Python 3.6
@@ -115,65 +87,35 @@ matrix:
             - build-essential
             - cmake
       env:
-        - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo && CONDA_TEST=1"
+        - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo"
     # macOS
     - os: osx
-      osx_image: xcode9.4
+      osx_image: xcode10
       language: ruby
       env:
-        - MATRIX_EVAL="TRAVIS_PYTHON_VERSION=3.6 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo && CONDA_TEST=1"
-
+        - MATRIX_EVAL="CC=$(which clang) && CXX=$(which clang++) && TRAVIS_PYTHON_VERSION=3.6 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo"
 
 before_install:
     - eval "${MATRIX_EVAL}"
-    - if [[ -n "${MACOSX}" ]]; then
-        CC=$(which clang) ;
-        CXX=$(which clang++) ;
-      fi
-    - if [[ "${TRAVIS_BRANCH}" != "master" ]] || [[ "${TRAVIS_PULL_REQUEST}" != "false" ]]; then
-        CONDA_TEST=0 ;
-      fi
-    - export CONDA_TEST
-    - export CC=${CC}
-    - export CXX=${CXX}
     - export PYCTEST_BUILD_TYPE=${BUILD_TYPE}
     - echo "CC = ${CC} $(${CC} -dumpversion)"
     - echo "CXX = ${CXX} $(${CXX} -dumpversion)"
 
 install:
     - eval "${MATRIX_EVAL}"
-    - if [[ -n "${MACOSX}" ]]; then
-        CC=$(which clang) ;
-        CXX=$(which clang++) ;
-      fi
-    - if [[ "${TRAVIS_BRANCH}" != "master" ]]; then
-        CONDA_TEST=0 ;
-      fi
-    - export CONDA_TEST
-    - export CC
-    - export CXX
-    - echo "CC = ${CC} $(${CC} -dumpversion)"
-    - echo "CXX = ${CXX} $(${CXX} -dumpversion)"
-    - export VER_MAJOR=$(echo "${TRAVIS_PYTHON_VERSION}" | sed 's/\./ /g' | awk '{print $1}') ;
     - export VER_OS=Linux ;
     - if [[ -n "${MACOSX}" ]]; then export VER_OS=MacOSX ; fi ;
-    - wget https://repo.continuum.io/miniconda/Miniconda${VER_MAJOR}-latest-${VER_OS}-x86_64.sh -O miniconda.sh ;
-    - bash miniconda.sh -b -p $HOME/miniconda ;
-    - export PATH="$HOME/miniconda/bin:$PATH" ;
+    - wget https://repo.continuum.io/miniconda/Miniconda3-latest-${VER_OS}-x86_64.sh -O miniconda.sh ;
+    - bash miniconda.sh -b -p ${HOME}/miniconda ;
+    - export PATH="${HOME}/miniconda/bin:${PATH}" ;
     - hash -r ;
     - conda config --set always_yes yes --set changeps1 no ;
     - conda update -q conda ;
     - conda info -a ;
-    - conda install -n base anaconda-client conda-build ;
+    - conda install -n base anaconda-client conda-build conda-verify ;
     - conda config --set anaconda_upload no ;
     - python update-conda-yaml.py ;
     - conda-build --verify --python=${TRAVIS_PYTHON_VERSION} . ;
-    - if [[ -n "$(which python${TRAVIS_PYTHON_VERSION})" ]] ; then
-          python${TRAVIS_PYTHON_VERSION} setup.py install ;
-          mkdir -p ${HOME}/pyctest-test ;
-          cd ${HOME}/pyctest-test ;
-          python${TRAVIS_PYTHON_VERSION} -c "import pyctest; import pyctest.pyctest; import pyctest.pycmake" ;
-      fi
 
 script:
     #

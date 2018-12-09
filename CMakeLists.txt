@@ -38,6 +38,7 @@ if(GOOD_CMAKE)
     cmake_policy(SET CMP0042 NEW)
     #cmake_policy(SET CMP0054 NEW)
     project(pyctest LANGUAGES C CXX VERSION ${PYCTEST_VERSION})
+    set(CMAKE_INSTALL_MESSAGE LAZY CACHE STRING "Installation message")
 else(GOOD_CMAKE)
     project(pyctest C CXX)
     set(PROJECT_VERSION ${PYCTEST_VERSION})
@@ -49,7 +50,7 @@ endif(GOOD_CMAKE)
 
 message(STATUS "${PROJECT_NAME} version ${PYCTEST_VERSION}")
 
-set(CMAKE_MODULE_PATH 
+set(CMAKE_MODULE_PATH
     ${CMAKE_MODULE_PATH}
     ${CMAKE_CURRENT_LIST_DIR}/cmake/Modules
     ${CMAKE_CURRENT_LIST_DIR}/source/kitware-cmake/Modules)
@@ -81,6 +82,7 @@ include(GNUInstallDirs)
 include(ProjectSettings)
 include(BuildSettings)
 include(Packages)
+include(ClangFormat)
 
 ################################################################################
 #   CMake options
@@ -93,6 +95,7 @@ set(CTEST_TEST_CTEST OFF CACHE BOOL "Disable CTest testing of CTest" FORCE)
 set(CMAKE_RUN_LONG_TESTS OFF CACHE BOOL "Disable CMake long tests" FORCE)
 set(CMake_INSTALL_COMPONENTS OFF CACHE BOOL "Using components when installing" FORCE)
 set(CMake_INSTALL_DEPENDENCIES OFF CACHE BOOL "Whether to install 3rd-party runtime dependencies" FORCE)
+set(BUILD_TESTING OFF CACHE BOOL "Build testing" FORCE)
 
 ################################################################################
 #   pyctest source

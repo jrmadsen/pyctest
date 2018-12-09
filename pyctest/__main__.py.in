@@ -1,0 +1,82 @@
+#!@PYTHON_EXECUTABLE@
+# MIT License
+#
+# Copyright (c) 2018, The Regents of the University of California,
+# through Lawrence Berkeley National Laboratory (subject to receipt of any
+# required approvals from the U.S. Dept. of Energy).  All rights reserved.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+import os, sys, glob, subprocess as sp
+import pyctest.pyctest as _pyctest
+import pyctest.pycmake as _pycmake
+
+if __name__ == "__main__":
+
+    #_msg = "#   Running '{}'...    #".format(__file__)
+    #_brk = "#{}#".format("#" * (len(_msg)-2))
+    #_emp = "#{}#".format(" " * (len(_msg)-2))
+    #print("{0}\n{1}\n{2}\n{1}\n{0}".format(_brk, _emp, _msg))
+
+    _argv = []
+    _ctest = []
+    _cmake = []
+    _argsets = [_argv, _ctest, _cmake]
+    _i = 0
+    _separator = '--'
+
+    for _arg in sys.argv[1:]:
+        if _arg == _separator:
+            _i += 1
+            if _i >= len(_argsets):
+                sys.exit(
+                    "ERROR: Too many \"{}\" separators provided "
+                    "(expected at most {}).".format(_separator,
+                                                    len(_argsets) - 1))
+        else:
+            _argsets[_i].append(_arg)
+
+    try:
+        sys.argv[1:] = _argv
+    except Exception as e:
+        msg = "\nCommand line argument error:\n\t{}\n".format(e)
+        warnings.warn(msg)
+
+    ret = 0
+    try:
+        if len(_cmake) > 0:
+            _pycmake.exec(_cmake)
+        if len(_ctest) > 0:
+            _pyctest.exec(_ctest)
+    except Exception as e:
+        print('Exception occurred: {}'.format(e))
+        ret = 1
+
+    if ret == 0:
+        for _arg in _argv:
+            try:
+                cmd = [sys.executable, _arg]
+                if len(sys.argv) > 1:
+                    cmd.extend(sys.argv[1:])
+                sp.check_call(cmd)
+            except sp.CalledProcessError as e:
+                print("Error running '{}': {}".format(f, e))
+                ret = 1
+
+    sys.exit(ret)

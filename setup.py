@@ -293,6 +293,10 @@ class CMakeBuild(build_ext, Command):
         subprocess.check_call(['cmake', '--build', self.build_temp] + build_args,
                               cwd=self.build_temp, env=env)
 
+        # build the project (second time)
+        subprocess.check_call(['cmake', '--build', self.build_temp] + build_args,
+                              cwd=self.build_temp, env=env)
+
         # install the CMake build
         subprocess.check_call(['cmake', '-DCOMPONENT=python' ] + install_args,
                               cwd=self.build_temp, env=env)
@@ -310,81 +314,14 @@ class CMakeBuild(build_ext, Command):
             if os.path.exists(".license.py"):
                 lic = open(".license.py")
                 contents = lic.read()
+                f.write("#!{}\n".format(sys.executable))
                 f.write(contents)
+                f.write("\n")
             else:
-                f.write("#\n#")
+                f.write("#!{}\n".format(sys.executable))
             f.close()
 
         print()  # Add an empty line for cleaner output
-
-
-# ---------------------------------------------------------------------------- #
-#
-class CMakeTest(TestCommand):
-    """
-    A custom test runner to execute both Python unittest tests and C++ Catch-
-    lib tests.
-    """
-
-    ctest_version = get_integer_version('2.7.12')
-    ctest_min_version = get_integer_version('2.8.12')
-
-
-    #--------------------------------------------------------------------------#
-    def ctest_version_error(self):
-        """
-        Raise exception about CMake
-        """
-        ma = 'Error finding/putting ctest in path. Either no CMake found or no cmake module.'
-        mb = 'This error can commonly be resolved with "{}"'.format("pip install -U pip cmake")
-        mc = 'CMake version found: {}'.format(get_string_version(CMakeTest.ctest_version))
-        md = "CMake must be installed to build the following extensions: " + \
-        ", ".join(e.name for e in self.extensions)
-        mt = '\n\n\t{}\n\t{}\n\t{}\n\t{}\n\n'.format(ma, mb, mc, md)
-        raise RuntimeError(mt)
-
-
-    #--------------------------------------------------------------------------#
-    def init_ctest(self):
-        """
-        Ensure ctest is in PATH
-        """
-        try:
-            out = subprocess.check_output(['ctest', '--version'])
-            CMakeTest.ctest_version = get_integer_version(
-                re.search(r'version\s*([\d.]+)', out.decode()).group(1))
-        except OSError:
-            # if fail, try the module
-            try:
-                import cmake
-                if not cmake.CMAKE_BIN_DIR in sys.path:
-                    sys.path.append(cmake.CMAKE_BIN_DIR)
-                if platform.system() != "Windows":
-                    curr_path = os.environ['PATH']
-                    if not cmake.CMAKE_BIN_DIR in curr_path:
-                        os.environ['PATH'] = "{}:{}".format(curr_path, cmake.CMAKE_BIN_DIR)
-
-                CMakeTest.ctest_version = cmake.sys.version.split(' ')[0]
-            except:
-                self.ctest_version_error()
-
-
-    #--------------------------------------------------------------------------#
-    def distutils_dir_name(self, dname):
-        """Returns the name of a distutils build directory"""
-        dir_name = "{dirname}.{platform}-{version[0]}.{version[1]}"
-        return dir_name.format(dirname=dname,
-                               platform=sysconfig.get_platform(),
-                               version=sys.version_info)
-
-
-    #--------------------------------------------------------------------------#
-    def run(self):
-        self.init_ctest()
-        print("\nRunning CMake/CTest tests...\n")
-        # Run catch tests
-        subprocess.check_call(['ctest', '--output-on-failure' ],
-                cwd=os.path.join('build', self.distutils_dir_name('temp')))
 
 
 # ---------------------------------------------------------------------------- #
@@ -494,7 +431,7 @@ setup(name='pyctest',
     # add extension module
     ext_modules=[CMakeExtension('pyctest')],
     # add custom build_ext command
-    cmdclass=dict(build_ext=CMakeBuild, test=CMakeTest,
+    cmdclass=dict(build_ext=CMakeBuild,
                   install_egg_info=CMakeInstallEggInfo),
     zip_safe=False,
     # extra

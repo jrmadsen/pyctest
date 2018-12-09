@@ -193,12 +193,19 @@ class ArgumentParser(argparse.ArgumentParser):
                 submit=False,
                 ctest_args=["-V"],
                 vcs_type=None,
+                checkout_command=None,
+                update_command=None,
+                configure_command=None,
+                build_command=None,
+                coverage_command=None,
+                memcheck_command=None,
                 build_type=None,
                 build_choices = [ "Release", "RelWithDebInfo", "Debug", "MinSizeRel" ],
                 # standard argparse.ArgumentParser arguments
                 prog=None,
                 usage=None,
-                description=None,
+                description="PyCTest argparse. Arguments after first '--' are passed directly " \
+"to CTest, arguments after second '--' are passed directly to CMake",
                 epilog=None,
                 parents=[],
                 formatter_class=argparse.HelpFormatter,
@@ -219,6 +226,24 @@ class ArgumentParser(argparse.ArgumentParser):
                                              argument_default=argument_default,
                                              conflict_handler=conflict_handler,
                                              add_help=add_help)
+
+        if checkout_command is not None:
+            pyctest.CHECKOUT_COMMAND = "{}".format(checkout_command)
+
+        if update_command is not None:
+            pyctest.UPDATE_COMMAND = "{}".format(update_command)
+
+        if configure_command is not None:
+            pyctest.CONFIGURE_COMMAND = "{}".format(configure_command)
+
+        if build_command is not None:
+            pyctest.BUILD_COMMAND = "{}".format(build_command)
+
+        if coverage_command is not None:
+            pyctest.COVERAGE_COMMAND = "{}".format(coverage_command)
+
+        if memcheck_command is not None:
+            pyctest.MEMORYCHECK_COMMAND = "{}".format(memcheck_command)
 
         # limit the mode choices
         mode_choices = ["Start", "Update", "Configure", "Build",
@@ -439,13 +464,43 @@ class ArgumentParser(argparse.ArgumentParser):
 
         # if the arguments were provided
         if len(args.pyctest_ctest_args) > 0:
-            pyctest.ARGUMENTS.extend(args.pyctest_ctest_args)
+            for _arg in args.pyctest_ctest_args:
+                pyctest.ARGUMENTS.extend(_arg.split(" "))
 
         print("CTest arguments (default): '{}'".format(" ".join(pyctest.ARGUMENTS)))
 
 
     #-------------------------------------------------------------------------#
     def parse_args(self, *args, **kwargs):
+        _argv = []
+        _ctest = []
+        _cmake = []
+        _argsets = [_argv, _ctest, _cmake]
+        _i = 0
+        _separator = '--'
+
+        for _arg in sys.argv[1:]:
+            if _arg == _separator:
+                _i += 1
+                if _i >= len(_argsets):
+                    sys.exit(
+                        "ERROR: Too many \"{}\" separators provided "
+                        "(expected at most {}).".format(_separator,
+                                                        len(_argsets) - 1))
+            else:
+                _argsets[_i].append(_arg)
+
+        try:
+            sys.argv[1:] = _argv
+            pyctest.ARGUMENTS.extend(_ctest)
+            pycmake.ARGUMENTS.extend(_cmake)
+            print("PyCTest args: {}".format(_argv))
+            print("  CTest args: {}".format(pyctest.ARGUMENTS + _ctest))
+            print("  CMake args: {}".format(pycmake.ARGUMENTS + _cmake))
+        except Exception as e:
+            msg = "\nCommand line argument error:\n\t{}\n".format(e)
+            warnings.warn(msg)
+
         # read arguments (fail if unknown option)
         pargs = super(ArgumentParser, self).parse_args(*args, **kwargs)
 

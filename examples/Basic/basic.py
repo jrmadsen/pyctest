@@ -13,12 +13,13 @@ if __name__ == "__main__":
 
     # these are required
     pyctest.PROJECT_NAME = "PyCTest"
-    pyctest.SOURCE_DIRECTORY = directory
+    pyctest.SOURCE_DIRECTORY = os.getcwd()
     pyctest.BINARY_DIRECTORY = directory
 
     args = helpers.ArgumentParser(pyctest.PROJECT_NAME,
                                   pyctest.SOURCE_DIRECTORY,
-                                  pyctest.BINARY_DIRECTORY).parse_args()
+                                  pyctest.BINARY_DIRECTORY,
+                                  update_command="git").parse_args()
 
     # set explicitly
     pyctest.MODEL = "Continuous"
@@ -29,19 +30,11 @@ if __name__ == "__main__":
     test.SetName("list_directory")
     test.SetCommand(["ls", directory])
     test.SetProperty("WORKING_DIRECTORY", os.getcwd())
+    test.SetProperty("LABELS", "shutil")
 
-    # create a second test
-    # previous test is already stored by PyCTest
-    test = pyctest.test()
-    test.SetName("hostname")
-    test.SetCommand(["hostname"])
-    test.SetProperty("TIMEOUT", "10")
-
-    # generate the CTestConfig.cmake and CTestCustom.cmake
-    pyctest.generate_config(directory)
-
-    # generate the CTestTestfile.cmake file
-    pyctest.generate_test_file(directory)
+    # create a second test with direct initialization
+    pyctest.test("hostname", ["hostname"],
+                 {"RUN_SERIAL" : "ON", "TIMEOUT" : "10", "LABELS" : "network"})
 
     # run CTest -- e.g. ctest -VV ${PWD}/pycm-test
     pyctest.run(pyctest.ARGUMENTS, directory)
