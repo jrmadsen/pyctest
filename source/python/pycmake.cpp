@@ -560,7 +560,6 @@ pycm::cmake_main_driver(int ac, char const* const* av)
     consoleErr.SetUTF8Pipes();
 #endif
 
-    std::cout << "argv[0] = " << av[0] << std::endl;
     cmsys::Encoding::CommandLineArguments args =
         cmsys::Encoding::CommandLineArguments::Main(ac, av);
     ac = args.argc();
@@ -608,6 +607,26 @@ PYBIND11_MODULE(pycmake, cm)
         std::strcpy(pc, _str.c_str());
         pc[_str.size()] = '\0';
         return pc;
+    };
+    //------------------------------------------------------------------------//
+    auto exec = [=](std::vector<std::string> pargs) {
+        // convert list elements to char*
+        charvec_t cargs;
+        for(auto itr : pargs) cargs.push_back(str2char_convert(itr));
+
+        // structures passed
+        int    argc = pargs.size() + 1;
+        char** argv = new char*[argc];
+
+        // cmake executable
+        auto _exe = exe_path();
+        argv[0]   = str2char_convert(_exe);
+
+        // fill argv
+        for(unsigned i = 1; i < argc; ++i) argv[i] = cargs[i - 1];
+
+        // run
+        return pycm::cmake_main_driver(argc, argv);
     };
     //------------------------------------------------------------------------//
     auto run = [=](std::vector<std::string> pargs, std::string binary_dir) {
@@ -728,6 +747,7 @@ PYBIND11_MODULE(pycmake, cm)
     cm.def("exe_path", exe_path, "Path to cmake executable");
     cm.def("run", run, "Run CMake", py::arg("args") = cm.attr("ARGUMENTS"),
            py::arg("binary_dir") = cm.attr("BINARY_DIR"));
+    cm.def("exec", exec, "Directly run cmake", py::arg("args") = py::list());
 }
 
 //============================================================================//

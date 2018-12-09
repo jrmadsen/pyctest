@@ -764,6 +764,26 @@ PYBIND11_MODULE(pyctest, ct)
         pyct::generate_test_file(dir);
     };
     //------------------------------------------------------------------------//
+    auto exec = [=](std::vector<std::string> pargs) {
+        // convert list elements to char*
+        charvec_t cargs;
+        for(auto itr : pargs) cargs.push_back(str2char_convert(itr));
+
+        // structures passed
+        int    argc = pargs.size() + 1;
+        char** argv = new char*[argc];
+
+        // cmake executable
+        auto _exe = exe_path();
+        argv[0]   = str2char_convert(_exe);
+
+        // fill argv
+        for(unsigned i = 1; i < argc; ++i) argv[i] = cargs[i - 1];
+
+        // run
+        return pyct::ctest_main_driver(argc, argv);
+    };
+    //------------------------------------------------------------------------//
     auto run = [=](std::vector<string_t> pargs, string_t working_dir) {
         string_t binary_dir = ct.attr("BINARY_DIRECTORY").cast<string_t>();
         if(working_dir.empty())
@@ -1048,6 +1068,7 @@ PYBIND11_MODULE(pyctest, ct)
     ct.def("exe_path", exe_path, "Path to ctest executable");
     ct.def("run", run, "Run CTest", py::arg("args") = ct.attr("ARGUMENTS"),
            py::arg("working_directory") = ct.attr("BINARY_DIRECTORY"));
+    ct.def("exec", exec, "Directly run ctest", py::arg("args") = py::list());
 
     _test.def(py::init(test_init), "Test for CTest", py::arg("name") = "",
               py::arg("cmd") = py::list(), py::arg("properties") = py::dict());
