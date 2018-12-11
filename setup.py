@@ -19,9 +19,19 @@ from setuptools.command.install_egg_info import install_egg_info
 #   Setup the compilers
 #
 if platform.system() == "Darwin":
+    # make sure we don't use clang
+    if os.environ.get("CC") is not None:
+        if re.search(r'clang', os.environ.get("CC")) is None:
+            os.environ["CC"] = "/usr/bin/clang"
     # force Clang on macOS
-    os.environ["CC"] = "/usr/bin/clang"
-    os.environ["CXX"] = "/usr/bin/clang++"
+    elif os.path.exists("/usr/bin/clang"):
+        os.environ["CC"] = "/usr/bin/clang"
+    # make sure we use clang++
+    if os.environ.get("CXX") is not None:
+        if re.search(r'clang', os.environ.get("CXX")) is None:
+            os.environ["CC"] = "/usr/bin/clang++"
+    elif os.path.exists("/usr/bin/clang++"):
+        os.environ["CXX"] = "/usr/bin/clang++"
 
 elif platform.system() == "Linux":
     # choose GCC if not set

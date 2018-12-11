@@ -1,22 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
 
 ################################################################################
-
-if(APPLE)
-    # force the Clang compiler on macOS
-    if(NOT "${CMAKE_C_COMPILER}" STREQUAL "/usr/bin/clang")
-        unset(CMAKE_C_COMPILER CACHE)
-        set(CMAKE_C_COMPILER /usr/bin/clang CACHE FILEPATH "C compiler" FORCE)
-        message(STATUS "Forcing C compiler: ${CMAKE_C_COMPILER}")
-    endif(NOT "${CMAKE_C_COMPILER}" STREQUAL "/usr/bin/clang")
-    if(NOT "${CMAKE_CXX_COMPILER}" STREQUAL "/usr/bin/clang++")
-        unset(CMAKE_CXX_COMPILER CACHE)
-        set(CMAKE_CXX_COMPILER /usr/bin/clang++ CACHE FILEPATH "C++ compiler" FORCE)
-        message(STATUS "Forcing C++ compiler: ${CMAKE_CXX_COMPILER}")
-    endif(NOT "${CMAKE_CXX_COMPILER}" STREQUAL "/usr/bin/clang++")
-endif(APPLE)
-
-################################################################################
 #
 #   CMake settings
 #
