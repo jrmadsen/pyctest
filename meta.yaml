@@ -7,42 +7,41 @@ build:
   binary_relocation: False
   script: "{{ PYTHON }} setup.py install"  # [not win]
   script_env:
-  - TMPDIR
-  - CC
-  - CXX
-  - CPATH
-  - LD_LIBRARY_PATH
-  - DYLD_LIBRARY_PATH
-  - PYCTEST_BUILD_TYPE
-  - CMAKE_PREFIX_PATH
-  - PYCTEST_CMAKE_PREFIX_PATH
-  - PYCTEST_CMAKE_INCLUDE_PATH
-  - PYCTEST_CMAKE_LIBRARY_PATH
+    - TMPDIR
+    - CC
+    - CXX
 
 source:
-  git_rev: 88df2b8f5c875e3f4127fd71ee0f9fe9caa1293d
+  git_rev: 63f7a92d21304dacd38627afe7c5ae1c1120673c
   git_url: https://github.com/jrmadsen/pyctest.git
 
 requirements:
   host:
-  - python={{ python }}
-  - setuptools
-  - cmake
-  - openssl
-  - curl
+    - cmake
+    - git
+    - python={{ python }}
+    - pip
+    - setuptools
+    - openssl
+    - curl
   run:
-  - python={{ python }}
-  - openssl
-  - curl
+    - python={{ python }}
+    - openssl
+    - curl
+    - libuv
 
 test:
   imports:
-  - pyctest
-  - pyctest.pyctest
-  - pyctest.pycmake
-  - pyctest.helpers
+    - pyctest
+    - pyctest.pyctest
+    - pyctest.pycmake
+    - pyctest.helpers
 
 about:
   home: https://jrmadsen.github.io/pyctest/
   license: MIT
-  summary: "Python bindings to select portions of CMake/CTest package -- enabling generation of CTests for CDash submission without a CMake build system"
+  license_family: MIT
+  license_file: LICENSE
+  summary: 'Python bindings to select portions of CMake/CTest package -- enabling generation of CTests for CDash submission without a CMake build system'
+  doc_url: https://pyctest.readthedocs.io/en/latest/
+  dev_url: http://github.com/jrmadsen/pyctest
