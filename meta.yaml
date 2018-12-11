@@ -20,7 +20,7 @@ build:
   - PYCTEST_CMAKE_LIBRARY_PATH
 
 source:
-  git_rev: 88df2b8f5c875e3f4127fd71ee0f9fe9caa1293d
+  git_rev: 63f7a92d21304dacd38627afe7c5ae1c1120673c
   git_url: https://github.com/jrmadsen/pyctest.git
 
 requirements:
