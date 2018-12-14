@@ -12,23 +12,23 @@ build:
     - CXX
 
 source:
-  git_rev: 63f7a92d21304dacd38627afe7c5ae1c1120673c
+  git_rev: 54c51bb60b872c0ad85248461f52865ac549bf88
   git_url: https://github.com/jrmadsen/pyctest.git
 
 requirements:
   host:
     - cmake
     - git
-    - python={{ python }}
+    - python
     - pip
     - setuptools
     - openssl
     - curl
   run:
-    - python={{ python }}
+    - python
     - openssl
     - curl
-    - libuv
+    - libuv  # [not win]
 
 test:
   imports:
