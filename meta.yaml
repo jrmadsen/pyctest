@@ -1,6 +1,6 @@
 package:
   name: pyctest
-  version: '0.0.9'
+  version: '0.0.10'
 
 build:
   number: 0
@@ -36,6 +36,9 @@ test:
     - pyctest.pyctest
     - pyctest.pycmake
     - pyctest.helpers
+    - pyctest.cmake
+    - pyctest.ctest
+    - pyctest.cpack
 
 about:
   home: https://jrmadsen.github.io/pyctest/
