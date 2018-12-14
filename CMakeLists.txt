@@ -95,7 +95,6 @@ set(CTEST_TEST_CTEST OFF CACHE BOOL "Disable CTest testing of CTest" FORCE)
 set(CMAKE_RUN_LONG_TESTS OFF CACHE BOOL "Disable CMake long tests" FORCE)
 set(CMake_INSTALL_COMPONENTS OFF CACHE BOOL "Using components when installing" FORCE)
 set(CMake_INSTALL_DEPENDENCIES OFF CACHE BOOL "Whether to install 3rd-party runtime dependencies" FORCE)
-set(CMake_TEST_EXTERNAL_CMAKE OFF CACHE BOOL "Disable testing external CMake" FORCE)
 set(BUILD_TESTING OFF CACHE BOOL "Build testing" FORCE)
 
 ################################################################################

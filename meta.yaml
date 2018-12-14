@@ -12,13 +12,17 @@ build:
     - CXX
 
 source:
-  git_rev: 54c51bb60b872c0ad85248461f52865ac549bf88
+  git_rev: 4cabc210e55f64fab08e88376718ecc40c14daf4
   git_url: https://github.com/jrmadsen/pyctest.git
 
 requirements:
-  host:
+  build:
+    - {{ compiler('c') }}  # [win]
+    - {{ compiler('cxx') }}  # [win]
+    - python={{ python }}  # [win]
     - cmake
     - git
+  host:
     - python
     - pip
     - setuptools
