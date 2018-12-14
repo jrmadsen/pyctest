@@ -17,8 +17,6 @@ source:
 
 requirements:
   build:
-    - {{ compiler('c') }}  # [win]
-    - {{ compiler('cxx') }}  # [win]
     - python={{ python }}  # [win]
     - cmake
     - git
