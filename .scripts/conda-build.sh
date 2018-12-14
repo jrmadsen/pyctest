@@ -35,7 +35,9 @@ if [ -f "${PWD}/meta.yaml" ]; then
         conda-build \
             --cache-dir=/tmp/pyctest-conda-build \
             -c conda-forge -c jrmadsen \
-            --override-channels --python=${i} .
+            --override-channels \
+            --no-include-recipe \
+            --python=${i} $@ .
         conda-build purge
     done
     conda config --set anaconda_upload no
