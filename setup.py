@@ -290,8 +290,22 @@ class CMakeBuild(build_ext, Command):
                               cwd=self.build_temp, env=env)
 
         # build the project
-        subprocess.check_call(['cmake', '--build', self.build_temp] + build_args,
-                              cwd=self.build_temp, env=env)
+        try:
+            subprocess.check_call(['cmake', '--build', self.build_temp] + build_args,
+                                  cwd=self.build_temp, env=env)
+        except Exception as e:
+            # for building docs, sometimes we run out of memory causing internal
+            # compiler error
+            print('Exception occurred: {}.\nTrying build with one process'.format(e))
+            _new_build_args = []
+            for arg in build_args:
+                if re.search(r'^-j',arg) is not None:
+                    _new_build_args.append('-j1')
+                else:
+                    _new_build_args.append(arg)
+            build_args = _new_build_args
+            subprocess.check_call(['cmake', '--build', self.build_temp] + build_args,
+                                  cwd=self.build_temp, env=env)
 
         # build the project (second time)
         subprocess.check_call(['cmake', '--build', self.build_temp] + build_args,

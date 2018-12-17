@@ -34,7 +34,6 @@ __version__ = "@PROJECT_VERSION@"
 __maintainer__ = "Jonathan Madsen"
 __email__ = "jonrobm.programming@gmail.com"
 __status__ = "Development"
-__all__ = ['pyctest', 'pycmake', 'helpers']
 
 
 import os
