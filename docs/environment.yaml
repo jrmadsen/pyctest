@@ -1,0 +1,15 @@
+name: docs
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python
+  - cmake
+  - git
+  - pip
+  - setuptools
+  - openssl
+  - curl
+  - sphinx
+  - recommonmark
+  - pylint

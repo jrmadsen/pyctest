@@ -1,4 +1,4 @@
-#!/bin/bash -l
+#!/bin/bash
 
 set -o errexit
 
@@ -10,12 +10,6 @@ command-exists ()
 {
     command -v $@
 }
-
-if [ ! -z "$(command-exists module)" ]; then
-    if [ -n "$(module avail python &> /dev/stdout | grep 'python/conda')" ]; then
-        module load python/conda
-    fi
-fi
 
 if [ -z "$(command-exists conda)" ]; then
     echo "Unable to find conda executiable"
@@ -34,9 +28,9 @@ if [ -f "${PWD}/meta.yaml" ]; then
     do
         conda-build --no-test \
             --cache-dir=/tmp/pyctest-conda-build \
-            -c conda-forge -c jrmadsen \
+            -c conda-forge \
+            -c jrmadsen \
             --override-channels \
-            --no-include-recipe \
             --python=${i} $@ .
         conda-build purge
     done

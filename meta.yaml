@@ -3,16 +3,17 @@ package:
   version: '0.0.10'
 
 build:
-  number: 0
+  number: 1
   binary_relocation: False
   script: "{{ PYTHON }} setup.py install"  # [not win]
   script_env:
     - TMPDIR
     - CC
     - CXX
+  include_recipe: False
 
 source:
-  git_rev: 4cabc210e55f64fab08e88376718ecc40c14daf4
+  git_rev: fa81abdb40030891952a05fe2d6c8930175e3196
   git_url: https://github.com/jrmadsen/pyctest.git
 
 requirements:
