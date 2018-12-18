@@ -1,9 +1,7 @@
-:mod:`pyctest.helpers`
+:mod:`pyctest`
 =============================
 
-.. automodule:: pyctest.helpers
+.. automodule:: pyctest
    :members:
    :show-inheritance:
    :undoc-members:
-
-   .. autosummary::

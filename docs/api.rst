@@ -8,6 +8,7 @@ This section contains the API reference and usage information for PyCTest.
 
 .. toctree::
 
+   api/pyctest
    api/pyctest.pyctest
    api/pyctest.pycmake
    api/pyctest.helpers
