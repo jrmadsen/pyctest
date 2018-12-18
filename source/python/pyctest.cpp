@@ -161,7 +161,8 @@ pycmTestGenerator::pycmTestGenerator(pycmTest* test)
 : cmScriptGenerator("CTEST_CONFIGURATION_TYPE", std::vector<string_t>())
 , m_test(test)
 , m_test_generated(false)
-{}
+{
+}
 
 //============================================================================//
 
@@ -203,7 +204,8 @@ pycmTestGenerator::GenerateScriptActions(std::ostream& os, Indent indent)
         // build generator case.  The superclass will call our per-config
         // method.
         this->cmScriptGenerator::GenerateScriptActions(os, indent);
-    } else
+    }
+    else
     {
         // This is an old-style test, so there is only one config.
         // assert(m_test->GetOldStyle());
@@ -406,7 +408,8 @@ PYBIND11_MODULE(pyctest, ct)
             obj->SetName(cmdname);
         // convert the args
         pyct::strvec_t _args;
-        for(auto itr : cmd) _args.push_back(itr.cast<string_t>());
+        for(auto itr : cmd)
+            _args.push_back(itr.cast<string_t>());
         if(!_args.empty())
             obj->SetCommand(_args);
         // set the properties
@@ -430,12 +433,21 @@ PYBIND11_MODULE(pyctest, ct)
             pyct::get_test_variables()->push_back(obj);
 
         ct.attr(var.c_str()) = val.c_str();
+        string_t _prefix     = "CTEST_";
+        if(var.find(_prefix) == 0)
+        {
+            string_t _new_var = var;
+            _new_var.erase(_new_var.find(_prefix), _prefix.length());
+            if(_new_var != var)
+                ct.attr(_new_var.c_str()) = val.c_str();
+        }
         return new pyct::pycmVariableWrapper(obj);
     };
     //------------------------------------------------------------------------//
     auto proc_init = [=](py::list cmd) {
         pyct::strvec_t _cmd;
-        for(auto itr : cmd) _cmd.push_back(itr.cast<string_t>());
+        for(auto itr : cmd)
+            _cmd.push_back(itr.cast<string_t>());
         return new pyct::pycmExecuteProcessCommand(_cmd);
     };
     //------------------------------------------------------------------------//
@@ -466,7 +478,8 @@ PYBIND11_MODULE(pyctest, ct)
     };
     //------------------------------------------------------------------------//
     auto upperstr = [](string_t tmp) {
-        for(auto& itr : tmp) itr = toupper(itr);
+        for(auto& itr : tmp)
+            itr = toupper(itr);
         return tmp;
     };
 
@@ -517,9 +530,11 @@ PYBIND11_MODULE(pyctest, ct)
         if(args.size() > 0)
         {
             pyct::strvec_t _args;
-            for(auto itr : args) _args.push_back(itr.cast<string_t>());
+            for(auto itr : args)
+                _args.push_back(itr.cast<string_t>());
             ret = (*_obj)(_args);
-        } else
+        }
+        else
         {
             ret = (*_obj)();
         }
@@ -563,7 +578,8 @@ PYBIND11_MODULE(pyctest, ct)
     auto proc_cmd_add = [=](py::object obj, py::list args) {
         pyobj_cast(_obj, pyct::pycmExecuteProcessCommand, obj);
         pyct::strvec_t _args;
-        for(auto itr : args) _args.push_back(itr.cast<string_t>());
+        for(auto itr : args)
+            _args.push_back(itr.cast<string_t>());
         _obj->add_command(_args);
     };
     //------------------------------------------------------------------------//
@@ -691,7 +707,8 @@ PYBIND11_MODULE(pyctest, ct)
             std::cerr << "pyct::generate_ctest_config -- Error opening "
                       << fname << "!!!" << std::endl;
             std::cout << ssfs.str() << std::endl;
-        } else
+        }
+        else
         {
             ofs << ssfs.str() << std::endl;
         }
@@ -711,7 +728,8 @@ PYBIND11_MODULE(pyctest, ct)
             try
             {
                 attr_val = ct.attr(itr.c_str()).cast<string_t>();
-            } catch(...)
+            }
+            catch(...)
             {
                 sstream_t msg;
                 msg << itr << " (i.e. " << attr_var << ") is not set.";
@@ -743,7 +761,8 @@ PYBIND11_MODULE(pyctest, ct)
             std::cerr << "pyct::generate_custom_config -- Error opening "
                       << fname << "!!!" << std::endl;
             std::cout << ssfs.str() << std::endl;
-        } else
+        }
+        else
         {
             ofs << ssfs.str() << std::endl;
         }
@@ -767,7 +786,8 @@ PYBIND11_MODULE(pyctest, ct)
     auto exec = [=](std::vector<std::string> pargs) {
         // convert list elements to char*
         charvec_t cargs;
-        for(auto itr : pargs) cargs.push_back(str2char_convert(itr));
+        for(auto itr : pargs)
+            cargs.push_back(str2char_convert(itr));
 
         // structures passed
         int    argc = pargs.size() + 1;
@@ -778,7 +798,8 @@ PYBIND11_MODULE(pyctest, ct)
         argv[0]   = str2char_convert(_exe);
 
         // fill argv
-        for(unsigned i = 1; i < argc; ++i) argv[i] = cargs[i - 1];
+        for(unsigned i = 1; i < argc; ++i)
+            argv[i] = cargs[i - 1];
 
         // run
         return pyct::ctest_main_driver(argc, argv);
@@ -825,7 +846,8 @@ PYBIND11_MODULE(pyctest, ct)
             cargs.push_back(str2char_convert(itr.cast<string_t>()));
 
         // convert list elements to char*
-        for(auto itr : pargs) cargs.push_back(str2char_convert(itr));
+        for(auto itr : pargs)
+            cargs.push_back(str2char_convert(itr));
 
         // structures passed
         int    argc = pargs.size() + 1;
@@ -836,7 +858,8 @@ PYBIND11_MODULE(pyctest, ct)
         argv[0]   = str2char_convert(_exe);
 
         // fill argv
-        for(unsigned i = 1; i < argc; ++i) argv[i] = cargs[i - 1];
+        for(unsigned i = 1; i < argc; ++i)
+            argv[i] = cargs[i - 1];
 
         // change working directory
         py::exec(R"(
@@ -995,7 +1018,8 @@ PYBIND11_MODULE(pyctest, ct)
             sstream_t ssfs;
             ssfs << "\nexecute_process(COMMAND ";
             string_t quote = "\"";
-            for(auto itr : cmd) ssfs << quote << itr << quote << " ";
+            for(auto itr : cmd)
+                ssfs << quote << itr << quote << " ";
             ssfs << "\n";
             ssfs << "WORKING_DIRECTORY " << dir << ")";
             ofs << ssfs.str() << std::endl;
@@ -1037,7 +1061,8 @@ PYBIND11_MODULE(pyctest, ct)
     ct.attr("CDASH_QUERY_VERSION") = "TRUE";
     ct.attr("TIMEOUT")             = "7200";
 
-    for(const auto& itr : blank_attr) ct.attr(upperstr(itr).c_str()) = "";
+    for(const auto& itr : blank_attr)
+        ct.attr(upperstr(itr).c_str()) = "";
 
     ct.def("add_test", test_add, "Add a test");
     ct.def("remove_test", test_remove, "Remove a test");

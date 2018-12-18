@@ -119,21 +119,26 @@ pycmConfigureFileCommand::InitialPass(std::vector<std::string> const& args,
                                "with NEWLINE_STYLE");
                 return false;
             }
-        } else if(args[i] == "ESCAPE_QUOTES")
+        }
+        else if(args[i] == "ESCAPE_QUOTES")
         {
             this->EscapeQuotes = true;
-        } else if(args[i] == "@ONLY")
+        }
+        else if(args[i] == "@ONLY")
         {
             this->AtOnly = true;
-        } else if(args[i] == "IMMEDIATE")
+        }
+        else if(args[i] == "IMMEDIATE")
         {
             /* Ignore legacy option.  */
-        } else if(args[i] == "NEWLINE_STYLE" || args[i] == "LF" ||
-                  args[i] == "UNIX" || args[i] == "CRLF" ||
-                  args[i] == "WIN32" || args[i] == "DOS")
+        }
+        else if(args[i] == "NEWLINE_STYLE" || args[i] == "LF" ||
+                args[i] == "UNIX" || args[i] == "CRLF" || args[i] == "WIN32" ||
+                args[i] == "DOS")
         {
             /* Options handled by NewLineStyle member above.  */
-        } else
+        }
+        else
         {
             unknown_args += " ";
             unknown_args += args[i];
@@ -195,7 +200,8 @@ pycmConfigureFileCommand::ConfigureString(const std::string& input,
     {
         // Find the end of this line.
         std::string::const_iterator lineEnd = lineStart;
-        while(lineEnd != input.end() && *lineEnd != '\n') ++lineEnd;
+        while(lineEnd != input.end() && *lineEnd != '\n')
+            ++lineEnd;
 
         // Copy the line.
         std::string line(lineStart, lineEnd);
@@ -216,13 +222,15 @@ pycmConfigureFileCommand::ConfigureString(const std::string& input,
                                              "#" + indentation + "cmakedefine",
                                              "#" + indentation + "define");
                 output += line;
-            } else
+            }
+            else
             {
                 output += "/* #undef ";
                 output += this->cmDefineRegex.match(2);
                 output += " */";
             }
-        } else if(this->cmDefine01Regex.find(line))
+        }
+        else if(this->cmDefine01Regex.find(line))
         {
             const std::string indentation = this->cmDefine01Regex.match(1);
             const char*       def =
@@ -235,7 +243,8 @@ pycmConfigureFileCommand::ConfigureString(const std::string& input,
                 output += " 1";
             else
                 output += " 0";
-        } else
+        }
+        else
             output += line;
 
         if(haveNewline)
@@ -280,7 +289,8 @@ pycmConfigureFileCommand::ConfigureFile(const char* infile, const char* outfile,
         if(!cmSystemTools::CopyFileIfDifferent(sinfile.c_str(),
                                                soutfile.c_str()))
             return 0;
-    } else
+    }
+    else
     {
         std::string        newLineCharacters;
         std::ios::openmode omode = std::ios::out | std::ios::trunc;
@@ -288,7 +298,8 @@ pycmConfigureFileCommand::ConfigureFile(const char* infile, const char* outfile,
         {
             newLineCharacters = newLine.GetCharacters();
             omode |= std::ios::binary;
-        } else
+        }
+        else
         {
             newLineCharacters = "\n";
         }
@@ -341,7 +352,8 @@ pycmConfigureFileCommand::ConfigureFile(const char* infile, const char* outfile,
                                                soutfile.c_str()))
         {
             res = 0;
-        } else
+        }
+        else
         {
             cmSystemTools::SetPermissions(soutfile, perm);
         }

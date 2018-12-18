@@ -52,6 +52,7 @@ __all__ = [ 'pyctest', 'pycmake', # 'pycpack',
             'ctest',   'cmake',   'cpack',
             'helpers' ]
 
+
 from . import pyctest
 from . import pycmake
 # from . import pycpack
@@ -81,11 +82,15 @@ sys.modules[__name__].__setattr__(
       "compiler_version" : "@CMAKE_CXX_COMPILER_VERSION@"
     } )
 
+__all__ += [ 'version_info', 'version', 'build_info' ]
+
 __dir__ = os.path.realpath(os.path.dirname(__file__))
 
 cmake_executable = os.path.join(__dir__, "bin", "cmake")
 ctest_executable = os.path.join(__dir__, "bin", "ctest")
 cpack_executable = os.path.join(__dir__, "bin", "cpack")
+
+__all__ += ['cmake_executable', 'ctest_executable', 'cpack_executable']
 
 def print_display():
     _doom = """

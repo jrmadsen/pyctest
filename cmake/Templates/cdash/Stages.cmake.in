@@ -27,7 +27,6 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
     list(FIND STAGES "Coverage" DO_COVERAGE)
     list(FIND STAGES "MemCheck" DO_MEMCHECK)
     list(FIND STAGES "Submit" DO_SUBMIT)
-    list(FIND STAGES "${CTEST_TRIGGER}" DO_TRIGGER)
 
     message(STATUS "")
     message(STATUS "STAGES = ${STAGES}")
@@ -47,6 +46,10 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
     set_if_defined(CTEST_STOP_TIME      STOP_TIME       _CTEST_STOP_TIME)
 
     set_if_defined(CTEST_COVERAGE_LABELS LABELS _CTEST_COVERAGE_LABELS)
+
+    if(CTEST_APPEND)
+        set(DO_START -1)
+    endif()
 
     #-------------------------------------------------------------------------#
     # if CTEST_{BZR,CVS,GIT,HG,P4,SVN}_COMMAND was specified instead of
@@ -70,11 +73,13 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
         message(STATUS "[${CTEST_BUILD_NAME}] Running CTEST_START stage...")
         message(STATUS "")
         set(_CTEST_APPEND )
+        set(_CTEST_VERB "Running")
     else()
         message(STATUS "")
-        message(STATUS "[${CTEST_BUILD_NAME}] Skipping CTEST_START stage...")
+        message(STATUS "[${CTEST_BUILD_NAME}] Appending CTEST_START stage...")
         message(STATUS "")
         set(_CTEST_APPEND APPEND)
+        set(_CTEST_VERB "Appending")
     endif()
     ctest_start(${CTEST_MODEL} TRACK ${CTEST_MODEL} ${_CTEST_APPEND}
         ${CTEST_SOURCE_DIRECTORY} ${CTEST_BINARY_DIRECTORY})
@@ -91,7 +96,7 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
     if("${DO_UPDATE}" GREATER -1 AND (NOT "${CTEST_UPDATE_COMMAND}" STREQUAL "" OR
                                       NOT "${CTEST_UPDATE_TYPE}" STREQUAL ""))
         message(STATUS "")
-        message(STATUS "[${CTEST_BUILD_NAME}] Running CTEST_UPDATE stage...")
+        message(STATUS "[${CTEST_BUILD_NAME}] ${_CTEST_VERB} CTEST_UPDATE stage...")
         message(STATUS "")
         ctest_update(SOURCE "${CTEST_SOURCE_DIRECTORY}"
                     RETURN_VALUE up_ret)
@@ -112,7 +117,7 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
     #
     if("${DO_CONFIGURE}" GREATER -1 AND NOT "${CTEST_CONFIGURE_COMMAND}" STREQUAL "")
         message(STATUS "")
-        message(STATUS "[${CTEST_BUILD_NAME}] Running CTEST_CONFIGURE stage...")
+        message(STATUS "[${CTEST_BUILD_NAME}] ${_CTEST_VERB} CTEST_CONFIGURE stage...")
         message(STATUS "")
         ctest_configure(BUILD "${CTEST_BINARY_DIRECTORY}"
                     SOURCE ${CTEST_SOURCE_DIRECTORY}
@@ -136,7 +141,7 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
     #
     if("${DO_BUILD}" GREATER -1 AND NOT "${CTEST_BUILD_COMMAND}" STREQUAL "")
         message(STATUS "")
-        message(STATUS "[${CTEST_BUILD_NAME}] Running CTEST_BUILD stage...")
+        message(STATUS "[${CTEST_BUILD_NAME}] ${_CTEST_VERB} CTEST_BUILD stage...")
         message(STATUS "")
         ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}"
                     ${_CTEST_APPEND}
@@ -157,7 +162,7 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
     #
     if("${DO_TEST}" GREATER -1)
         message(STATUS "")
-        message(STATUS "[${CTEST_BUILD_NAME}] Running CTEST_TEST stage...")
+        message(STATUS "[${CTEST_BUILD_NAME}] ${_CTEST_VERB} CTEST_TEST stage...")
         message(STATUS "")
         ctest_test(RETURN_VALUE test_ret
                     ${_CTEST_APPEND}
@@ -182,7 +187,7 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
     #
     if("${DO_COVERAGE}" GREATER -1 AND NOT "${CTEST_COVERAGE_COMMAND}" STREQUAL "")
         message(STATUS "")
-        message(STATUS "[${CTEST_BUILD_NAME}] Running CTEST_COVERAGE stage...")
+        message(STATUS "[${CTEST_BUILD_NAME}] ${_CTEST_VERB} CTEST_COVERAGE stage...")
         message(STATUS "")
         execute_process(COMMAND ${CTEST_COVERAGE_COMMAND} ${CTEST_COVERAGE_EXTRA_FLAGS}
             WORKING_DIRECTORY ${CTEST_BINARY_DIRECTORY}
@@ -190,7 +195,6 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
         ctest_coverage(${_CTEST_APPEND}
                     ${_CTEST_COVERAGE_LABELS}
                     RETURN_VALUE cov_ret)
-
         # remove the "coverage.xml" file after it has been processed
         # on macOS because the file-system is not case-sensitive
         if(APPLE AND EXISTS "${CTEST_BINARY_DIRECTORY}/coverage.xml")
@@ -198,7 +202,6 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
                 -E remove ${CTEST_BINARY_DIRECTORY}/coverage.xml
                 ERROR_QUIET)
         endif()
-
     else()
         message(STATUS "")
         message(STATUS "[${CTEST_BUILD_NAME}] Skipping CTEST_COVERAGE stage...")
@@ -210,7 +213,7 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
     #
     if("${DO_MEMCHECK}" GREATER -1 AND NOT "${CTEST_MEMORYCHECK_COMMAND}" STREQUAL "")
         message(STATUS "")
-        message(STATUS "[${CTEST_BUILD_NAME}] Running CTEST_MEMCHECK stage...")
+        message(STATUS "[${CTEST_BUILD_NAME}] ${_CTEST_VERB} CTEST_MEMCHECK stage...")
         message(STATUS "")
         ctest_memcheck(RETURN_VALUE mem_ret
                     ${_CTEST_APPEND}
@@ -231,7 +234,7 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
     #-------------------------------------------------------------------------#
     # Submit
     #
-    if("${DO_SUBMIT}" GREATER -1 OR "${DO_TRIGGER}" GREATER -1)
+    if("${DO_SUBMIT}" GREATER -1)
         message(STATUS "")
         message(STATUS "[${CTEST_BUILD_NAME}] Running CTEST_SUBMIT stage...")
         message(STATUS "")

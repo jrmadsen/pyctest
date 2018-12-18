@@ -118,7 +118,8 @@ pycmExecuteProcessCommand::pycmExecuteProcessCommand()
 , m_out_strip(false)
 , m_err_strip(true)
 , m_encoding(cmProcessOutput::None)
-{}
+{
+}
 
 //============================================================================//
 
@@ -146,7 +147,8 @@ pycmExecuteProcessCommand::operator()()
     //------------------------------------------------------------------------//
     auto strvec_to_charvec = [](const strvec_t& _array) {
         charvec_t _carray;
-        for(const auto& itr : _array) _carray.push_back(itr.c_str());
+        for(const auto& itr : _array)
+            _carray.push_back(itr.c_str());
         return _carray;
     };
     //------------------------------------------------------------------------//
@@ -181,7 +183,8 @@ pycmExecuteProcessCommand::operator()()
     }
 
     std::vector<std::vector<const char*>> cmds;
-    for(const auto& itr : m_args_list) cmds.push_back(strvec_to_charvec(itr));
+    for(const auto& itr : m_args_list)
+        cmds.push_back(strvec_to_charvec(itr));
 
     bool&        output_quiet                     = m_out_quiet;
     bool&        error_quiet                      = m_err_quiet;
@@ -229,7 +232,8 @@ pycmExecuteProcessCommand::operator()()
     cmsysProcess* cp = cmsysProcess_New();
 
     // Set the command sequence.
-    for(auto const& cmd : cmds) cmsysProcess_AddCommand(cp, &*cmd.begin());
+    for(auto const& cmd : cmds)
+        cmsysProcess_AddCommand(cp, &*cmd.begin());
 
     // Set the process working directory.
     if(!working_directory.empty())

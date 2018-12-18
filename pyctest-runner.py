@@ -5,8 +5,11 @@ import pyctest.pyctest as pyctest
 import pyctest.helpers as helpers
 
 if __name__ == "__main__":
-    args = helpers.ArgumentParser("PyCTest", os.getcwd(), os.getcwd()).parse_args()
-    pyctest.UPDATE_COMMAND = "git"
+    cwd = os.getcwd()
+    args = helpers.ArgumentParser("PyCTest", cwd, cwd,
+                                  vcs_type="git", use_launchers=True,
+                                  build_type="MinSizeRel").parse_args()
+    pyctest.DROP_SITE = "cdash.nersc.gov"
     pyctest.CONFIGURE_COMMAND = "{} setup.py configure".format(pyctest.PYTHON_EXECUTABLE)
     pyctest.BUILD_COMMAND = "{} setup.py install".format(pyctest.PYTHON_EXECUTABLE)
 

@@ -182,7 +182,8 @@ class cmakeWrapper
 public:
     cmakeWrapper(cmake* obj)
     : m_cmake(obj)
-    {}
+    {
+    }
 
     ~cmakeWrapper() {}
 

@@ -85,7 +85,7 @@ install:
     - conda update -q conda ;
     - conda info -a ;
     - conda install -n base -c jrmadsen -c conda-forge python=${TRAVIS_PYTHON_VERSION} pyctest ;
-    - python ./pyctest-runner.py
+    - python ./pyctest-runner.py --pyctest-submit --pyctest-site=Travis
 
 script:
     #

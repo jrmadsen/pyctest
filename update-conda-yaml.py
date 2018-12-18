@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 
-import os
-import sys
-import traceback
-import subprocess as sp
+import os, sys, traceback, subprocess as sp
+
 
 def read_file(fname):
     content = []
@@ -14,10 +12,12 @@ def read_file(fname):
     content = [x.strip("\n") for x in content]
     return content
 
-def main(new_git_rev):
-    content = read_file("meta.yaml")
 
-    fm = open("meta.yaml", "w")
+def main(new_git_rev):
+    meta_file = os.path.join("recipe", "meta.yaml")
+    content = read_file(meta_file)
+
+    fm = open(meta_file, "w")
     old_git_rev = ""
     for l in content:
         lstrip = l.strip().strip("-").strip("\t")
@@ -42,7 +42,6 @@ if __name__ == "__main__":
             process = sp.Popen(['git', 'rev-parse', 'HEAD'], stdout=sp.PIPE)
             out, err = process.communicate()
             git_rev = "{}".format(out.decode("utf-8").strip())
-            #git_rev = sp.check_output(['git', 'rev-parse', 'HEAD']).strip()
         else:
             git_rev = sys.argv[1]
 

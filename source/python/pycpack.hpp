@@ -125,7 +125,8 @@ cpack_main_driver(int ac, char const* const* av);
 //----------------------------------------------------------------------------//
 
 class pycpack
-{};
+{
+};
 
 //----------------------------------------------------------------------------//
 
@@ -134,7 +135,8 @@ class cpackWrapper
 public:
     cpackWrapper(pycpack* obj)
     : m_cpack(obj)
-    {}
+    {
+    }
 
     ~cpackWrapper() {}
 

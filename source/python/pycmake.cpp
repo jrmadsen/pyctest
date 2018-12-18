@@ -180,7 +180,8 @@ pycm::cmakemainProgressCallback(const char* m, float prog, void* clientdata)
     {
         dir = " ";
         dir += mf->GetCurrentSourceDirectory();
-    } else if((mf) && (strstr(m, "Generating") == m))
+    }
+    else if((mf) && (strstr(m, "Generating") == m))
     {
         dir = " ";
         dir += mf->GetCurrentBinaryDirectory();
@@ -268,11 +269,13 @@ pycm::do_cmake(int ac, char const* const* av)
         {
             list_cached = true;
             list_help   = true;
-        } else if(strcmp(av[i], "-LAH") == 0)
+        }
+        else if(strcmp(av[i], "-LAH") == 0)
         {
             list_all_cached = true;
             list_help       = true;
-        } else if(cmHasLiteralPrefix(av[i], "-P"))
+        }
+        else if(cmHasLiteralPrefix(av[i], "-P"))
         {
             if(i == ac - 1)
                 cmSystemTools::Error("No script specified for argument -P");
@@ -283,11 +286,13 @@ pycm::do_cmake(int ac, char const* const* av)
                 i++;
                 args.push_back(av[i]);
             }
-        } else if(cmHasLiteralPrefix(av[i], "--find-package"))
+        }
+        else if(cmHasLiteralPrefix(av[i], "--find-package"))
         {
             workingMode = cmake::FIND_PACKAGE_MODE;
             args.push_back(av[i]);
-        } else
+        }
+        else
             args.push_back(av[i]);
     }
     if(sysinfo)
@@ -380,8 +385,9 @@ pycm::do_build(int ac, char const* const* av)
         if(doing == DoingNative)
         {
             nativeOptions.push_back(av[i]);
-        } else if((strcmp(av[i], "-j") == 0) ||
-                  (strcmp(av[i], "--parallel") == 0))
+        }
+        else if((strcmp(av[i], "-j") == 0) ||
+                (strcmp(av[i], "--parallel") == 0))
         {
             jobs = cmake::DEFAULT_BUILD_PARALLEL_LEVEL;
             /* does the next argument start with a number? */
@@ -389,33 +395,40 @@ pycm::do_build(int ac, char const* const* av)
             {
                 doing = DoingJobs;
             }
-        } else if(strcmp(av[i], "--target") == 0)
+        }
+        else if(strcmp(av[i], "--target") == 0)
         {
             if(!hasTarget)
             {
                 doing     = DoingTarget;
                 hasTarget = true;
-            } else
+            }
+            else
             {
                 std::cerr
                     << "'--target' may not be specified more than once.\n\n";
                 dir.clear();
                 break;
             }
-        } else if(strcmp(av[i], "--config") == 0)
+        }
+        else if(strcmp(av[i], "--config") == 0)
         {
             doing = DoingConfig;
-        } else if(strcmp(av[i], "--clean-first") == 0)
+        }
+        else if(strcmp(av[i], "--clean-first") == 0)
         {
             clean = true;
             doing = DoingNone;
-        } else if(strcmp(av[i], "--use-stderr") == 0)
+        }
+        else if(strcmp(av[i], "--use-stderr") == 0)
         {
             /* tolerate legacy option */
-        } else if(strcmp(av[i], "--") == 0)
+        }
+        else if(strcmp(av[i], "--") == 0)
         {
             doing = DoingNative;
-        } else
+        }
+        else
         {
             switch(doing)
             {
@@ -426,7 +439,8 @@ pycm::do_build(int ac, char const* const* av)
                     {
                         jobs  = int(numJobs);
                         doing = DoingNone;
-                    } else
+                    }
+                    else
                     {
                         std::cerr << "'" << av[i - 1] << "' invalid number '"
                                   << av[i] << "' given.\n\n";
@@ -463,13 +477,15 @@ pycm::do_build(int ac, char const* const* av)
             if(parallel.empty())
             {
                 jobs = cmake::DEFAULT_BUILD_PARALLEL_LEVEL;
-            } else
+            }
+            else
             {
                 unsigned long numJobs = 0;
                 if(cmSystemTools::StringToULong(parallel.c_str(), &numJobs))
                 {
                     jobs = int(numJobs);
-                } else
+                }
+                else
                 {
                     std::cerr
                         << "'CMAKE_BUILD_PARALLEL_LEVEL' environment variable\n"
@@ -612,7 +628,8 @@ PYBIND11_MODULE(pycmake, cm)
     auto exec = [=](std::vector<std::string> pargs) {
         // convert list elements to char*
         charvec_t cargs;
-        for(auto itr : pargs) cargs.push_back(str2char_convert(itr));
+        for(auto itr : pargs)
+            cargs.push_back(str2char_convert(itr));
 
         // structures passed
         int    argc = pargs.size() + 1;
@@ -623,7 +640,8 @@ PYBIND11_MODULE(pycmake, cm)
         argv[0]   = str2char_convert(_exe);
 
         // fill argv
-        for(unsigned i = 1; i < argc; ++i) argv[i] = cargs[i - 1];
+        for(unsigned i = 1; i < argc; ++i)
+            argv[i] = cargs[i - 1];
 
         // run
         return pycm::cmake_main_driver(argc, argv);
@@ -637,7 +655,8 @@ PYBIND11_MODULE(pycmake, cm)
             cargs.push_back(str2char_convert(itr.cast<string_t>()));
 
         // convert list elements to char*
-        for(auto itr : pargs) cargs.push_back(str2char_convert(itr));
+        for(auto itr : pargs)
+            cargs.push_back(str2char_convert(itr));
 
         // add the source directory
         cargs.push_back(
@@ -652,7 +671,8 @@ PYBIND11_MODULE(pycmake, cm)
         argv[0]   = str2char_convert(_exe);
 
         // fill argv
-        for(unsigned i = 1; i < argc; ++i) argv[i] = cargs[i - 1];
+        for(unsigned i = 1; i < argc; ++i)
+            argv[i] = cargs[i - 1];
 
         // change working directory
         auto locals = py::dict("binary_dir"_a = binary_dir);

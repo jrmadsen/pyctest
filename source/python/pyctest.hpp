@@ -116,7 +116,8 @@
 template <typename _Tp, typename... _Args>
 void
 consume_parameters(_Tp, _Args...)
-{}
+{
+}
 
 //============================================================================//
 
@@ -228,7 +229,8 @@ template <typename _Tp> class pycmWrapper
 public:
     pycmWrapper(_Tp* _type)
     : m_type(_type)
-    {}
+    {
+    }
     ~pycmWrapper() {}
          operator _Tp*() { return m_type; }
     _Tp* get() const { return m_type; }
@@ -243,7 +245,8 @@ public:
     pycmTest(string_t name = "", strvec_t cmd = strvec_t())
     : m_name(name)
     , m_command(cmd)
-    {}
+    {
+    }
 
     ~pycmTest() {}
 
@@ -292,7 +295,8 @@ public:
 public:
     pycmTestWrapper(pycmTest* test)
     : wrapper_t(test)
-    {}
+    {
+    }
 };
 //----------------------------------------------------------------------------//
 class pycmTestGenerator : public cmScriptGenerator
@@ -339,7 +343,8 @@ public:
     , m_cache(cache_t::NONE)
     , m_doc("")
     , m_force(false)
-    {}
+    {
+    }
 
     pycmVariable(const string_t& var, const string_t& val, cache_t type,
                  const string_t& doc, bool force)
@@ -348,7 +353,8 @@ public:
     , m_cache(type)
     , m_doc(doc)
     , m_force(force)
-    {}
+    {
+    }
 
     const string_t& variable() const { return m_var; }
     const string_t& value() const { return m_val; }
@@ -382,13 +388,15 @@ public:
         auto string_is_bool = [=](string_t _str) {
             if(_str.length() == 0)
                 return NON_BOOL;
-            for(auto& itr : _str) itr = static_cast<char>(tolower(itr));
+            for(auto& itr : _str)
+                itr = static_cast<char>(tolower(itr));
 
             if(_str.find("0123456789") != string_t::npos && _str.length() == 1)
             {
                 if(_str.find_first_not_of("0123456789") == string_t::npos)
                     return (string_to_int(_str) == 0) ? BOOL_FALSE : BOOL_TRUE;
-            } else if(_str == "on" || _str == "true")
+            }
+            else if(_str == "on" || _str == "true")
                 return BOOL_TRUE;
             else if(_str == "off" || _str == "false")
                 return BOOL_FALSE;
@@ -408,23 +416,12 @@ public:
             ss << " ";
             switch(m_cache)
             {
-                case cache_t::BOOL:
-                    ss << "BOOL";
-                    break;
-                case cache_t::FILEPATH:
-                    ss << "FILEPATH";
-                    break;
-                case cache_t::PATH:
-                    ss << "PATH";
-                    break;
-                case cache_t::STRING:
-                    ss << "STRING";
-                    break;
-                case cache_t::INTERNAL:
-                    ss << "INTERNAL";
-                    break;
-                case cache_t::NONE:
-                    break;
+                case cache_t::BOOL: ss << "BOOL"; break;
+                case cache_t::FILEPATH: ss << "FILEPATH"; break;
+                case cache_t::PATH: ss << "PATH"; break;
+                case cache_t::STRING: ss << "STRING"; break;
+                case cache_t::INTERNAL: ss << "INTERNAL"; break;
+                case cache_t::NONE: break;
             }
             ss << " " << quote << m_doc << quote;
             if(m_force)
@@ -450,7 +447,8 @@ public:
 public:
     pycmVariableWrapper(pycmVariable* _variable)
     : wrapper_t(_variable)
-    {}
+    {
+    }
 };
 //----------------------------------------------------------------------------//
 test_list_t*
@@ -536,7 +534,8 @@ get_command(py::object self)
     pyobj_cast(_self, pycmTestWrapper, self);
     strvec_t cxxcmd = _self->get()->GetCommand();
     py::list pycmd;
-    for(const auto& itr : cxxcmd) pycmd.append(itr);
+    for(const auto& itr : cxxcmd)
+        pycmd.append(itr);
     return pycmd;
 }
 //----------------------------------------------------------------------------//
@@ -595,7 +594,8 @@ generate_test_file(string_t dir = "")
     {
         std::cerr << __FUNCTION__ << ":: Warning! No tests to generate!!!"
                   << std::endl;
-    } else
+    }
+    else
     {
         std::ofstream         ofs(fname.c_str());
         test_generator_list_t generator_list;
@@ -613,7 +613,8 @@ generate_test_file(string_t dir = "")
                           << "\"..." << std::endl;
                 itr->Generate(ofs, "", configs);
             }
-        } else
+        }
+        else
             std::cerr << __FUNCTION__ << ":: Error opening " << fname << "!!!"
                       << std::endl;
     }
