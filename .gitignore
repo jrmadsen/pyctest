@@ -12,3 +12,9 @@
 /.vscode
 /Testing
 /examples/Basic/pycm-test
+/CTestTestfile.cmake
+/Stages.cmake
+/Utilities.cmake
+/Init.cmake
+/CTestConfig.cmake
+/CTestCustom.cmake

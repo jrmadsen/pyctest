@@ -24,6 +24,13 @@
 # SOFTWARE.
 #
 
+"""
+PyCTest is an extension that directly hooks into the CMake/CTest libraries.
+Instead of generating CMake/CTest files, it use the library itself. Since
+the CMake version is directly controlled as a git submodule, there are no
+external compatibility issues.
+"""
+
 from __future__ import absolute_import
 
 import os

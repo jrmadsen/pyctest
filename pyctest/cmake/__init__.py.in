@@ -24,6 +24,11 @@
 # SOFTWARE.
 #
 
+"""
+Direct interface to CMake executable:
+    `$ python -m pyctest.cmake <ARGS>`
+"""
+
 from __future__ import absolute_import
 import os, sys, imp, ctypes, platform, warnings
 

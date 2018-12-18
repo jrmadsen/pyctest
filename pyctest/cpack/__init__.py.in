@@ -24,6 +24,11 @@
 # SOFTWARE.
 #
 
+"""
+Direct interface to CPack executable:
+    `$ python -m pyctest.cpack <ARGS>`
+"""
+
 from __future__ import absolute_import
 import os, sys, imp, ctypes, platform, warnings
 

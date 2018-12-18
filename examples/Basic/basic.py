@@ -37,4 +37,4 @@ if __name__ == "__main__":
                  {"RUN_SERIAL" : "ON", "TIMEOUT" : "10", "LABELS" : "network"})
 
     # run CTest -- e.g. ctest -VV ${PWD}/pycm-test
-    pyctest.run(pyctest.ARGUMENTS, directory)
+    pyctest.run()
