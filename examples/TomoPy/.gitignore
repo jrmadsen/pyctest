@@ -1,4 +1,4 @@
 
 # from running pyctest
-/tomopy-ctest
-/tomopy-source
+/tomopy-src
+/tomopy-bin

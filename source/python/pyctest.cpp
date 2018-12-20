@@ -673,8 +673,6 @@ PYBIND11_MODULE(pyctest, ct)
                  if not os.path.exists(_cdash_path):
                      print("Warning! CDash directory not found @ '{}'".format(_cdash_path))
                  else:
-                     #types = [ "Build", "Coverage", "Glob", "Init", "MemCheck",
-                     #           "Stages", "Submit", "Test", "Utilities"]
                      types = [ "Stages", "Init", "Utilities" ]
                      for f in types:
                          fsrc = os.path.join(_cdash_path, "{}.cmake".format(f))
@@ -813,31 +811,9 @@ PYBIND11_MODULE(pyctest, ct)
         auto locals = py::dict("binary_dir"_a  = binary_dir,
                                "working_dir"_a = working_dir);
 
-        /*py::exec(R"(
-                import os, sys
-                _ctest_config = False
-                _ctest_custom = False
-                _cdash_config = False
-                _ctest_testfile = False
-                if os.path.exists(os.path.join(binary_dir,
-        "CTestConfig.cmake")): _ctest_config = True if
-        os.path.exists(os.path.join(binary_dir, "CTestCustom.cmake")):
-                    _ctest_custom = True
-                if os.path.exists(os.path.join(binary_dir, "Init.cmake")):
-                    _cdash_config = True
-                if os.path.exists(os.path.join(working_dir,
-        "CTestTestfile.cmake")): _ctest_testfile = True
-                )",
-                 py::globals(), locals);
-
-        bool _ctest_config   = locals["_ctest_config"].cast<bool>();
-        bool _ctest_custom   = locals["_ctest_custom"].cast<bool>();
-        bool _cdash_config   = locals["_cdash_config"].cast<bool>();
-        bool _ctest_testfile = locals["_ctest_testfile"].cast<bool>();*/
-
-        generate_ctest_config(binary_dir);
-        generate_custom_config(binary_dir);
-        copy_cdash(binary_dir);
+        generate_ctest_config(working_dir);
+        generate_custom_config(working_dir);
+        copy_cdash(working_dir);
         generate_test_file(working_dir);
 
         charvec_t cargs;

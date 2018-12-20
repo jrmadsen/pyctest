@@ -334,6 +334,15 @@ class ArgumentParser(argparse.ArgumentParser):
                                              conflict_handler=conflict_handler,
                                              add_help=add_help)
 
+        self.checkout_command = checkout_command
+        self.update_command = checkout_command
+        self.configure_command = configure_command
+        self.build_command = build_command
+        self.coverage_command = coverage_command
+        self.memcheck_command = memcheck_command
+        self.cleanup_extra = cleanup_extra
+        self.cleanup_exclude = cleanup_exclude
+
         if checkout_command is not None:
             pyctest.CHECKOUT_COMMAND = "{}".format(checkout_command)
 
@@ -426,7 +435,7 @@ class ArgumentParser(argparse.ArgumentParser):
         self.add_argument("--pyctest-cleanup",
                           help=("Remove standard PyCTest files and binary directory"
                                 + " (if not source directory) and exit"),
-                          action="store_true")
+                          nargs='+', type=str)
         self.add_argument("--pyctest-token",
                           help="CTest site token for submission",
                           type=str)
@@ -503,7 +512,8 @@ class ArgumentParser(argparse.ArgumentParser):
 
         # cleanup
         if args.pyctest_cleanup:
-            Cleanup(binary_dir, cleanup_extra, cleanup_exclude)
+            for dir in args.pyctest_cleanup:
+                Cleanup(dir, self.cleanup_extra, self.cleanup_exclude)
             if source_dir != binary_dir:
                 RemovePath(binary_dir)
             sys.exit(0)
@@ -519,7 +529,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
         # clean
         if args.pyctest_clean_first:
-            Cleanup(binary_dir, cleanup_extra, cleanup_exclude)
+            Cleanup(binary_dir, self.cleanup_extra, self.cleanup_exclude)
             if source_dir != binary_dir:
                 RemovePath(binary_dir)
 

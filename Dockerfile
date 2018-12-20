@@ -22,7 +22,6 @@ RUN conda install -y -n root python=${PYTHON_VERSION} && \
     git clone -b ${BRANCH} https://github.com/jrmadsen/pyctest.git ${HOME}/pyctest && \
     cd ${HOME}/pyctest && \
     echo -e "\n\nUsing python = $(which python)\n\n" && \
-    export PYCTEST_BUILD_TYPE=RelWithDebInfo &&	\
     python setup.py install && \
     cd ${HOME} && \
     rm -rf ${HOME}/pyctest && \

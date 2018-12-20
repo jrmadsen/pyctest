@@ -1,25 +1,41 @@
+#####################
 # direct includes
+#####################
 include CMakeLists.txt
 include CTestConfig.cmake
 include VERSION
 include LICENSE
 include .license.c
 include .license.py
-include build.sh
-include bld.bat
-include meta.yaml
 include README.md
 include CHANGES.md
+include pyctest-runner.py
+#####################
 # recursive includes
+#####################
+recursive-include recipe *
 recursive-include cmake *
 recursive-include examples *
 recursive-include source *
 recursive-include pyctest *
+#####################
+# exclude
+#####################
+exclude CTestCustom.cmake
+exclude CTestConfig.cmake
+exclude CTestTestfile.cmake
+exclude Init.cmake
+exclude Stages.cmake
+exclude Utilities.cmake
+#####################
 # global exclude
+#####################
 global-exclude *.pyc
 global-exclude *.git*
 global-exclude *__pycache__*
+#####################
 # recursive excludes
+#####################
 recursive-exclude pybind11/docs/.build *
 recursive-exclude _skbuild *
 recursive-exclude build *

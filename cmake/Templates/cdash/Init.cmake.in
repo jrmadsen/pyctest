@@ -1,78 +1,15 @@
 
 # include guard
-if(__cdashinit_is_loaded)
+if(__pyctestinit_is_loaded)
     return()
 endif()
-set(__cdashinit_is_loaded ON)
+set(__pyctestinit_is_loaded ON)
 
 include(ProcessorCount)
 ProcessorCount(CTEST_PROCESSOR_COUNT)
 
 cmake_policy(SET CMP0009 NEW)
 cmake_policy(SET CMP0011 NEW)
-
-# ---------------------------------------------------------------------------- #
-# -- Defaults
-# ---------------------------------------------------------------------------- #
-set(CTEST_GENERATOR_PLATFORM "@CMAKE_GENERATOR_PLATFORM@")
-set(CTEST_TRIGGER "Any" CACHE STRING "Delay submit until CTEST_TRIGGER == '(Any|Build|Test|Coverage|MemCheck)'")
-
-
-# ---------------------------------------------------------------------------- #
-# -- Programs
-# ---------------------------------------------------------------------------- #
-find_program(CTEST_CMAKE_COMMAND    NAMES cmake)
-find_program(CTEST_UNAME_COMMAND    NAMES uname)
-find_program(CTEST_GIT_COMMAND      NAMES git)
-find_program(CTEST_VALGRIND_COMMAND NAMES valgrind)
-find_program(CTEST_GNU_COV_COMMAND  NAMES gcov)
-find_program(CTEST_LLVM_COV_COMMAND NAMES llvm-cov)
-
-
-# ---------------------------------------------------------------------------- #
-# Use uname
-# ---------------------------------------------------------------------------- #
-function(GET_UNAME NAME FLAG)
-    # checking if worked
-    set(_RET 1)
-    # iteration limiting
-    set(_NITER 0)
-    set(_NAME "")
-    while(_RET GREATER 0 AND _NITER LESS 100 AND "${_NAME}" STREQUAL "")
-        execute_process(COMMAND ${CTEST_UNAME_COMMAND} ${FLAG}
-            OUTPUT_VARIABLE _NAME
-            WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-            RESULT_VARIABLE _RET
-            OUTPUT_STRIP_TRAILING_WHITESPACE)
-        math(EXPR _NITER "${_NITER}+1")
-    endwhile(_RET GREATER 0 AND _NITER LESS 100 AND "${_NAME}" STREQUAL "")
-    # fail if not successful
-    if(_RET GREATER 0)
-        message(FATAL_ERROR
-            "Unable to successfully execute: '${CTEST_UNAME_COMMAND} ${FLAG}'")
-    endif(_RET GREATER 0)
-    # set the variable in parent scope
-    set(${NAME} ${_NAME} PARENT_SCOPE)
-endfunction(GET_UNAME NAME FLAG)
-
-
-# ---------------------------------------------------------------------------- #
-# Get the OS machine hardware name (e.g. x86_64)
-# ---------------------------------------------------------------------------- #
-function(GET_OS_MACHINE_HARDWARE_NAME VAR)
-    get_uname(_VAR -m)
-    set(${VAR} ${_VAR} PARENT_SCOPE)
-endfunction(GET_OS_MACHINE_HARDWARE_NAME VAR)
-
-
-# ---------------------------------------------------------------------------- #
-# Get the OS system name (e.g. Darwin, Linux)
-# ---------------------------------------------------------------------------- #
-function(GET_OS_SYSTEM_NAME VAR)
-    get_uname(_VAR -s)
-    set(${VAR} ${_VAR} PARENT_SCOPE)
-endfunction(GET_OS_SYSTEM_NAME VAR)
-
 
 # ---------------------------------------------------------------------------- #
 # -- Include file if exists
@@ -95,6 +32,16 @@ endmacro(include_if _TESTFILE)
 set(CTEST_TIMEOUT           "7200")
 ## -- Set output to English
 set(ENV{LC_MESSAGES}        "en_EN" )
+
+
+# ---------------------------------------------------------------------------- #
+# -- Set if defined
+# ---------------------------------------------------------------------------- #
+macro(SET_IF_DEFINED IF_DEF_VAR PREFIX_VAR SET_VAR)
+    if(DEFINED "${IF_DEF_VAR}")
+        set(${SET_VAR} "${PREFIX_VAR} \"${${IF_DEF_VAR}}\"")
+    endif()
+endmacro()
 
 
 # ---------------------------------------------------------------------------- #
@@ -209,61 +156,3 @@ macro(SUBMIT_COMMAND)
     endif(NOT CTEST_USE_TOKEN)
 
 endmacro(SUBMIT_COMMAND)
-
-
-# ---------------------------------------------------------------------------- #
-# -- Determine if submit time
-# ---------------------------------------------------------------------------- #
-macro(SUBMIT KEY)
-
-    if("${CTEST_TRIGGER}" STREQUAL "Any" OR "${CTEST_TRIGGER}" STREQUAL "Submit")
-        submit_command(${ARGN})
-    else("${CTEST_TRIGGER}" STREQUAL "Any" OR "${CTEST_TRIGGER}" STREQUAL "Submit")
-        if("${CTEST_TRIGGER}" STREQUAL "${KEY}")
-            submit_command(${ARGN})
-        endif("${CTEST_TRIGGER}" STREQUAL "${KEY}")
-    endif("${CTEST_TRIGGER}" STREQUAL "Any" OR "${CTEST_TRIGGER}" STREQUAL "Submit")
-
-endmacro(SUBMIT KEY)
-
-
-# ---------------------------------------------------------------------------- #
-# -- Setup the test
-# ---------------------------------------------------------------------------- #
-macro(SETUP KEY)
-
-    if("${CTEST_TRIGGER}" STREQUAL "Any" OR "${KEY}" STREQUAL "Build")
-
-        message(STATUS "Key (${KEY}) triggered a fresh build...")
-        copy_ctest_config_files()
-        ctest_read_custom_files("${CMAKE_CURRENT_LIST_DIR}")
-
-        ctest_start(${CTEST_MODEL}   TRACK ${CTEST_MODEL})
-
-        copy_ctest_config_files()
-        ctest_read_custom_files("${CTEST_BINARY_DIRECTORY}")
-
-        if(NOT "${CTEST_CONFIGURE_COMMAND}" STREQUAL "")
-            ctest_configure (BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE ret)
-        endif(NOT "${CTEST_CONFIGURE_COMMAND}" STREQUAL "")
-        if(NOT "${CTEST_UPDATE_COMMAND}" STREQUAL "")
-            ctest_update    (BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE ret)
-        endif(NOT "${CTEST_UPDATE_COMMAND}" STREQUAL "")
-        if(NOT "${CTEST_BUILD_COMMAND}" STREQUAL "")
-            ctest_build     (BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE ret)
-        endif(NOT "${CTEST_BUILD_COMMAND}" STREQUAL "")
-
-    else("${CTEST_TRIGGER}" STREQUAL "Any" OR "${KEY}" STREQUAL "Build")
-
-        unset(CTEST_CHECKOUT_COMMAND)
-        copy_ctest_config_files()
-        ctest_read_custom_files("${CMAKE_CURRENT_LIST_DIR}")
-
-        ctest_start(${CTEST_MODEL}   TRACK ${CTEST_MODEL} APPEND)
-
-        copy_ctest_config_files()
-        ctest_read_custom_files("${CTEST_BINARY_DIRECTORY}")
-
-    endif("${CTEST_TRIGGER}" STREQUAL "Any" OR "${KEY}" STREQUAL "Build")
-
-endmacro(SETUP KEY)
