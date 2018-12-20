@@ -108,7 +108,8 @@ class CMakeConfigure(build_ext, Command):
     #--------------------------------------------------------------------------#
     # init
     def __init__(self, *args, **kwargs):
-        super(CMakeConfigure, self).__init__(*args, **kwargs)
+        build_ext.__init__(self, *args, **kwargs)
+        Command.__init__(self, *args, **kwargs)
 
 
     #--------------------------------------------------------------------------#
@@ -301,7 +302,8 @@ class CMakeBuild(CMakeConfigure):
     #--------------------------------------------------------------------------#
     # init
     def __init__(self, *args, **kwargs):
-        super(CMakeBuild, self).__init__(*args, **kwargs)
+        CMakeConfigure.__init__(self, *args, **kwargs)
+
 
     #--------------------------------------------------------------------------#
     # run
@@ -336,7 +338,7 @@ class CMakeBuild(CMakeConfigure):
 
         cache_file = os.path.join(extdir, "CMakeCache.txt")
         if not os.path.exists(extdir) or not os.path.exists(cache_file):
-            super(CMakeBuild, self).build_extension(ext)
+            CMakeConfigure.build_extension(self, ext)
 
         #----------------------------------------------------------------------#
         #
