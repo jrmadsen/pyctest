@@ -12,6 +12,34 @@ cmake_policy(SET CMP0009 NEW)
 cmake_policy(SET CMP0011 NEW)
 
 # ---------------------------------------------------------------------------- #
+# -- Commands
+# ---------------------------------------------------------------------------- #
+find_program(CTEST_CMAKE_COMMAND    NAMES cmake)
+find_program(CTEST_UNAME_COMMAND    NAMES uname)
+
+find_program(CTEST_BZR_COMMAND      NAMES bzr)
+find_program(CTEST_CVS_COMMAND      NAMES cvs)
+find_program(CTEST_GIT_COMMAND      NAMES git)
+find_program(CTEST_HG_COMMAND       NAMES hg)
+find_program(CTEST_P4_COMMAND       NAMES p4)
+find_program(CTEST_SVN_COMMAND      NAMES svn)
+
+find_program(VALGRIND_COMMAND       NAMES valgrind)
+find_program(GCOV_COMMAND           NAMES gcov)
+find_program(LCOV_COMMAND           NAMES llvm-cov)
+find_program(MEMORYCHECK_COMMAND    NAMES valgrind )
+
+set(MEMORYCHECK_TYPE Valgrind)
+# set(MEMORYCHECK_TYPE Purify)
+# set(MEMORYCHECK_TYPE BoundsChecker)
+# set(MEMORYCHECK_TYPE ThreadSanitizer)
+# set(MEMORYCHECK_TYPE AddressSanitizer)
+# set(MEMORYCHECK_TYPE LeakSanitizer)
+# set(MEMORYCHECK_TYPE MemorySanitizer)
+# set(MEMORYCHECK_TYPE UndefinedBehaviorSanitizer)
+set(MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full")
+
+# ---------------------------------------------------------------------------- #
 # -- Include file if exists
 # ---------------------------------------------------------------------------- #
 macro(include_if _TESTFILE)

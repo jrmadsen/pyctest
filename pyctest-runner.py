@@ -10,23 +10,25 @@ def run_pyctest():
 
     cwd = os.getcwd()
     # process standard arguments
-    args = helpers.ArgumentParser("PyCTest", cwd, cwd, vcs_type="git",
-                                build_type="MinSizeRel").parse_args()
+    helpers.ArgumentParser("PyCTest", cwd, cwd, vcs_type="git",
+                           build_type="MinSizeRel").parse_args()
     # base web address of dashboard
     pyctest.DROP_SITE = "cdash.nersc.gov"
     # custom setup.py command (runs CMake)
     pyctest.CONFIGURE_COMMAND = "python setup.py configure"
     # build and install
     pyctest.BUILD_COMMAND = "python setup.py install"
-    # create test
+    # basic example test
     examples_dir = os.path.join(pyctest.SOURCE_DIRECTORY, "examples")
     basic_dir = os.path.join(examples_dir, "Basic")
     pyctest.test(name="basic", cmd=["python", "basic.py", "--", "-VV"],
-                properties={ "WORKING_DIRECTORY" : basic_dir })
+                 properties={"WORKING_DIRECTORY": basic_dir})
+    # tomopy example test
     tomopy_dir = os.path.join(examples_dir, "TomoPy")
     pyctest.test(name="tomopy", cmd=["python", "pyctest_tomopy.py",
-        "--pyctest-stages", "Start", "Configure", "Build", "--", "-VV"],
-                properties={"WORKING_DIRECTORY": tomopy_dir})
+                                     "--pyctest-stages", "Start",
+                                     "Configure", "Build", "--", "-VV"],
+                 properties={"WORKING_DIRECTORY": tomopy_dir})
     # run stages
     pyctest.run()
 
