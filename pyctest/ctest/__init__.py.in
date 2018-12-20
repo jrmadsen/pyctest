@@ -51,6 +51,7 @@ sys.modules[__name__].__setattr__("version_info",
 # define the version string
 sys.modules[__name__].__setattr__("version", "@PYCTEST_VERSION@" )
 
+# define the build info
 sys.modules[__name__].__setattr__(
     "build_info",
     { "date" : "@PYCTEST_INSTALL_DATE@",
@@ -63,6 +64,13 @@ sys.modules[__name__].__setattr__(
       "compiler_version" : "@CMAKE_CXX_COMPILER_VERSION@"
     } )
 
+version_info = sys.modules[__name__].__getattr__("version_info")
+build_info = sys.modules[__name__].__getattr__("build_info")
+version = sys.modules[__name__].__getattr__("version")
+
+__all__ += [ 'version_info', 'version', 'build_info' ]
+
+###############################################################################
 # provide a function to run CTest
 def CTest(*_args, **_kwargs):
     import pyctest as _pyctest
