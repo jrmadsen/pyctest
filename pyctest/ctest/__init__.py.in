@@ -25,8 +25,13 @@
 #
 
 """
-Direct interface to CTest executable:
-    `$ python -m pyctest.ctest <ARGS>`
+Direct interface to CTest executable
+
+.. highlight:: bash
+.. code-block:: bash
+
+    python -m pyctest.ctest [ARG [ARG]]
+
 """
 
 from __future__ import absolute_import
@@ -42,16 +47,15 @@ __email__ = "jonrobm.programming@gmail.com"
 __status__ = "Development"
 __all__ = ["CTest"]
 
-# define the version_info
+
+#-----------------------------------------------------------------------------#
+# versioning
+#
 sys.modules[__name__].__setattr__("version_info",
                                   (@PYCTEST_VERSION_MAJOR@,
                                    @PYCTEST_VERSION_MINOR@,
                                    @PYCTEST_VERSION_PATCH@) )
-
-# define the version string
 sys.modules[__name__].__setattr__("version", "@PYCTEST_VERSION@" )
-
-# define the build info
 sys.modules[__name__].__setattr__(
     "build_info",
     { "date" : "@PYCTEST_INSTALL_DATE@",
@@ -63,21 +67,53 @@ sys.modules[__name__].__setattr__(
       "compiler_id" : "@CMAKE_CXX_COMPILER_ID@",
       "compiler_version" : "@CMAKE_CXX_COMPILER_VERSION@"
     } )
-
-version_info = sys.modules[__name__].__getattr__("version_info")
-build_info = sys.modules[__name__].__getattr__("build_info")
-version = sys.modules[__name__].__getattr__("version")
-
+version_info = sys.modules[__name__].__getattribute__("version_info")
+build_info = sys.modules[__name__].__getattribute__("build_info")
+version = sys.modules[__name__].__getattribute__("version")
 __all__ += [ 'version_info', 'version', 'build_info' ]
 
-###############################################################################
+
+#-----------------------------------------------------------------------------#
 # provide a function to run CTest
-def CTest(*_args, **_kwargs):
+#
+def CTest(*args, **kwargs):
+    '''Function for direct access to CTest
+
+    Parameters
+    ----------
+    args: list
+        List of CTest arguments (added to cmd-line in order after `kwargs`)
+    kwargs: dict
+        List of CTest variable definitions (added before `args`)
+
+    Example
+    -------
+    .. highlight:: python
+    .. code-block:: python
+
+        pyctest.ctest.CTest('-V', '-S', 'CTestScript.cmake', '-j1')
+
+    .. highlight:: python
+    .. code-block:: python
+
+        _kwargs['STAGES'] = 'Start;Update;Build;Test;Submit'
+        _args = [ '-V', '-S', 'Stages.cmake', '-j1' ]
+        pyctest.ctest.CTest(_args, _kwargs)
+    '''
+
     import pyctest as _pyctest
     import subprocess as sp
-    exe_args = list(_args)
-    for key, val in _kwargs.items():
-        exe_args.append("{}={}".format(key, val))
+
+    exe_args = []
+
+    # process dictionary (assumes defining for cache)
+    for key, val in kwargs.items():
+        exe_args.append("-D{}={}".format(key, val))
+
+    # process list of arguments (assumes proper ordering)
+    for entry in args:
+        exe_args.append("{}".format(entry)) # convert to string
+
 
     try:
         sp.check_call([_pyctest.ctest_executable] + exe_args)

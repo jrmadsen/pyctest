@@ -24,12 +24,12 @@
 # SOFTWARE.
 #
 
-"""
+'''
 PyCTest is an extension that directly hooks into the CMake/CTest libraries.
 Instead of generating CMake/CTest files, it use the library itself. Since
 the CMake version is directly controlled as a git submodule, there are no
 external compatibility issues.
-"""
+'''
 
 from __future__ import absolute_import
 
@@ -48,29 +48,29 @@ __version__ = "@PROJECT_VERSION@"
 __maintainer__ = "Jonathan Madsen"
 __email__ = "jonrobm.programming@gmail.com"
 __status__ = "Development"
-__all__ = [ 'pyctest', 'pycmake', # 'pycpack',
-            'ctest',   'cmake',   'cpack',
-            'helpers' ]
+__all__ = ['pyctest', 'pycmake', 'helpers',
+           'ctest',   'cmake',   'cpack',
+           'version_info', 'build_info', 'version',
+           'cmake_executable', 'ctest_executable', 'cpack_executable']
+__dir__ = os.path.realpath(os.path.dirname(__file__))
 
 
 from . import pyctest
 from . import pycmake
-# from . import pycpack
 from . import ctest
 from . import cmake
 from . import cpack
 from . import helpers
 
-# define the version_info
+
+#-----------------------------------------------------------------------------#
+# versioning
+#
 sys.modules[__name__].__setattr__("version_info",
                                   (@PYCTEST_VERSION_MAJOR@,
                                    @PYCTEST_VERSION_MINOR@,
                                    @PYCTEST_VERSION_PATCH@) )
-
-# define the version string
 sys.modules[__name__].__setattr__("version", "@PYCTEST_VERSION@" )
-
-# define the build info
 sys.modules[__name__].__setattr__(
     "build_info",
     { "date" : "@PYCTEST_INSTALL_DATE@",
@@ -83,44 +83,69 @@ sys.modules[__name__].__setattr__(
       "compiler_version" : "@CMAKE_CXX_COMPILER_VERSION@"
     } )
 
-version_info = sys.modules[__name__].__getattr__("version_info")
-build_info = sys.modules[__name__].__getattr__("build_info")
-version = sys.modules[__name__].__getattr__("version")
+version_info = sys.modules[__name__].__getattribute__("version_info")
+'''List of version fields'''
 
-__all__ += [ 'version_info', 'version', 'build_info' ]
+build_info = sys.modules[__name__].__getattribute__("build_info")
+'''Build information'''
 
-__dir__ = os.path.realpath(os.path.dirname(__file__))
+version = sys.modules[__name__].__getattribute__("version")
+'''Version string'''
 
+
+#-----------------------------------------------------------------------------#
+# executables
+#
 cmake_executable = os.path.join(__dir__, "bin", "cmake")
+'''Path to CMake executable'''
+
 ctest_executable = os.path.join(__dir__, "bin", "ctest")
+'''Path to CTest executable'''
+
 cpack_executable = os.path.join(__dir__, "bin", "cpack")
+'''Path to CPack executable'''
 
-__all__ += ['cmake_executable', 'ctest_executable', 'cpack_executable']
 
-def print_display():
-    _doom = """
-#############################################
-#    ______      _____ _____         _      #
-#    | ___ \    /  __ \_   _|       | |     #
-#    | |_/ /   _| /  \/ | | ___  ___| |_    #
-#    |  __/ | | | |     | |/ _ \/ __| __|   #
-#    | |  | |_| | \__/\ | |  __/\__ \ |_    #
-#    \_|   \__, |\____/ \_/\___||___/\__|   #
-#        __/ |                              #
-#        |___/                              #
-#                                           #
-#############################################\n"""
-
-    _graceful = """
+#-----------------------------------------------------------------------------#
+# display function
+#
+banner = '''
 #############################################
 #  ____  _  _  ___  ____  ____  ____  ____  #
 # (  _ \( \/ )/ __)(_  _)(  __)/ ___)(_  _) #
 #  ) __/ )  /( (__   )(   ) _) \___ \  )(   #
 # (__)  (__/  \___) (__) (____)(____/ (__)  #
 #                                           #
-#############################################\n"""
+#############################################\n'''
 
-    print("{}".format(_graceful))
+def print_display():
+    '''Prints the PyCTest banner at first import
+
+    Set :code:`PYCTEST_VERBOSE=<INT>` or :code:`PYCTEST_BANNER=<BOOL or INT>`
+    to control banner settings. Default is ON.
+    '''
+
+    verbose = os.environ.get("PYCTEST_VERBOSE")
+    if verbose is not None:
+        verbose = int(verbose)
+    else:
+        verbose = 1
+        os.environ["PYCTEST_VERBOSE"] = "{}".format(verbose)
+
+    banner = os.environ.get("PYCTEST_BANNER")
+    if banner is None:
+        banner = True if verbose > 0 else False
+    else:
+        banner.lower()
+        if banner == "on" or banner == "true":
+            banner = True
+        elif banner == "off" or banner == "false":
+            banner = False
+        else:
+            banner = bool(int(banner))
+
+    if banner:
+        print("{}".format(banner))
 
 if os.environ.get("PYCTEST_NO_DISPLAY") is None:
     print_display()
