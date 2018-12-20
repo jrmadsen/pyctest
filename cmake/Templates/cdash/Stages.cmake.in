@@ -72,6 +72,12 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
         ${CTEST_SOURCE_DIRECTORY} ${CTEST_BINARY_DIRECTORY})
 
     #-------------------------------------------------------------------------#
+    # Config
+    #
+    copy_ctest_config_files()
+    ctest_read_custom_files("${CTEST_BINARY_DIRECTORY}")
+
+    #-------------------------------------------------------------------------#
     # Update
     #
     if("${DO_UPDATE}" GREATER -1 AND (NOT "${CTEST_UPDATE_COMMAND}" STREQUAL "" OR
@@ -93,12 +99,6 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Init.cmake")
         message(STATUS "[${CTEST_BUILD_NAME}] Skipping CTEST_UPDATE stage...")
         message(STATUS "")
     endif()
-
-    #-------------------------------------------------------------------------#
-    # Config
-    #
-    copy_ctest_config_files()
-    ctest_read_custom_files("${CTEST_BINARY_DIRECTORY}")
 
     #-------------------------------------------------------------------------#
     # Configure

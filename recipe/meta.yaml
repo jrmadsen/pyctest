@@ -4,8 +4,7 @@ package:
 
 build:
   number: 0
-  # binary_relocation: False
-  # script: "{{ PYTHON }} setup.py install"  # [not win]
+  script: "{{ PYTHON }} setup.py install"  # [not win]
   script_env:
     - TMPDIR
     - CC
