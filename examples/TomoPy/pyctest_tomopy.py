@@ -40,8 +40,8 @@ def run_pyctest():
     # executables
     pyexe = pyctest.PYTHON_EXECUTABLE
     pyexe_dir = os.path.dirname(pyexe)
-    coverage_exe = helpers.FindExePath("coverage", pyexe_dir)
-    nosetests_exe = helpers.FindExePath("nosetests", pyexe_dir)
+    coverage_exe = os.path.join(pyexe_dir, "coverage")
+    nosetests_exe = os.path.join(pyexe_dir, "nosetests")
 
     # Set the build name
     pyctest.BUILD_NAME = "[{}] [{} {} {}] [Python ({}) {}]".format(
@@ -60,9 +60,12 @@ def run_pyctest():
     #--------------------------------------------------------------------------#
     # create a CTest that wraps "nosetest"
     #
-    pyctest.test("nosetests", [pyexe, coverage_exe, "run", nosetests_exe],
-        { "WORKING_DIRECTORY" : pyctest.BINARY_DIRECTORY,
-          "TIMEOUT" : "600", "ENVIRONMENT" : "OMP_NUM_THREADS=1" })
+    pyctest.test(name="nosetests",
+                 cmd=[pyexe, coverage_exe, "run", nosetests_exe],
+                 properties={
+                     "WORKING_DIRECTORY": pyctest.BINARY_DIRECTORY,
+                     "TIMEOUT": "600",
+                     "ENVIRONMENT": "OMP_NUM_THREADS=1"})
 
     pyctest.run()
 
