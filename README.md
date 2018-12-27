@@ -21,8 +21,7 @@
 
 | Name | Version | Platforms | Downloads |
 | --- | --- | --- | --- |
-| [![Conda Recipe](https://img.shields.io/badge/recipe-pyctest-green.svg)](https://anaconda.org/jrmadsen/pyctest) | [![Anaconda-Server Badge](https://anaconda.org/jrmadsen/pyctest/badges/version.svg)](https://anaconda.org/jrmadsen/pyctest) | [![Anaconda-Server Badge](https://anaconda.org/jrmadsen/pyctest/badges/platforms.svg)](https://anaconda.org/jrmadsen/pyctest) | [![Anaconda-Server Badge](https://anaconda.org/jrmadsen/pyctest/badges/downloads.svg)](https://anaconda.org/jrmadsen/pyctest)
-|
+| [![Conda Recipe](https://img.shields.io/badge/recipe-pyctest-green.svg)](https://anaconda.org/jrmadsen/pyctest) | [![Anaconda-Server Badge](https://anaconda.org/jrmadsen/pyctest/badges/version.svg)](https://anaconda.org/jrmadsen/pyctest) | [![Anaconda-Server Badge](https://anaconda.org/jrmadsen/pyctest/badges/platforms.svg)](https://anaconda.org/jrmadsen/pyctest) | [![Anaconda-Server Badge](https://anaconda.org/jrmadsen/pyctest/badges/downloads.svg)](https://anaconda.org/jrmadsen/pyctest) |
 
 ## conda-forge
 
