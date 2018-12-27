@@ -24,6 +24,15 @@
 # SOFTWARE.
 #
 
+"""
+Direct interface to CMake executable:
+
+.. highlight:: bash
+.. code-block:: bash
+
+    python -m pyctest.cmake [ARG [ARG]]
+"""
+
 from __future__ import absolute_import
 import os, sys, imp, ctypes, platform, warnings
 
@@ -35,17 +44,17 @@ __version__ = "@PROJECT_VERSION@"
 __maintainer__ = "Jonathan Madsen"
 __email__ = "jonrobm.programming@gmail.com"
 __status__ = "Development"
+__all__ = ["CMake"]
 
 
-# define the version_info
+#-----------------------------------------------------------------------------#
+# versioning
+#
 sys.modules[__name__].__setattr__("version_info",
                                   (@PYCTEST_VERSION_MAJOR@,
                                    @PYCTEST_VERSION_MINOR@,
                                    @PYCTEST_VERSION_PATCH@) )
-
-# define the version string
 sys.modules[__name__].__setattr__("version", "@PYCTEST_VERSION@" )
-
 sys.modules[__name__].__setattr__(
     "build_info",
     { "date" : "@PYCTEST_INSTALL_DATE@",
@@ -57,3 +66,56 @@ sys.modules[__name__].__setattr__(
       "compiler_id" : "@CMAKE_CXX_COMPILER_ID@",
       "compiler_version" : "@CMAKE_CXX_COMPILER_VERSION@"
     } )
+version_info = sys.modules[__name__].__getattribute__("version_info")
+build_info = sys.modules[__name__].__getattribute__("build_info")
+version = sys.modules[__name__].__getattribute__("version")
+__all__ += [ 'version_info', 'version', 'build_info' ]
+
+
+#-----------------------------------------------------------------------------#
+# provide a function to run CMake
+#
+def CMake(*args, **kwargs):
+    '''Function for direct access to CMake
+
+    Parameters
+    ----------
+    args: list
+        List of CMake arguments (added to cmd-line in order after `kwargs`)
+    kwargs: dict
+        List of CMake variable definitions (added before `args`)
+
+    Example
+    -------
+    .. highlight:: python
+    .. code-block:: python
+
+        pyctest.cmake.CMake("--build", os.getcwd(), "--target", "all")
+
+    .. highlight:: python
+    .. code-block:: python
+
+        _kwargs['CMAKE_BUILD_TYPE'] = 'Debug'
+        _kwargs['CMAKE_INSTALL_PREFIX'] = '/usr/local'
+        _kwargs['BUILD_SHARED_LIBS'] = 'ON'
+        _args = [ os.path.dirname(os.getcwd()), '-G', 'Ninja' ]
+        pyctest.cmake.CMake(_args, _kwargs)
+    '''
+
+    import pyctest as _pyctest
+    import subprocess as sp
+
+    exe_args = []
+
+    # process dictionary (assumes defining for cache)
+    for key, val in kwargs.items():
+        exe_args.append("-D{}={}".format(key, val))
+
+    # process list of arguments (assumes proper ordering)
+    for entry in args:
+        exe_args.append("{}".format(entry)) # convert to string
+
+    try:
+        sp.check_call([_pyctest.cmake_executable] + exe_args)
+    except Exception as e:
+        print('Exception occurred: {}'.format(e))

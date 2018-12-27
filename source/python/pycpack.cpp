@@ -314,7 +314,8 @@ pycp::cpack_main_driver(int argc, char const* const* argv)
                                 << cpackConfigFile << "\"" << std::endl);
                 return 1;
             }
-        } else if(cpackConfigFileSpecified)
+        }
+        else if(cpackConfigFileSpecified)
         {
             cmCPack_Log(&log, cmCPackLog::LOG_ERROR,
                         "Cannot find CPack config file: \""
@@ -378,7 +379,8 @@ pycp::cpack_main_driver(int argc, char const* const* argv)
         {
             cmCPack_Log(&log, cmCPackLog::LOG_ERROR,
                         "CPack generator not specified" << std::endl);
-        } else
+        }
+        else
         {
             std::vector<std::string> generatorsVector;
             cmSystemTools::ExpandListArgument(genList, generatorsVector);
@@ -418,7 +420,8 @@ pycp::cpack_main_driver(int argc, char const* const* argv)
                     {
                         cpackGenerator->SetTrace(trace);
                         cpackGenerator->SetTraceExpand(traceExpand);
-                    } else
+                    }
+                    else
                     {
                         cmCPack_Log(&log, cmCPackLog::LOG_ERROR,
                                     "Cannot initialize CPack generator: "
@@ -556,7 +559,8 @@ PYBIND11_MODULE(pycpack, cp)
     auto exec = [=](std::vector<std::string> pargs) {
         // convert list elements to char*
         charvec_t cargs;
-        for(auto itr : pargs) cargs.push_back(str2char_convert(itr));
+        for(auto itr : pargs)
+            cargs.push_back(str2char_convert(itr));
 
         // structures passed
         int    argc = pargs.size() + 1;
@@ -567,10 +571,12 @@ PYBIND11_MODULE(pycpack, cp)
         argv[0]   = str2char_convert(_exe);
 
         // fill argv
-        for(unsigned i = 1; i < argc; ++i) argv[i] = cargs[i - 1];
+        for(unsigned i = 1; i < argc; ++i)
+            argv[i] = cargs[i - 1];
 
         std::cout << "Running: \"";
-        for(int i = 0; i < argc; ++i) std::cout << argv[i] << " ";
+        for(int i = 0; i < argc; ++i)
+            std::cout << argv[i] << " ";
         std::cout << "\"..." << std::endl;
         // run
         return pycp::cpack_main_driver(argc, argv);
@@ -580,7 +586,8 @@ PYBIND11_MODULE(pycpack, cp)
         charvec_t cargs;
 
         // convert list elements to char*
-        for(auto itr : pargs) cargs.push_back(str2char_convert(itr));
+        for(auto itr : pargs)
+            cargs.push_back(str2char_convert(itr));
 
         // structures passed
         int    argc = pargs.size() + 1;
@@ -591,7 +598,8 @@ PYBIND11_MODULE(pycpack, cp)
         argv[0]   = str2char_convert(_exe);
 
         // fill argv
-        for(unsigned i = 1; i < argc; ++i) argv[i] = cargs[i - 1];
+        for(unsigned i = 1; i < argc; ++i)
+            argv[i] = cargs[i - 1];
 
         // change working directory
         auto locals = py::dict("binary_dir"_a = binary_dir);

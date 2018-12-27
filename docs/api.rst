@@ -20,3 +20,13 @@ This section contains the API reference and usage information for PyCTest.
    :members:
    :undoc-members:
    :show-inheritance:
+
+   .. autosummary::
+        version_info
+        build_info
+        version
+        cmake_executable
+        ctest_executable
+        cpack_executable
+
+   .. autofunction:: print_display

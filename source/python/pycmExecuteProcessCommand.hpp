@@ -94,7 +94,8 @@ public:
                                  cmExecutionStatus& status) override
     {
         strvec_t expandedArgs;
-        for(const auto& itr : args) expandedArgs.push_back(itr.Value);
+        for(const auto& itr : args)
+            expandedArgs.push_back(itr.Value);
         return InitialPass(expandedArgs, status);
     }
 

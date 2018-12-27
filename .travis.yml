@@ -40,34 +40,6 @@ matrix:
         - MATRIX_EVAL="CC=$(which clang) && CXX=$(which clang++) && TRAVIS_PYTHON_VERSION=2.7 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo"
     # ------------------------------------------------------------------------ #
     #
-    #   Python 3.5
-    #
-    # ------------------------------------------------------------------------ #
-    # GCC 4.9
-    - os: linux
-      dist: trusty
-      sudo: false
-      language: python
-      python: '3.5'
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - gcc-4.9
-            - g++-4.9
-            - build-essential
-            - cmake3
-      env:
-        - MATRIX_EVAL="CC=$(which gcc-4.9) && CXX=$(which g++-4.9) && BUILD_TYPE=RelWithDebInfo"
-    # macOS
-    - os: osx
-      osx_image: xcode10
-      language: ruby
-      env:
-        - MATRIX_EVAL="CC=$(which clang) && CXX=$(which clang++) && TRAVIS_PYTHON_VERSION=3.5 && MACOSX=1 && BUILD_TYPE=RelWithDebInfo"
-    # ------------------------------------------------------------------------ #
-    #
     #   Python 3.6
     #
     # ------------------------------------------------------------------------ #
@@ -112,10 +84,8 @@ install:
     - conda config --set always_yes yes --set changeps1 no ;
     - conda update -q conda ;
     - conda info -a ;
-    - conda install -n base anaconda-client conda-build conda-verify ;
-    - conda config --set anaconda_upload no ;
-    - python update-conda-yaml.py ;
-    - conda-build --verify --python=${TRAVIS_PYTHON_VERSION} . ;
+    - conda install -n base -c jrmadsen -c conda-forge python=${TRAVIS_PYTHON_VERSION} pyctest ;
+    - python ./pyctest-runner.py --pyctest-submit --pyctest-site=Travis
 
 script:
     #

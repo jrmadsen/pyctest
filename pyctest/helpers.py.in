@@ -34,15 +34,19 @@ __version__ = "@PROJECT_VERSION@"
 __maintainer__ = "Jonathan Madsen"
 __email__ = "jonrobm.programming@gmail.com"
 __status__ = "Development"
+__all__ = ['Conda', 'FindExePath', 'RemovePath', 'Cleanup', 'GetHomePath',
+           'GetSystemVersionInfo', 'ArgumentParser']
 
 
 import os
+import re
 import sys
 import shutil
+import socket
 import platform
 import warnings
 import argparse
-
+import textwrap as _textwrap
 from . import pyctest
 from . import pycmake
 
@@ -50,9 +54,9 @@ from . import pycmake
 #------------------------------------------------------------------------------#
 #
 class Conda(object):
-    """
-    Utility class for getting relevant conda environment variables
-    """
+
+    """Utility class for getting relevant conda environment variables"""
+
     def __init__(self):
         self.prefix = os.environ.get("CONDA_PREFIX")
         self.environ = os.environ.get("CONDA_ENVIRONMENT")
@@ -73,6 +77,9 @@ class Conda(object):
 #------------------------------------------------------------------------------#
 #
 def FindExePath(name, path=None):
+
+    """Function for finding the path to an executable"""
+
     try:
         from shutil import which
         exepath = which(name, path=path)
@@ -93,9 +100,9 @@ def FindExePath(name, path=None):
 #------------------------------------------------------------------------------#
 #
 def RemovePath(path):
-    """
-    function for safely removing a folder
-    """
+
+    """Function for safely removing a folder"""
+
     try:
         import shutil
         if path is not None and os.path.exists(path):
@@ -110,20 +117,25 @@ def RemovePath(path):
 #------------------------------------------------------------------------------#
 #
 def Cleanup(path=None, extra=[], exclude=[]):
+
     """
     This function removes PyCTest files/folders that are copied into or
     generated in the given path during running PyCTest
 
-    args:
-        - path    [str]  : alternative path (default=pyctest.SOURCE_DIRECTORY)
-        - extra   [list] : any additional files/folders to remove
-        - exclude [list] : use this to exclude deleting files/folders
+    Parameters
+    ----------
+    path : str, optional
+        alternative path (default=pyctest.SOURCE_DIRECTORY)
+    extra : list, optional
+        any additional files/folders to remove
+    exclude : list, optional
+        use this to exclude deleting files/folders
     """
-    filelist = ["Build.cmake", "CTestConfig.cmake", "CTestCustom.cmake",
-                "CTestTestfile.cmake", "Coverage.cmake", "DartConfiguration.tcl",
-                "Glob.cmake", "Init.cmake", "Makefile", "MemCheck.cmake",
-                "Stages.cmake", "Submit.cmake",
-                "Test.cmake", "Testing", "Utilities.cmake",
+    filelist = ["CTestConfig.cmake", "CTestCustom.cmake",
+                "CTestTestfile.cmake",
+                "DartConfiguration.tcl",
+                "Init.cmake", "Stages.cmake", "Utilities.cmake",
+                "Makefile", "Testing",
                 "cmake_install.cmake", "__pycache__",
                 "CMakeFiles", "CMakeCache.txt"]
 
@@ -144,6 +156,9 @@ def Cleanup(path=None, extra=[], exclude=[]):
 #------------------------------------------------------------------------------#
 #
 def GetHomePath():
+
+    """Get the user's home drive for the operating system"""
+
     home = os.environ.get("HOME")
     if home is None:
         home_d = os.environ.get("HomeDrive")
@@ -156,7 +171,9 @@ def GetHomePath():
 #------------------------------------------------------------------------------#
 #
 def GetSystemVersionInfo():
-    # version info for build name
+
+    """Version info for operating system"""
+
     version_info = "{}".format(platform.system())
     if platform.system() == "Windows":
         version_info = "Windows {}".format(platform.version())
@@ -168,13 +185,145 @@ def GetSystemVersionInfo():
     return version_info
 
 
+#-------------------------------------------------------------------------#
+#
+def _get_verbosity():
+    '''Determine the verbosity
+
+    Default: 1
+    '''
+    verbose = os.environ.get("PYCTEST_VERBOSE")
+    if verbose is not None:
+        verbose = int(verbose)
+    else:
+        verbose = 1
+    return verbose
+
+
+#-------------------------------------------------------------------------#
+#
+def _get_verbosity_flag():
+    '''Determine the initial verbosity flag based verbose setting
+
+    Default: "-V"
+    '''
+    verbose = _get_verbosity()
+    if verbose < 1:
+        return ""
+    elif verbose == 1:
+        return "-V"
+    elif verbose == 2:
+        return "-VV"
+    elif verbose > 2:
+        return "--debug"
+
+
+
+#------------------------------------------------------------------------------#
+#
+class LineWrapRawTextHelpFormatter(argparse.RawDescriptionHelpFormatter):
+
+    def __init__(self, prog, indent_increment=2, max_help_position=80, width=160):
+        super(argparse.RawDescriptionHelpFormatter, self).__init__(
+            prog=prog, indent_increment=indent_increment,
+            max_help_position=max_help_position, width=width)
+
+    def _split_lines(self, text, width):
+        #print("Splitting lines...\n\tTEXT: {}\n\tWIDTH:{}\n".format(text, width))
+        #text = self._whitespace_matcher.sub(' ', text).strip()
+        return _textwrap.wrap(text, width)
+
+
 #------------------------------------------------------------------------------#
 #
 class ArgumentParser(argparse.ArgumentParser):
 
+    """Adds common command-line options for PyCTest
+
+    Note:
+        Inherit from this class to create custom options
+
+    Parameters
+    ----------
+        project_name: str
+            Name of the project
+        source_dir: str
+            relative path to the source code
+        binary_dir: str
+            relative path to the binary (build) directory
+        mode: str='Continuous', optional
+            Workflow setting
+            Options: Start, Update, Configure, Build, Test, Coverage, MemCheck, Submit, Stages
+        stages: list=['Start', 'Update', 'Configure', 'Build', 'Test', 'Coverage', 'MemCheck']
+            In "Stages" mode, these are the workflow components to execute
+            If a command for the stage is not set, e.g. CTEST_COVERAGE_COMMAND is not
+            set, then the stage is skipped
+        trigger: str='None', optional
+            Deprecated, has no effect
+        model: str='Continuous', optional
+            Submission track. Common choices: Continuous, Nightly, Experimental
+        site: str = platform.node(), optional
+            The ID of the submission site
+        jobs: int = 1, optional
+            Number of tests to execute in parallel
+        submit: bool, optional
+            Enable/disable submission by default
+        vcs_type: str, optional
+            Version control type: bzr, cvs, git, hg, p4, svn
+        checkout_command: str, optional
+            Define the default checkout command
+        update_command: str, optional
+            Define the default update command
+        configure_command: str, optional
+            Define the default configure command
+        build_command: str, optional
+            Define the default configure command
+        coverage_command: str, optional
+            Define the default coverage command
+        memcheck_command: str, optional
+            Define the default memory check command
+        build_choices: str, optional
+            If running CMake, define the build type [Release, RelWithDebInfo, Debug, MinSizeRel]
+        use_launchers: bool, optional
+            For build trees generated by CMake using one of the Makefile Generators or the Ninja generator,
+            specify whether the CTEST_USE_LAUNCHERS feature is enabled by the CTestUseLaunchers module
+            (also included by the CTest module). When enabled, the generated build system wraps each
+            invocation of the compiler, linker, or custom command line with a “launcher” that communicates
+            with CTest via environment variables and files to report granular build warning and error
+            information. Otherwise, CTest must “scrape” the build output log for diagnostics.
+        cleanup_extra: list, optional
+            When `--pyctest-cleanup` or `--pyctest-clean-first` is invoked, these additional
+            files/folders will be removed
+        cleanup_exclude: list, optional
+            When `--pyctest-cleanup` or `--pyctest-clean-first` is invoked, these additional
+            files/folders will be excluded from removal
+        cdash_version: str=None, optional
+            Specify the version of CDash on the server
+        submit_retry_count: int=1, optional
+            Specify a number of attempts to retry submission on network failure
+        submit_retry_delay: int=30, optional
+            Specify a delay before retrying submission on network failure
+        curl_options: list=None, optional
+            Curl options: 'CURLOPT_SSL_VERIFYPEER_OFF' and 'CURLOPT_SSL_VERIFYHOST_OFF'
+        drop_location: str="/submit.php?project={}".format(project_name), optional
+            The path on the dashboard server to send the submission
+        drop_method: str="https", optional
+            Specify the method by which results should be submitted to the dashboard server.
+            The value may be cp, ftp, http, https, scp, or xmlrpc (if CMake was built with support for it)
+        drop_site: str="cdash.nersc.gov", optional
+            The dashboard server name (for ftp, http, and https, scp, and xmlrpc)
+        drop_site_password: str=None, optional
+            The dashboard server login password, if any (for ftp, http, and https).
+        drop_site_user: str=None, optional
+            The dashboard server login user name, if any (for ftp, http, and https).
+        nightly_start_time: str="01:00:00 UTC", optional
+            In the Nightly dashboard mode, specify the “nightly start time”. With
+            centralized version control systems (cvs and svn), the Update step checks
+            out the version of the software as of this time so that multiple clients
+            choose a common version to test. This is not well-defined in distributed
+            version-control systems so the setting is ignored.
     """
-    - Adds common options for PyCTest
-    """
+
 
     #-------------------------------------------------------------------------#
     #
@@ -182,24 +331,37 @@ class ArgumentParser(argparse.ArgumentParser):
                 project_name,
                 source_dir,
                 binary_dir,
-                python_exe=sys.executable,
-                mode="Stages",
-                stages=["Start", "Update", "Configure", "Build", "Test", "Coverage", "MemCheck"],
-                trigger="None",
-                model="Continuous",
-                site=platform.node(),
+                vcs_type=None,
+                cleanup_extra=[],
+                cleanup_exclude=[],
+                drop_method="https",
+                drop_site="cdash.nersc.gov",
+                drop_location="/submit.php?project=${CTEST_PROJECT_NAME}",
+                drop_site_user=None,
+                drop_site_password=None,
+                use_launchers=False,
+                submit_retry_count=1,
+                submit_retry_delay=30,
+                curl_options=None,
+                cdash_version=None,
+                nightly_start_time="01:00:00 UTC",
                 jobs=1,
                 submit=False,
-                ctest_args=["-V"],
-                vcs_type=None,
+                stages=["Start", "Update", "Configure", "Build", "Test", "Coverage", "MemCheck"],
+                trigger="None",
+                site=socket.gethostname().strip('.local'),
+                ctest_args=[_get_verbosity_flag()],
+                mode="Stages",
                 checkout_command=None,
                 update_command=None,
                 configure_command=None,
                 build_command=None,
                 coverage_command=None,
                 memcheck_command=None,
+                python_exe=sys.executable,
                 build_type=None,
-                build_choices = [ "Release", "RelWithDebInfo", "Debug", "MinSizeRel" ],
+                model="Continuous",
+                build_choices=["Release", "RelWithDebInfo", "Debug", "MinSizeRel"],
                 # standard argparse.ArgumentParser arguments
                 prog=None,
                 usage=None,
@@ -207,14 +369,14 @@ class ArgumentParser(argparse.ArgumentParser):
 "to CTest, arguments after second '--' are passed directly to CMake",
                 epilog=None,
                 parents=[],
-                formatter_class=argparse.HelpFormatter,
+                formatter_class=LineWrapRawTextHelpFormatter,
                 prefix_chars='-',
                 fromfile_prefix_chars=None,
                 argument_default=None,
-                conflict_handler='error',
+                conflict_handler='resolve',
                 add_help=True):
 
-        # init parent
+        # initilize parent
         super(ArgumentParser, self).__init__(prog=prog,
                                              usage=usage,
                                              description=description,
@@ -225,6 +387,15 @@ class ArgumentParser(argparse.ArgumentParser):
                                              argument_default=argument_default,
                                              conflict_handler=conflict_handler,
                                              add_help=add_help)
+
+        self.checkout_command = checkout_command
+        self.update_command = checkout_command
+        self.configure_command = configure_command
+        self.build_command = build_command
+        self.coverage_command = coverage_command
+        self.memcheck_command = memcheck_command
+        self.cleanup_extra = cleanup_extra
+        self.cleanup_exclude = cleanup_exclude
 
         if checkout_command is not None:
             pyctest.CHECKOUT_COMMAND = "{}".format(checkout_command)
@@ -256,110 +427,233 @@ class ArgumentParser(argparse.ArgumentParser):
         trigger_choices = ["Build", "Test", "Coverage", "MemCheck", "None"]
 
         # version control options
-        vcs_options = ["bzr", "cvs", "git", "hg", "p4", "svn"]
+        vcs_choices = ["bzr", "cvs", "git", "hg", "p4", "svn"]
 
-        # just a help message
-        default_pyexe_help = "{}. {}.".format(
-            "Python executable to use",
-            "This can be absolue, relative, or CMake path")
+        #---------------------------------------------------------------------#
+
+        self.add_argument("-F",                             # clean [F]irst
+                          "--pyctest-clean-first",
+                          help="Remove standard PyCTest files and binary directory (if not source directory)",
+                          action="store_true")
+
+        self.add_argument("-S",                             # [S]ubmit
+                          "--pyctest-submit",
+                          help="Enable submission to dashboard",
+                          action='store_true',
+                          default=submit)
+
+        self.add_argument("-A",                             # [A]ppend
+                          "--pyctest-append",
+                          help="Append to last invocation of CTest",
+                          action='store_true')
+
+        #---------------------------------------------------------------------#
+
+        self.add_argument("-j",                             # [J]obs
+                          "--pyctest-jobs",
+                          help="number of concurrent jobs",
+                          type=int,
+                          metavar='<INT>',
+                          default=jobs)
+
+        self.add_argument("-m",                             # [M]ode
+                          "--pyctest-mode",
+                          help="Run specific stage. Choices: [{}]".format(",".join(mode_choices)),
+                          type=str,
+                          choices=mode_choices,
+                          metavar='<TYPE>',
+                          default=mode)
+
+        self.add_argument("-b",                             # [B]uild name
+                          "--pyctest-build-name",
+                          type=str,
+                          default=None,
+                          metavar='<NAME>',
+                          help="Build name for identification")
+
+        self.add_argument("-i",                             # source -> [I]nput
+                          "--pyctest-source-dir",
+                          help="Source directory",
+                          type=str,
+                          metavar="<PATH>",
+                          default=source_dir)
+
+        self.add_argument("-o",                             # binary -> [O]utput
+                          "--pyctest-binary-dir",
+                          help="Binary/build/working directory",
+                          type=str,
+                          metavar="<PATH>",
+                          default=binary_dir)
+
+        #---------------------------------------------------------------------#
+
+        self.add_argument("-M",                             # [M]odel
+                          "--pyctest-model",
+                          help="CTest submission model (track). Choices: [{}]".format(",".join(model_choices)),
+                          type=str,
+                          metavar='<TYPE>',
+                          choices=model_choices,
+                          default=model)
+
+        self.add_argument("-H",                             # [H]ost
+                          "--pyctest-site",
+                          help="CTest submission site",
+                          type=str,
+                          metavar='<SITE>',
+                          default=site)
+
+        self.add_argument("-P",                             # [P]ython exe
+                          "--pyctest-python-exe",
+                          help="Python executable to use. This can be absolue, relative, or CMake path",
+                          type=str,
+                          metavar='<EXE>',
+                          default=python_exe)
+
+        self.add_argument("-N",                             # [N]ame
+                          "--pyctest-project-name",
+                          help="Name of project using PyCTest",
+                          type=str,
+                          metavar='<NAME>',
+                          default=project_name)
+
+        #---------------------------------------------------------------------#
+
+        self.add_argument("-C",                             # [C]lean
+                          "--pyctest-cleanup",
+                          help="Remove standard PyCTest files and binary directory (if not source directory) and exit",
+                          nargs='+',
+                          metavar='<PATH>',
+                          type=str)
+
+        self.add_argument("-L",                             # [L]abels
+                          "--pyctest-subproject-labels",
+                          help="Add labels for subproject",
+                          metavar='<LABEL>',
+                          nargs='+',
+                          type=str)
+
+        self.add_argument("-T",                             # [T]est-action
+                          "--pyctest-stages",
+                          help="Run multiple stages. Choices: [{}]".format(",".join(stage_choices)),
+                          type=str,
+                          choices=stage_choices,
+                          default=stages,
+                          metavar="<TYPE>",
+                          nargs='*')
+
+        #---------------------------------------------------------------------#
+
+        self.add_argument("-fc",                             # [F]ortran compiler
+                          "--pyctest-fortran-compiler",
+                          help="Specify Fortan compiler (if needed)",
+                          default=os.environ.get("FC"),
+                          metavar='<EXE>',
+                          type=str)
+
+        self.add_argument("-cc",                             # [CC] compiler
+                          "--pyctest-c-compiler",
+                          help="Specify the C compiler (if needed)",
+                          default=os.environ.get("CC"),
+                          metavar='<EXE>',
+                          type=str)
+
+        self.add_argument("-cxx",                             # [CXX] compiler
+                          "--pyctest-cxx-compiler",
+                          help="Specify C++ compiler (if needed)",
+                          default=os.environ.get("CXX"),
+                          metavar='<EXE>',
+                          type=str)
+
+        #---------------------------------------------------------------------#
+
+        self.add_argument("--pyctest-token",
+                          help="CTest site token for submission",
+                          metavar='<TOKEN>',
+                          type=str)
+
+        self.add_argument("--pyctest-token-file",
+                          help="Path to file for CTest site token for submission",
+                          metavar='<FILE>',
+                          type=str)
+
+        self.add_argument("--pyctest-vcs-type",
+                          help="""Set to enable revision ID discovery during the Update stage. Choices: [{}]""".format(",".join(vcs_choices)),
+                          default=vcs_type,
+                          type=str,
+                          metavar="<TYPE>",
+                          choices=vcs_choices)
+
+        self.add_argument("--pyctest-build-type",
+                          help="""Specify CMAKE_BUILD_TYPE (if using CMake). Choices: [{}]""".format(",".join(build_choices)),
+                          default=build_type,
+                          type=str,
+                          metavar='<TYPE>',
+                          choices=build_choices)
+
+        self.add_argument("--pyctest-trigger",
+                          help="DEPRECATED",
+                          metavar='<TYPE>',
+                          type=str,
+                          choices=trigger_choices,
+                          default=trigger)
+
+        self.add_argument("--pyctest-use-launchers",
+                          default=use_launchers,
+                          metavar='<BOOL>',
+                          help="Enable launchers")
 
         self.add_argument("--pyctest-ctest-args",
                           help="CTest arguments",
                           type=str,
                           default=ctest_args,
+                          metavar='<ARG>',
                           nargs='*')
-        self.add_argument("--pyctest-project-name",
-                          help="Name of project using PyCTest",
-                          type=str,
-                          default=project_name)
-        self.add_argument("--pyctest-python-exe",
-                          help=default_pyexe_help,
-                          type=str,
-                          default=python_exe)
-        self.add_argument("--pyctest-source-dir",
-                          help="Source directory",
-                          type=str,
-                          default=source_dir)
-        self.add_argument("--pyctest-binary-dir",
-                          help="Working directory",
-                          type=str,
-                          default=binary_dir)
-        self.add_argument("--pyctest-mode",
-                          help="Testing mode (how to run the setup)",
-                          type=str,
-                          choices=mode_choices,
-                          default=mode)
-        self.add_argument("--pyctest-stages",
-                          help="Run modes separately in stages",
-                          choices=stage_choices,
-                          default=stages,
-                          nargs='*')
-        self.add_argument("--pyctest-trigger",
-                          help="Submit to dashboard after this mode was run",
-                          choices=trigger_choices,
-                          default=trigger)
-        self.add_argument("--pyctest-model",
-                          help="CTest submission model (CDash)",
-                          type=str,
-                          choices=model_choices,
-                          default=model)
-        self.add_argument("--pyctest-jobs",
-                          help="number of concurrent jobs",
-                          type=int,
-                          default=jobs)
-        self.add_argument("--pyctest-site",
-                          help="CTest submission site",
-                          type=str,
-                          default=site)
-        self.add_argument("--pyctest-clean-first",
-                          help=("Remove standard PyCTest files and binary directory"
-                                + " (if not source directory)"),
-                          action="store_true")
-        self.add_argument("--pyctest-token",
-                          help="CTest site token for submission",
-                          type=str)
-        self.add_argument("--pyctest-token-file",
-                          help="Path to file for CTest site token for submission",
-                          type=str)
-        self.add_argument("--pyctest-submit",
-                          help="Enable submission to dashboard",
-                          action='store_true',
-                          default=submit)
-        self.add_argument("--pyctest-clean-update",
-                          help=("Specify that you want the version control update"
-                            + " and eliminate any local modifications. Without"
-                            + " specifying this option, the update"
-                            + " command will only discover the current version that"
-                            + " is checked out, and not to update to a different"
-                            + " version"),
-                          default=False, action='store_true')
-        self.add_argument("--pyctest-vcs-type",
-                          help=("Set to enable revision ID discovery using"
-                                + " default settings for retriving the revision ID"
-                                + " during the Update stage"),
-                          default=vcs_type, type=str, choices=vcs_options)
-        self.add_argument("--pyctest-build-type",
-                          help=("Specify CMAKE_BUILD_TYPE (if using CMake) --"
-                                + " setting is accessible via pyctest.BUILD_TYPE"),
-                          default=build_type, type=str, choices=build_choices)
-        self.add_argument("--pyctest-c-compiler",
-                          help="Specify the C compiler (if needed)",
-                            default=os.environ.get("CC"), type=str)
-        self.add_argument("--pyctest-cxx-compiler",
-                          help="Specify C++ compiler (if needed)",
-                          default=os.environ.get("CXX"), type=str)
-        self.add_argument("--pyctest-fortran-compiler",
-                          help="Specify Fortan compiler (if needed)",
-                          default=os.environ.get("FC"), type=str)
+
+        #---------------------------------------------------------------------#
+
+        def _add_argument(option_name, option_type, option_default):
+            ctest_var = "CTEST_" + option_name.upper()
+            web = "https://cmake.org/cmake/help/latest/variable/"
+            web = "{0}/{1}.html#variable:{1}".format(web, ctest_var)
+            option_name = option_name.lower().replace('_', '-')
+            self.add_argument("--pyctest-{}".format(option_name.lower()),
+                              help="Set CTest variable: '{}'".format(ctest_var),
+                              type=option_type,
+                              metavar="<{}>".format(option_type.__name__.upper()),
+                              #metavar="<{}>".format(option_name.upper().replace('-', '_')),
+                              default=option_default)
+
+        _add_argument("cdash_version", str, cdash_version)
+        _add_argument("submit_retry_count", int, submit_retry_count)
+        _add_argument("submit_retry_delay", int, submit_retry_delay)
+        _add_argument("curl_options", list, curl_options)
+        _add_argument("drop_location", str, drop_location)
+        _add_argument("drop_method", str, drop_method)
+        _add_argument("drop_site", str, drop_site)
+        _add_argument("drop_site_password", str, drop_site_password)
+        _add_argument("drop_site_user", str, drop_site_user)
+        _add_argument("nightly_start_time", str, nightly_start_time)
+
+        self.add_argument("--pyctest-update-version-only",
+                          help="""Specify that you want the version control update command to only discover the current version that is checked out, and not to update to a different version""",
+                          action='store_true')
+
 
     #-------------------------------------------------------------------------#
     #
     def process_args(self, args):
-        """
-        Process PyCTest args
-        """
+        """Process PyCTest args"""
+
         binary_dir = os.path.realpath(args.pyctest_binary_dir)
         source_dir = os.path.realpath(args.pyctest_source_dir)
+
+        # cleanup
+        if args.pyctest_cleanup:
+            for dir in args.pyctest_cleanup:
+                Cleanup(dir, self.cleanup_extra, self.cleanup_exclude)
+            if source_dir != binary_dir:
+                RemovePath(binary_dir)
+            sys.exit(0)
 
         if args.pyctest_c_compiler is not None:
             os.environ["CC"] = "{}".format(args.pyctest_c_compiler)
@@ -372,7 +666,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
         # clean
         if args.pyctest_clean_first:
-            Cleanup(binary_dir)
+            Cleanup(binary_dir, self.cleanup_extra, self.cleanup_exclude)
             if source_dir != binary_dir:
                 RemovePath(binary_dir)
 
@@ -398,17 +692,24 @@ class ArgumentParser(argparse.ArgumentParser):
 
         # site of CDash submission
         pyctest.SITE = args.pyctest_site
+        if (args.pyctest_site == platform.node() and
+            os.environ.get("CTEST_SITE") is not None):
+            pyctest.SITE = os.environ.get("CTEST_SITE")
 
         # build type
         if args.pyctest_build_type is not None:
             pyctest.set("BUILD_TYPE", "{}".format(args.pyctest_build_type))
+            pyctest.set("CTEST_CONFIGURATION_TYPE", "{}".format(args.pyctest_build_type))
 
         # build name for CDash
-        pyctest.BUILD_NAME = "[{} {} {}] [Python {}]".format(
-            platform.uname()[0],
-            GetSystemVersionInfo(),
-            platform.uname()[4],
-            platform.python_version())
+        if args.pyctest_build_name is None:
+            pyctest.BUILD_NAME = "[{} {} {}] [Python {}]".format(
+                platform.uname()[0],
+                GetSystemVersionInfo(),
+                platform.uname()[4],
+                platform.python_version())
+        else:
+            pyctest.BUILD_NAME = "{}".format(args.pyctest_build_name)
 
         # the Python to use with scripts
         pyctest.PYTHON_EXECUTABLE = args.pyctest_python_exe
@@ -422,12 +723,13 @@ class ArgumentParser(argparse.ArgumentParser):
         # the submission model in CDash (default = Nightly)
         pyctest.MODEL = args.pyctest_model
 
-        # if specified to not remove an revision
-        if not args.pyctest_clean_update:
-            pyctest.set("CTEST_UPDATE_VERSION_ONLY", "ON")
-
+        # update
         if args.pyctest_vcs_type is not None:
             pyctest.set("CTEST_UPDATE_TYPE", "{}".format(args.pyctest_vcs_type))
+
+        # if specified to not remove an revision
+        if not args.pyctest_update_version_only:
+            pyctest.set("CTEST_UPDATE_VERSION_ONLY", "ON")
 
         # custom variables
         pyctest.CUSTOM_COVERAGE_EXCLUDE = "NONE"
@@ -461,16 +763,55 @@ class ArgumentParser(argparse.ArgumentParser):
         if args.pyctest_jobs > 0:
             args.pyctest_ctest_args.append("-j{}".format(args.pyctest_jobs))
 
+        # enable launchers
+        if args.pyctest_use_launchers:
+            pyctest.set("CTEST_USE_LAUNCHERS", "ON")
+
+        # add subproject labels
+        if args.pyctest_subproject_labels:
+            pyctest.set("CTEST_LABELS_FOR_SUBPROJECTS", ";".join(args.pyctest_subproject_labels))
+
         # if the arguments were provided
         if len(args.pyctest_ctest_args) > 0:
             for _arg in args.pyctest_ctest_args:
                 pyctest.ARGUMENTS.extend(_arg.split(" "))
+
+        # if append
+        if args.pyctest_append:
+            pyctest.set("CTEST_APPEND", "ON")
+
+        def _process_argument(var, val):
+            if val is not None:
+                if isinstance(val, list):
+                    val = ";".join(val)
+                pyctest.set("CTEST_{}".format(var.upper()),
+                            "{}".format(val))
+
+        _process_argument("cdash_version", args.pyctest_cdash_version)
+        _process_argument("submit_retry_count", args.pyctest_submit_retry_count)
+        _process_argument("submit_retry_delay", args.pyctest_submit_retry_delay)
+        _process_argument("curl_options", args.pyctest_curl_options)
+        _process_argument("drop_location", args.pyctest_drop_location)
+        _process_argument("drop_method", args.pyctest_drop_method)
+        _process_argument("drop_site", args.pyctest_drop_site)
+        _process_argument("drop_site_password", args.pyctest_drop_site_password)
+        _process_argument("drop_site_user", args.pyctest_drop_site_user)
+        _process_argument("nightly_start_time", args.pyctest_nightly_start_time)
 
         print("CTest arguments (default): '{}'".format(" ".join(pyctest.ARGUMENTS)))
 
 
     #-------------------------------------------------------------------------#
     def parse_args(self, *args, **kwargs):
+        """Parse the arguments
+
+        Note:
+            Arguments following first double-dash ("--") are passed directly to `ctest`
+
+        Note:
+            Arguments following second double-dash ("--") are passed directly to `cmake`
+        """
+
         _argv = []
         _ctest = []
         _cmake = []

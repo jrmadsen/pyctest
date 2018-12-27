@@ -1,10 +1,9 @@
 package:
   name: pyctest
-  version: '0.0.10'
+  version: '0.0.11'
 
 build:
-  number: 1
-  binary_relocation: False
+  number: 0
   script: "{{ PYTHON }} setup.py install"  # [not win]
   script_env:
     - TMPDIR
@@ -13,7 +12,7 @@ build:
   include_recipe: False
 
 source:
-  git_rev: fa81abdb40030891952a05fe2d6c8930175e3196
+  git_rev: 121229bbb3ca74bd536be483fc78bd1f8d7c343f
   git_url: https://github.com/jrmadsen/pyctest.git
 
 requirements:

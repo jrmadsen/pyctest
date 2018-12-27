@@ -1,6 +1,6 @@
 
 *~
-/CMakeLists.txt.user
+/CMakeLists.txt.user*
 /Modules
 /.eggs
 /build
@@ -12,3 +12,9 @@
 /.vscode
 /Testing
 /examples/Basic/pycm-test
+/CTestTestfile.cmake
+/Stages.cmake
+/Utilities.cmake
+/Init.cmake
+/CTestConfig.cmake
+/CTestCustom.cmake

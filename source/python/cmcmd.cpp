@@ -156,14 +156,16 @@ cmTarFilesFrom(std::string const& file, std::vector<std::string>& files)
         if(cmHasLiteralPrefix(line, "--add-file="))
         {
             files.push_back(line.substr(11));
-        } else if(cmHasLiteralPrefix(line, "-"))
+        }
+        else if(cmHasLiteralPrefix(line, "-"))
         {
             std::ostringstream e;
             e << "-E tar --files-from='" << file << "' file invalid line:\n"
               << line << "\n";
             cmSystemTools::Error(e.str().c_str());
             return false;
-        } else
+        }
+        else
         {
             files.push_back(line);
         }
@@ -318,8 +320,9 @@ HandleCppCheck(const std::string& runCmd, const std::string& sourceFile,
                 cppcheck_cmd.push_back(opt);
 // convert cl / options to - options if needed
 #if defined(_WIN32)
-            } else if((opt[0] == '/') &&
-                      ((opt[1] == 'D') || (opt[1] == 'I') || (opt[1] == 'U')))
+            }
+            else if((opt[0] == '/') &&
+                    ((opt[1] == 'D') || (opt[1] == 'I') || (opt[1] == 'U')))
             {
                 std::string optcopy = opt;
                 optcopy[0]          = '-';
@@ -405,7 +408,8 @@ cmcmd::HandleCoCompileCommands(std::vector<std::string>& args)
         if(arg == "--")
         {
             doing_options = false;
-        } else if(doing_options)
+        }
+        else if(doing_options)
         {
             bool optionFound = false;
             for(CoCompiler const* cc = cm::cbegin(CoCompilers);
@@ -430,11 +434,13 @@ cmcmd::HandleCoCompileCommands(std::vector<std::string>& args)
                 if(cmHasLiteralPrefix(arg, "--source="))
                 {
                     sourceFile = arg.substr(9);
-                } else if(cmHasLiteralPrefix(arg, "--launcher="))
+                }
+                else if(cmHasLiteralPrefix(arg, "--launcher="))
                 {
                     cmSystemTools::ExpandListArgument(arg.substr(11), launchers,
                                                       true);
-                } else
+                }
+                else
                 {
                     // if it was not a co-compiler or --source/--launcher then
                     // error
@@ -444,7 +450,8 @@ cmcmd::HandleCoCompileCommands(std::vector<std::string>& args)
                     return 1;
                 }
             }
-        } else
+        }
+        else
         {  // if not doing_options then push to orig_cmd
             orig_cmd.push_back(arg);
         }
@@ -647,7 +654,8 @@ cmcmd::ExecuteCMakeCommand(std::vector<std::string>& args)
                     {
                         return 1;
                     }
-                } else
+                }
+                else
                 {
                     if(!deffile.AddObjectFile(file.c_str()))
                     {
@@ -690,18 +698,21 @@ cmcmd::ExecuteCMakeCommand(std::vector<std::string>& args)
                 {
                     // Unset environment variable.
                     cmSystemTools::UnPutEnv(a.c_str() + 8);
-                } else if(!a.empty() && a[0] == '-')
+                }
+                else if(!a.empty() && a[0] == '-')
                 {
                     // Environment variable and command names cannot start in
                     // '-', so this must be an unknown option.
                     std::cerr << "cmake -E env: unknown option '" << a << "'"
                               << std::endl;
                     return 1;
-                } else if(a.find('=') != std::string::npos)
+                }
+                else if(a.find('=') != std::string::npos)
                 {
                     // Set environment variable.
                     cmSystemTools::PutEnv(a);
-                } else
+                }
+                else
                 {
                     // This is the beginning of the command.
                     break;
@@ -777,7 +788,8 @@ cmcmd::ExecuteCMakeCommand(std::vector<std::string>& args)
                 if(args[cc] == "\\-f" || args[cc] == "-f")
                 {
                     force = true;
-                } else
+                }
+                else
                 {
                     // Complain if the file could not be removed, still exists,
                     // and the -f option was not given.
@@ -848,7 +860,8 @@ cmcmd::ExecuteCMakeCommand(std::vector<std::string>& args)
                 if((n == 1 || (n == 2 && unit == 's')) && num >= 0)
                 {
                     total += num;
-                } else
+                }
+                else
                 {
                     std::cerr << "Unknown sleep time format \"" << args[i]
                               << "\".\n";
@@ -966,7 +979,8 @@ cmcmd::ExecuteCMakeCommand(std::vector<std::string>& args)
                     cmSystemTools::Message("Could not read from count file.");
                 }
                 fclose(countFile);
-            } else
+            }
+            else
             {
                 count = atoi(args[3].c_str());
             }
@@ -1070,7 +1084,8 @@ cmcmd::ExecuteCMakeCommand(std::vector<std::string>& args)
                     color = (args[8].size() == 8 ||
                              cmSystemTools::IsOn(args[8].substr(8).c_str()));
                 }
-            } else
+            }
+            else
             {
                 // Support older signature for existing makefiles:
                 //
@@ -1204,17 +1219,20 @@ cmcmd::ExecuteCMakeCommand(std::vector<std::string>& args)
                     if(arg == "--")
                     {
                         doing_options = false;
-                    } else if(cmHasLiteralPrefix(arg, "--mtime="))
+                    }
+                    else if(cmHasLiteralPrefix(arg, "--mtime="))
                     {
                         mtime = arg.substr(8);
-                    } else if(cmHasLiteralPrefix(arg, "--files-from="))
+                    }
+                    else if(cmHasLiteralPrefix(arg, "--files-from="))
                     {
                         std::string const& files_from = arg.substr(13);
                         if(!cmTarFilesFrom(files_from, files))
                         {
                             return 1;
                         }
-                    } else if(cmHasLiteralPrefix(arg, "--format="))
+                    }
+                    else if(cmHasLiteralPrefix(arg, "--format="))
                     {
                         format = arg.substr(9);
                         bool isKnown =
@@ -1229,13 +1247,15 @@ cmcmd::ExecuteCMakeCommand(std::vector<std::string>& args)
                                 format.c_str());
                             return 1;
                         }
-                    } else
+                    }
+                    else
                     {
                         cmSystemTools::Error("Unknown option to -E tar: ",
                                              arg.c_str());
                         return 1;
                     }
-                } else
+                }
+                else
                 {
                     files.push_back(arg);
                 }
@@ -1286,7 +1306,8 @@ cmcmd::ExecuteCMakeCommand(std::vector<std::string>& args)
                                          outFile.c_str());
                     return 1;
                 }
-            } else if(flags.find_first_of('c') != std::string::npos)
+            }
+            else if(flags.find_first_of('c') != std::string::npos)
             {
                 if(!cmSystemTools::CreateTar(outFile.c_str(), files, compress,
                                              verbose, mtime, format))
@@ -1295,7 +1316,8 @@ cmcmd::ExecuteCMakeCommand(std::vector<std::string>& args)
                                          outFile.c_str());
                     return 1;
                 }
-            } else if(flags.find_first_of('x') != std::string::npos)
+            }
+            else if(flags.find_first_of('x') != std::string::npos)
             {
                 if(!cmSystemTools::ExtractTar(outFile.c_str(), verbose))
                 {
@@ -1339,11 +1361,13 @@ cmcmd::ExecuteCMakeCommand(std::vector<std::string>& args)
                 if(a == "--experimental")
                 {
                     supportExperimental = true;
-                } else if(a == "--debug")
+                }
+                else if(a == "--debug")
                 {
                     pipe.clear();
                     isDebug = true;
-                } else if(a.substr(0, pipePrefix.size()) == pipePrefix)
+                }
+                else if(a.substr(0, pipePrefix.size()) == pipePrefix)
                 {
                     isDebug = false;
                     pipe    = a.substr(pipePrefix.size());
@@ -1352,7 +1376,8 @@ cmcmd::ExecuteCMakeCommand(std::vector<std::string>& args)
                         cmSystemTools::Error("No pipe given after --pipe=");
                         return 2;
                     }
-                } else
+                }
+                else
                 {
                     cmSystemTools::Error("Unknown argument for server mode");
                     return 1;
@@ -1363,7 +1388,8 @@ cmcmd::ExecuteCMakeCommand(std::vector<std::string>& args)
             if(isDebug)
             {
                 conn = new cmServerStdIoConnection;
-            } else
+            }
+            else
             {
                 conn = new cmServerPipeConnection(pipe);
             }
@@ -1449,7 +1475,8 @@ cmcmd::HashSumFile(std::vector<std::string>& args, cmCryptoHash::Algo algo)
             std::cerr << "Error: " << filename << " is a directory"
                       << std::endl;
             retval++;
-        } else
+        }
+        else
         {
             std::string value = cmSystemTools::ComputeFileHash(filename, algo);
             if(value.empty())
@@ -1458,7 +1485,8 @@ cmcmd::HashSumFile(std::vector<std::string>& args, cmCryptoHash::Algo algo)
                 std::cerr << filename << ": No such file or directory"
                           << std::endl;
                 retval++;
-            } else
+            }
+            else
             {
                 std::cout << value << "  " << filename << std::endl;
             }
@@ -1605,53 +1633,68 @@ cmcmd::ExecuteEchoColor(std::vector<std::string>& args)
             {
                 enabled = cmSystemTools::IsOn(value.c_str());
             }
-        } else if(cmHasLiteralPrefix(args[i], "--progress-dir="))
+        }
+        else if(cmHasLiteralPrefix(args[i], "--progress-dir="))
         {
             progressDir = args[i].substr(15);
-        } else if(cmHasLiteralPrefix(args[i], "--progress-num="))
+        }
+        else if(cmHasLiteralPrefix(args[i], "--progress-num="))
         {
             if(!progressDir.empty())
             {
                 std::string const& progressNum = args[i].substr(15);
                 cmcmdProgressReport(progressDir, progressNum);
             }
-        } else if(args[i] == "--normal")
+        }
+        else if(args[i] == "--normal")
         {
             color = cmsysTerminal_Color_Normal;
-        } else if(args[i] == "--black")
+        }
+        else if(args[i] == "--black")
         {
             color = cmsysTerminal_Color_ForegroundBlack;
-        } else if(args[i] == "--red")
+        }
+        else if(args[i] == "--red")
         {
             color = cmsysTerminal_Color_ForegroundRed;
-        } else if(args[i] == "--green")
+        }
+        else if(args[i] == "--green")
         {
             color = cmsysTerminal_Color_ForegroundGreen;
-        } else if(args[i] == "--yellow")
+        }
+        else if(args[i] == "--yellow")
         {
             color = cmsysTerminal_Color_ForegroundYellow;
-        } else if(args[i] == "--blue")
+        }
+        else if(args[i] == "--blue")
         {
             color = cmsysTerminal_Color_ForegroundBlue;
-        } else if(args[i] == "--magenta")
+        }
+        else if(args[i] == "--magenta")
         {
             color = cmsysTerminal_Color_ForegroundMagenta;
-        } else if(args[i] == "--cyan")
+        }
+        else if(args[i] == "--cyan")
         {
             color = cmsysTerminal_Color_ForegroundCyan;
-        } else if(args[i] == "--white")
+        }
+        else if(args[i] == "--white")
         {
             color = cmsysTerminal_Color_ForegroundWhite;
-        } else if(args[i] == "--bold")
+        }
+        else if(args[i] == "--bold")
         {
             color |= cmsysTerminal_Color_ForegroundBold;
-        } else if(args[i] == "--no-newline")
+        }
+        else if(args[i] == "--no-newline")
         {
             newline = false;
-        } else if(args[i] == "--newline")
+        }
+        else if(args[i] == "--newline")
         {
             newline = true;
-        } else
+        }
+        else
         {
             // Color is enabled.  Print with the current color.
             cmSystemTools::MakefileColorEcho(color, args[i].c_str(), newline,
@@ -1754,8 +1797,7 @@ cmcmd::ExecuteLinkScript(std::vector<std::string>& args)
                           << cmsysProcess_GetErrorString(cp) << std::endl;
                 result = 2;
                 break;
-            default:
-                break;
+            default: break;
         };
     }
 
@@ -1810,7 +1852,8 @@ public:
     , Verbose(verbose)
     , Incremental(false)
     , LinkGeneratesManifest(true)
-    {}
+    {
+    }
     bool Parse(std::vector<std::string>::const_iterator argBeg,
                std::vector<std::string>::const_iterator argEnd);
     int  Link();
@@ -1845,7 +1888,8 @@ cmcmd::VisualStudioLink(std::vector<std::string> const& args, int type)
                 cmSystemTools::ParseWindowsCommandLine(line.c_str(),
                                                        expandedArgs);
             }
-        } else
+        }
+        else
         {
             expandedArgs.push_back(i);
         }
@@ -1871,7 +1915,8 @@ struct NumberFormatter
     NumberFormatter(NumberFormat format, int value)
     : Format(format)
     , Value(value)
-    {}
+    {
+    }
 };
 std::ostream&
 operator<<(std::ostream& stream, NumberFormatter const& formatter)
@@ -1880,7 +1925,8 @@ operator<<(std::ostream& stream, NumberFormatter const& formatter)
     if(formatter.Format == FORMAT_DECIMAL)
     {
         stream << std::dec << formatter.Value;
-    } else
+    }
+    else
     {
         stream << "0x" << std::hex << formatter.Value;
     }
@@ -1911,7 +1957,8 @@ RunCommand(const char* comment, std::vector<std::string>& command, bool verbose,
         if(commandResult || !retCodeSuccess)
         {
             *retCodeOut = retCode;
-        } else
+        }
+        else
         {
             *retCodeOut = -1;
         }
@@ -1923,7 +1970,8 @@ RunCommand(const char* comment, std::vector<std::string>& command, bool verbose,
                   << NumberFormatter(exitFormat, retCode)
                   << ") with the following output:\n"
                   << output;
-    } else
+    }
+    else
     {
         // always print the output of the command, unless
         // it is the dumb rc command banner
@@ -1955,11 +2003,13 @@ cmVSLink::Parse(std::vector<std::string>::const_iterator argBeg,
             {
                 this->UserManifests.push_back(*arg);
             }
-        } else if(cmHasLiteralPrefix(*arg, "--intdir="))
+        }
+        else if(cmHasLiteralPrefix(*arg, "--intdir="))
         {
             intDir = arg->substr(9);
             ++arg;
-        } else
+        }
+        else
         {
             std::cerr << "unknown argument '" << *arg << "'\n";
             return false;
@@ -1983,16 +2033,20 @@ cmVSLink::Parse(std::vector<std::string>::const_iterator argBeg,
         if(cmSystemTools::Strucmp(arg->c_str(), "/INCREMENTAL:YES") == 0)
         {
             this->Incremental = true;
-        } else if(cmSystemTools::Strucmp(arg->c_str(), "/INCREMENTAL") == 0)
+        }
+        else if(cmSystemTools::Strucmp(arg->c_str(), "/INCREMENTAL") == 0)
         {
             this->Incremental = true;
-        } else if(cmSystemTools::Strucmp(arg->c_str(), "/MANIFEST:NO") == 0)
+        }
+        else if(cmSystemTools::Strucmp(arg->c_str(), "/MANIFEST:NO") == 0)
         {
             this->LinkGeneratesManifest = false;
-        } else if(cmHasLiteralPrefix(*arg, "/Fe"))
+        }
+        else if(cmHasLiteralPrefix(*arg, "/Fe"))
         {
             this->TargetFile = arg->substr(3);
-        } else if(cmHasLiteralPrefix(*arg, "/out:"))
+        }
+        else if(cmHasLiteralPrefix(*arg, "/out:"))
         {
             this->TargetFile = arg->substr(5);
         }
@@ -2012,7 +2066,8 @@ cmVSLink::Parse(std::vector<std::string>::const_iterator argBeg,
         // pass it to the link command.
         this->ManifestFileRC  = intDir + "/manifest.rc";
         this->ManifestFileRes = intDir + "/manifest.res";
-    } else if(this->UserManifests.empty())
+    }
+    else if(this->UserManifests.empty())
     {
         // Prior to support for user-specified manifests CMake placed the
         // linker-generated manifest next to the binary (as if it were not to be
@@ -2049,7 +2104,8 @@ cmVSLink::Link()
         if(!this->Incremental)
         {
             std::cout << "Visual Studio Non-Incremental Link\n";
-        } else
+        }
+        else
         {
             std::cout << "Visual Studio Incremental Link without manifests\n";
         }
