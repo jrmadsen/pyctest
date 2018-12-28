@@ -12,7 +12,7 @@ build:
   include_recipe: False
 
 source:
-  git_rev: fd1d1a6534f25cb2a60fed26e3078ab9cf86d6b2
+  git_rev: 0fb1667425930db4caaa4beaac24c395575e2c75
   git_url: https://github.com/jrmadsen/pyctest.git
 
 requirements:
