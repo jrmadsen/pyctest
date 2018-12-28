@@ -625,7 +625,7 @@ PYBIND11_MODULE(pycmake, cm)
         return pc;
     };
     //------------------------------------------------------------------------//
-    auto exec = [=](std::vector<std::string> pargs) {
+    auto execute = [=](std::vector<std::string> pargs) {
         // convert list elements to char*
         charvec_t cargs;
         for(auto itr : pargs)
@@ -767,7 +767,7 @@ PYBIND11_MODULE(pycmake, cm)
     cm.def("exe_path", exe_path, "Path to cmake executable");
     cm.def("run", run, "Run CMake", py::arg("args") = cm.attr("ARGUMENTS"),
            py::arg("binary_dir") = cm.attr("BINARY_DIR"));
-    cm.def("exec", exec, "Directly run cmake", py::arg("args") = py::list());
+    cm.def("execute", execute, "Directly run cmake", py::arg("args") = py::list());
 }
 
 //============================================================================//

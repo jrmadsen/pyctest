@@ -556,7 +556,7 @@ PYBIND11_MODULE(pycpack, cp)
         return pc;
     };
     //------------------------------------------------------------------------//
-    auto exec = [=](std::vector<std::string> pargs) {
+    auto execute = [=](std::vector<std::string> pargs) {
         // convert list elements to char*
         charvec_t cargs;
         for(auto itr : pargs)
@@ -645,7 +645,7 @@ PYBIND11_MODULE(pycpack, cp)
     cp.def("exe_path", exe_path, "Path to cpack executable");
     cp.def("run", run, "Run CMake", py::arg("args") = py::list(),
            py::arg("binary_dir") = cp.attr("BINARY_DIR"));
-    cp.def("exec", exec, "Directly run cpack", py::arg("args") = py::list());
+    cp.def("execute", execute, "Directly run cpack", py::arg("args") = py::list());
 }
 
 //============================================================================//
