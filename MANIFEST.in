@@ -39,3 +39,6 @@ global-exclude *__pycache__*
 recursive-exclude pybind11/docs/.build *
 recursive-exclude _skbuild *
 recursive-exclude build *
+recursive-exclude examples/TomoPy/tomopy-bin *
+recursive-exclude examples/TomoPy/tomopy-src *
+recursive-exclude examples/Basic/pycm-test *
