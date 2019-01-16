@@ -10,20 +10,17 @@ This section covers the basics of how to download and install PyCTest.
 Supported Environments
 ======================
 
-PyCTest is tested, built, and distributed for python 2.7 3.5 3.6 on Linux/macOS
-and python 3.5 3.6 on Windows 10.
+PyCTest is tested, built, and distributed for python 2.7, 3.6, and 3.7 on Linux/macOS through conda-forge.
+Windows support is possible but Anaconda compiler issues within conda-forge with respect to ``std::unique_ptr``
+are currently causing issues.
 
 Installing from Conda (Recommended)
 ===================================
 
-If you only want to run PyCTest, not develop it, then you should install through
-a package manager. Conda, our supported package manager, can install PyCTest and
-its dependencies for you.
-
 First, you must have `Conda <http://continuum.io/downloads>`_ installed,
 then open a terminal or a command prompt window and run::
 
-    $ conda install -c conda-forge PyCTest
+    $ conda install -c conda-forge pyctest
 
 This will install PyCTest and all the dependencies from the conda-forge channel.
 
@@ -33,13 +30,13 @@ Updating the installation
 PyCTest is an active project, so we suggest you update your installation
 frequently. To update the installation run::
 
-    $ conda update -c conda-forge PyCTest
+    $ conda update -c conda-forge pyctest
 
 For some more information about using Conda, please refer to the
 `docs <http://conda.pydata.org/docs>`__.
 
-Installing from source with Conda
-=================================
+Installing from source
+======================
 
 Sometimes an adventurous user may want to get the source code, which is
 always more up-to-date than the one provided by Conda (with more bugs of
@@ -53,31 +50,51 @@ terminal and running::
     $ git clone https://github.com/jrmadsen/pyctest.git
 
 in the folder where you want the source code. This will create a folder called
-`PyCTest` which contains a copy of the source code.
+`pyctest` which contains a copy of the source code.
 
+Source installation is also available through `PyPi <https://pypi.org/project/pyctest/>`_::
+
+    $ pip install -vvv pyctest
 
 Installing dependencies
 -----------------------
 
-You will need to install all the dependencies listed in
-``requirements.txt`` or ``meta.yaml`` files. For example, requirements can be
-installed using Conda by running::
+You will need a C compiler, C++ compiler, CMake, Git, OpenSSL, and Curl
+on your system. Generally, these packages already exist on your system. The C++
+compiler requires support for C++11, in particular it needs to support lambdas and
+``std::unique_ptr``.
 
-    $ conda install --file requirements.txt
+After navigating to inside the `pyctest` directory, you can install PyCTest by
+building/compiling the shared libraries and either of the following standard Python
+installation commands:
 
-After navigating to inside the `PyCTest` directory, you can install PyCTest by
-building/compiling the shared libraries and running the install script::
+.. code:: shell
 
-    $ python build.py
-    $ pip install .
+    $ pip install -vvv .
+    $ python setup.py install
 
 Common issues
 -------------
 
-No issues with the current build system have been reported.
+- Lack of full C++11 support, particularly `std::unique_ptr`
 
 Importing PyCTest
 =================
 
-When importing, it is best to import PyCTest before importing numpy.
-See `this thread <https://github.com/jrmadsen/pyctest/issues/178>`_ for details.
+In general, the base module is not utilized directly. The following import scheme is generally simplest:
+
+   .. code:: python
+
+        import pyctest as _pyctest
+        import pyctest.pyctest as pyctest
+        import pyctest.pycmake as pycmake
+        import pyctest.helpers as helpers
+        from pyctest.cmake import CMake
+        from pyctest.ctest import CTest
+        from pyctest.cpack import CPack
+
+        print(_pyctest.version)
+        CMake('--version')
+        CTest('--version')
+        CPack('--version')
+

@@ -47,26 +47,23 @@ extension that uses ``nosetests`` for unit-testing:
 
     #!/usr/bin/env python
 
-    import os, sys, platform
+    import os
+    import sys
+    import platform
     import pyctest.pyctest as pyctest
     import pyctest.helpers as helpers
 
-    parser = helpers.ArgumentParser("ProjectName", source_dir=os.getcwd(), binary_dir=os.getcwd())
-    parser.add_argument("-n", "--build", type=str, required=True, help="Build name for identification")
+    parser = helpers.ArgumentParser("ProjectName", source_dir=os.getcwd(),binary_dir=os.getcwd(), vcs_type="git")
     args = parser.parse_args()
 
     pyctest.BUILD_NAME = "{}".format(args.build)
     pyctest.BUILD_COMMAND = "python setup.py build_ext --inplace"
-    pyctest.UPDATE_COMMAND = "git"
 
     test = pyctest.test()
     test.SetName("unittest")
-    # insert the command to run the tests for project
     test.SetCommand(["nosetests"])
 
-    pyctest.generate_config()
-    pyctest.generate_test_file()
-    pyctest.run(pyctest.ARGUMENTS)
+    pyctest.run()
 
 Example for autotools project
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -75,12 +72,15 @@ Example for autotools project
 
     #!/usr/bin/env python
 
-    import os, sys, platform
+    import os
+    import sys
+    import platform
     import multiprocessing as mp
     import pyctest.pyctest as pyctest
     import pyctest.helpers as helpers
 
-    parser = helpers.ArgumentParser("ProjectName", source_dir=os.getcwd(), binary_dir=os.getcwd())
+    parser = helpers.ArgumentParser("ProjectName", source_dir=os.getcwd(), binary_dir=os.getcwd(),
+                                    vcs_type="git")
     parser.add_argument("-n", "--build", type=str, required=True, help="Build name for identification")
     args = parser.parse_args()
 
@@ -91,18 +91,13 @@ Example for autotools project
     cmd.Execute()
 
     pyctest.BUILD_NAME = "{}".format(args.build)
-    pyctest.UPDATE_COMMAND = "git"
     pyctest.CONFIGURE_COMMAND = "./configure"
     pyctest.BUILD_COMMAND = "make -j{}".format(mp.cpu_count())
 
-    test = pyctest.test()
-    test.SetName("unittest")
-    # insert the command to run the tests for project
-    test.SetCommand(["./run-testing.sh"])
+    # alternate test declaration format
+    pyctest.test("unittest", ["./run-testing.sh"])
 
-    pyctest.generate_config()
-    pyctest.generate_test_file()
-    pyctest.run(pyctest.ARGUMENTS)
+    pyctest.run()
 
 Example for CMake project
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -118,7 +113,8 @@ Example for CMake project
     import pyctest.pyctest as pyctest
     import pyctest.helpers as helpers
 
-    binary_dir = os.path.join(os.getcwd(), "build-ProjectName")
+    project = "PyCTestDemo"
+    binary_dir = os.path.join(os.getcwd(), "{}-build".format(project))
     parser = helpers.ArgumentParser("ProjectName", os.getcwd(), binary_dir)
     parser.add_argument("-n", "--build", type=str, required=True, help="Build name for identification")
     args = parser.parse_args()
@@ -126,16 +122,12 @@ Example for CMake project
     pyctest.BUILD_NAME = "{}".format(args.build)
     pyctest.UPDATE_COMMAND = "git"
     pyctest.CONFIGURE_COMMAND = "cmake {}".format(pyctest.SOURCE_DIRECTORY)
-    pyctest.BUILD_COMMAND = "cmake --build {} --target all -- -j{}".format(pyctest.BINARY_DIRECTORY, mp.cpu_count())
+    pyctest.BUILD_COMMAND = "cmake --build {} --target all -- -j{}".format(
+        pyctest.BINARY_DIRECTORY, mp.cpu_count())
 
-    test = pyctest.test()
-    test.SetName("unittest")
-    # insert the command to run the tests for project
-    test.SetCommand(["./run-testing.sh"])
+    pyctest.test("unittest", ["./run-testing.sh"])
 
-    pyctest.generate_config(pyctest.BINARY_DIRECTORY)
-    pyctest.generate_test_file(pyctest.BINARY_DIRECTORY)
-    pyctest.run(pyctest.ARGUMENTS, pyctest.BINARY_DIRECTORY)
+    pyctest.run()
 
 Python Modules
 ~~~~~~~~~~~~~~
@@ -154,6 +146,34 @@ Python Modules
       ``import pyctest.pyctest as pyctest``)
    -  It is possible to call CMake from this package but it is generally
       not the purpose
+
+Direct Access to CMake/CTest/CPack Executables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- ``python -m pyctest.cmake <ARGS>`` == ``cmake <ARGS>``
+- ``python -m pyctest.ctest <ARGS>`` == ``ctest <ARGS>``
+- ``python -m pyctest.cpack <ARGS>`` == ``cpack <ARGS>``
+
+Following Python code:
+
+.. code:: python
+
+    from pyctest.ctest import CTest
+    from pyctest.cmake import CMake
+    from pyctest.cpack import CPack
+
+    CMake({"CMAKE_BUILD_TYPE":"Release"}, os.getcwd(), "-G", "Ninja")
+    CTest("--build-and-test", os.getcwd(), "-VV")
+    CPack("-G", "TGZ")
+
+is equivalent to the following shell commands:
+
+.. code:: bash
+
+    cmake -DCMAKE_BUILD_TYPE=Release ${PWD} -G Ninja
+    ctest --build-and-test ${PWD} -VV
+    cpack -G TGZ
+
 
 Benefits
 ~~~~~~~~
@@ -237,10 +257,7 @@ without any configuration, build, etc. steps
 
     import os
     import sys
-    import shutil
-    import argparse
     import platform
-    import traceback
 
     import pyctest.pyctest as pyctest
     import pyctest.pycmake as pycmake
@@ -263,49 +280,50 @@ without any configuration, build, etc. steps
         pyctest.MODEL = "Continuous"
         pyctest.SITE = platform.node()
 
-        # create a Test object
+        # create a test
         test = pyctest.test()
         test.SetName("list_directory")
         test.SetCommand(["ls", directory])
         test.SetProperty("WORKING_DIRECTORY", os.getcwd())
 
         # create a second test
-        # previous test is already stored by PyCTest
-        test = pyctest.test()
-        test.SetName("hostname")
-        test.SetCommand(["hostname"])
-        test.SetProperty("TIMEOUT", "10")
-
-        # generate the CTestConfig.cmake and CTestCustom.cmake
-        pyctest.generate_config(directory)
-
-        # generate the CTestTestfile.cmake file
-        pyctest.generate_test_file(directory)
+        pyctest.test("hostname", ["hostname"], {"TIMEOUT": "10"})
 
         # run CTest -- e.g. ctest -VV ${PWD}/pycm-test
-        pyctest.run(pyctest.ARGUMENTS, directory)
+        pyctest.run()
 
 .. code:: bash
 
+    #############################################
+    #  ____  _  _  ___  ____  ____  ____  ____  #
+    # (  _ \( \/ )/ __)(_  _)(  __)/ ___)(_  _) #
+    #  ) __/ )  /( (__   )(   ) _) \___ \  )(   #
+    # (__)  (__/  \___) (__) (____)(____/ (__)  #
+    #                                           #
+    #############################################
+
+    PyCTest args: []
+    CTest args: []
+    CMake args: []
     CTest arguments (default): '-V -DSTAGES=Start;Update;Configure;Build;Test;Coverage;MemCheck -S Stages.cmake -j1'
-    Writing CTest test file: "/Users/jrmadsen/devel/c++/pyctest-master/pycm-test/CTestTestfile.cmake"...
+    Writing CTest test file: "/Users/jrmadsen/devel/c++/pyctest-master/docs/pycm-test/CTestTestfile.cmake"...
     Generating test "list_directory"...
     Generating test "hostname"...
     -- STAGES = Start;Update;Configure;Build;Test;Coverage;MemCheck
-    -- [[Darwin macOS 10.13.6 x86_64] [Python 3.6.7]] Running CTEST_START stage...
+    -- [[Darwin macOS 10.14.2 x86_64] [Python 3.7.0]] Running CTEST_START stage...
     Run dashboard with model Continuous
-       Source directory: /Users/jrmadsen/devel/c++/pyctest-master/pycm-test
-       Build directory: /Users/jrmadsen/devel/c++/pyctest-master/pycm-test
-       Track: Continuous
-       Reading ctest configuration file: /Users/jrmadsen/devel/c++/pyctest-master/pycm-test/CTestConfig.cmake
-       Site: JRM-macOS-DOE.local
-       Build name: [Darwin macOS 10.13.6 x86_64] [Python 3.6.7]
-       Use Continuous tag: 20181129-2118
-    -- [[Darwin macOS 10.13.6 x86_64] [Python 3.6.7]] Skipping CTEST_UPDATE stage...
-    -- [[Darwin macOS 10.13.6 x86_64] [Python 3.6.7]] Skipping CTEST_CONFIGURE stage...
-    -- [[Darwin macOS 10.13.6 x86_64] [Python 3.6.7]] Skipping CTEST_BUILD stage...
-    -- [[Darwin macOS 10.13.6 x86_64] [Python 3.6.7]] Running CTEST_TEST stage...
-    Test project /Users/jrmadsen/devel/c++/pyctest-master/pycm-test
+    Source directory: /Users/jrmadsen/devel/c++/pyctest-master/docs/pycm-test
+    Build directory: /Users/jrmadsen/devel/c++/pyctest-master/docs/pycm-test
+    Track: Continuous
+    Reading ctest configuration file: /Users/jrmadsen/devel/c++/pyctest-master/docs/pycm-test/CTestConfig.cmake
+    Site: JRM-macOS-DOE.local.dhcp.lbl.gov
+    Build name: [Darwin macOS 10.14.2 x86_64] [Python 3.7.0]
+    Use Continuous tag: 20190116-2239
+    -- [[Darwin macOS 10.14.2 x86_64] [Python 3.7.0]] Skipping CTEST_UPDATE stage...
+    -- [[Darwin macOS 10.14.2 x86_64] [Python 3.7.0]] Skipping CTEST_CONFIGURE stage...
+    -- [[Darwin macOS 10.14.2 x86_64] [Python 3.7.0]] Skipping CTEST_BUILD stage...
+    -- [[Darwin macOS 10.14.2 x86_64] [Python 3.7.0]] Running CTEST_TEST stage...
+    Test project /Users/jrmadsen/devel/c++/pyctest-master/docs/pycm-test
         Start 1: list_directory
     1/2 Test #1: list_directory ...................   Passed    0.00 sec
         Start 2: hostname
@@ -314,8 +332,8 @@ without any configuration, build, etc. steps
     100% tests passed, 0 tests failed out of 2
 
     Total Test time (real) =   0.01 sec
-    -- [[Darwin macOS 10.13.6 x86_64] [Python 3.6.7]] Skipping CTEST_COVERAGE stage...
-    -- [[Darwin macOS 10.13.6 x86_64] [Python 3.6.7]] Skipping CTEST_MEMCHECK stage...
-    -- [[Darwin macOS 10.13.6 x86_64] [Python 3.6.7]] Skipping CTEST_SUBMIT stage...
-    -- [[Darwin macOS 10.13.6 x86_64] [Python 3.6.7]] Finished Continuous Stages (Start;Update;Configure;Build;Test;Coverage;MemCheck)
+    -- [[Darwin macOS 10.14.2 x86_64] [Python 3.7.0]] Skipping CTEST_COVERAGE stage...
+    -- [[Darwin macOS 10.14.2 x86_64] [Python 3.7.0]] Skipping CTEST_MEMCHECK stage...
+    -- [[Darwin macOS 10.14.2 x86_64] [Python 3.7.0]] Skipping CTEST_SUBMIT stage...
+    -- [[Darwin macOS 10.14.2 x86_64] [Python 3.7.0]] Finished Continuous Stages (Start;Update;Configure;Build;Test;Coverage;MemCheck)
 

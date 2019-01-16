@@ -1,7 +1,7 @@
 name: docs
 channels:
-  - jrmadsen
   - conda-forge
+  - jrmadsen
   - defaults
 dependencies:
   - python=3.7
