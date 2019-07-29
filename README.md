@@ -1,42 +1,51 @@
-# pyctest
+# PyCTest
 
-## Documentation
+| Travis | AppVeyor |
+| ------ | -------- |
+| [![Build Status](https://travis-ci.org/jrmadsen/pyctest.svg?branch=master)](https://travis-ci.org/jrmadsen/pyctest) | [![Build status](https://ci.appveyor.com/api/projects/status/p7m76ovx7sg781pf/branch/master?svg=true)](https://ci.appveyor.com/project/jrmadsen/pyctest/branch/master) |
 
-[PyCTest documentation](https://pyctest.readthedocs.io/en/latest/)
+[PyCTest Documentation (readthedocs)](https://pyctest.readthedocs.io/en/latest/)
+================================================================================
 
-## Available on PyPi and Anaconda
+## GitHub
 
-- PyPi has the source distribution
-  - PyPi installs can take a long time since CMake must be compiled from scratch
-- Anaconda has compiled distributions
+- `git clone https://github.com/jrmadsen/pyctest.git`
 
-### Travis
+## PyPi
 
-[![Build Status](https://travis-ci.org/jrmadsen/pyctest.svg?branch=master)](https://travis-ci.org/jrmadsen/pyctest)
+- `pip install pyctest`
 
-### AppVeyor
+## Anaconda Cloud
 
-[![Build status](https://ci.appveyor.com/api/projects/status/p7m76ovx7sg781pf/branch/master?svg=true)](https://ci.appveyor.com/project/jrmadsen/pyctest/branch/master)
+- `conda install -c jrmadsen pyctest`
 
-### Anaconda
+| Name | Version | Platforms | Downloads |
+| --- | --- | --- | --- |
+| [![Conda Recipe](https://img.shields.io/badge/recipe-pyctest-green.svg)](https://anaconda.org/jrmadsen/pyctest) | [![Anaconda-Server Badge](https://anaconda.org/jrmadsen/pyctest/badges/version.svg)](https://anaconda.org/jrmadsen/pyctest) | [![Anaconda-Server Badge](https://anaconda.org/jrmadsen/pyctest/badges/platforms.svg)](https://anaconda.org/jrmadsen/pyctest) | [![Anaconda-Server Badge](https://anaconda.org/jrmadsen/pyctest/badges/downloads.svg)](https://anaconda.org/jrmadsen/pyctest) |
 
-[![Anaconda-Server Badge](https://anaconda.org/jrmadsen/pyctest/badges/version.svg)](https://anaconda.org/jrmadsen/pyctest)
+## conda-forge
 
-[![Anaconda-Server Badge](https://anaconda.org/jrmadsen/pyctest/badges/latest_release_date.svg)](https://anaconda.org/jrmadsen/pyctest)
+- `conda install -c conda-forge pyctest`
 
-[![Anaconda-Server Badge](https://anaconda.org/jrmadsen/pyctest/badges/platforms.svg)](https://anaconda.org/jrmadsen/pyctest)
+| Name | Version | Platforms | Downloads |
+| --- | --- | --- | --- |
+| [![Conda Recipe](https://img.shields.io/badge/recipe-pyctest-green.svg)](https://anaconda.org/conda-forge/pyctest) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/pyctest.svg)](https://anaconda.org/conda-forge/pyctest) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/pyctest.svg)](https://anaconda.org/conda-forge/pyctest) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/pyctest.svg)](https://anaconda.org/conda-forge/pyctest) |
 
-[![Anaconda-Server Badge](https://anaconda.org/jrmadsen/pyctest/badges/installer/conda.svg)](https://conda.anaconda.org/jrmadsen)
+Benefits
+========
 
-[![Anaconda-Server Badge](https://anaconda.org/jrmadsen/pyctest/badges/downloads.svg)](https://anaconda.org/jrmadsen/pyctest)
+- Integration into continuous integration systems (e.g. Travis, AppVeyor, CircleCI, etc.) and pushing to CDash dashboard will combine all the results in one place
+  - The warnings and errors are enumerated in CDash (no more parsing stdout logs for errors)
+- Easily create platform-independent testing
+- No need to migrate build system to CMake -- just specify `pyctest.BUILD_COMMAND`
 
-### General Setup
+General Setup
+=============
 
-- Create an anaconda environment for PyCTest: `conda create -n pyctest python=3.6 pyctest`
-- Activate this environment: `source activate pyctest`
-- Write a driver Python script
+- Add PyCTest to conda environment: `conda install pyctest`
+- Write a driver Python script, e.g. `pyctest-runner.py`, in top of the source code tree
 
-#### Example for Python project
+## Example for Python project
 
 The following is an example for a Python code with a compiled C extension that uses `nosetests` for unit-testing:
 
@@ -47,25 +56,21 @@ import os, sys, platform
 import pyctest.pyctest as pyctest
 import pyctest.helpers as helpers
 
-parser = helpers.ArgumentParser("ProjectName", source_dir=os.getcwd(), binary_dir=os.getcwd())
-parser.add_argument("-n", "--build", type=str, required=True, help="Build name for identification")
+parser = helpers.ArgumentParser("ProjectName", source_dir=os.getcwd(),binary_dir=os.getcwd(), vcs_type="git")
 args = parser.parse_args()
 
 pyctest.BUILD_NAME = "{}".format(args.build)
 pyctest.BUILD_COMMAND = "python setup.py build_ext --inplace"
-pyctest.UPDATE_COMMAND = "git"
 
 test = pyctest.test()
 test.SetName("unittest")
 # insert the command to run the tests for project
 test.SetCommand(["nosetests"])
 
-pyctest.generate_config()
-pyctest.generate_test_file()
-pyctest.run(pyctest.ARGUMENTS)
+pyctest.run()
 ```
 
-#### Example for autotools project
+## Example for autotools project
 
 ```python
 #!/usr/bin/env python
@@ -75,7 +80,8 @@ import multiprocessing as mp
 import pyctest.pyctest as pyctest
 import pyctest.helpers as helpers
 
-parser = helpers.ArgumentParser("ProjectName", source_dir=os.getcwd(), binary_dir=os.getcwd())
+parser = helpers.ArgumentParser("ProjectName", source_dir=os.getcwd(), binary_dir=os.getcwd(),
+                                vcs_type="git")
 parser.add_argument("-n", "--build", type=str, required=True, help="Build name for identification")
 args = parser.parse_args()
 
@@ -86,7 +92,6 @@ cmd.SetErrorQuiet(False)
 cmd.Execute()
 
 pyctest.BUILD_NAME = "{}".format(args.build)
-pyctest.UPDATE_COMMAND = "git"
 pyctest.CONFIGURE_COMMAND = "./configure"
 pyctest.BUILD_COMMAND = "make -j{}".format(mp.cpu_count())
 
@@ -95,12 +100,10 @@ test.SetName("unittest")
 # insert the command to run the tests for project
 test.SetCommand(["./run-testing.sh"])
 
-pyctest.generate_config()
-pyctest.generate_test_file()
-pyctest.run(pyctest.ARGUMENTS)
+pyctest.run()
 ```
 
-#### Example for CMake project
+## Example for CMake project
 
 ```python
 #!/usr/bin/env python
@@ -127,9 +130,7 @@ test.SetName("unittest")
 # insert the command to run the tests for project
 test.SetCommand(["./run-testing.sh"])
 
-pyctest.generate_config(pyctest.BINARY_DIRECTORY)
-pyctest.generate_test_file(pyctest.BINARY_DIRECTORY)
-pyctest.run(pyctest.ARGUMENTS, pyctest.BINARY_DIRECTORY)
+pyctest.run()
 ```
 
 ### Python Modules
@@ -138,21 +139,34 @@ pyctest.run(pyctest.ARGUMENTS, pyctest.BINARY_DIRECTORY)
 - `import pyctest.pyctest` -- CTest module
 - `import pyctest.pycmake` -- CMake module
 - `import pyctest.helpers` -- Helpers module
-    - includes command line arguments (`argparse`) for PyCTest
+  - includes command line arguments (`argparse`) for PyCTest
 
-- NOTES:
-    - This document uses `pyctest.<...>` as shorthand for `pyctest.pyctest.<...>` (e.g. `import pyctest.pyctest as pyctest`)
-    - It is possible to call CMake from this package but it is generally not the purpose
+### Direct Access to CMake/CTest/CPack Executables
 
-### Benefits
+- `python -m pyctest.cmake <ARGS>` == `cmake <ARGS>`
+- `python -m pyctest.ctest <ARGS>` == `ctest <ARGS>`
+- `python -m pyctest.cpack <ARGS>` == `cpack <ARGS>`
 
-- Integration into continuous integration systems (e.g. Travis, AppVeyor, Jenkins, etc.) and pushing to CDash dashboard will combine all the results in one place
-    - The warnings and errors are enumerated in CDash (no more parsing stdout logs for errors)
-- Easily create platform-independent testing
-- No need to migrate build system to CMake -- just specify `pyctest.BUILD_COMMAND`
+Following Python code:
+```python
+from pyctest.ctest import CTest
+from pyctest.cmake import CMake
+from pyctest.cpack import CPack
 
+CMake({"CMAKE_BUILD_TYPE":"Release"}, os.getcwd(), "-G", "Ninja")
+CTest("--build-and-test", os.getcwd(), "-VV")
+CPack("-G", "TGZ")
+```
 
-### Standard Configuration Variables
+is equivalent to the following shell commands:
+
+```shell
+$ cmake -DCMAKE_BUILD_TYPE=Release ${PWD} -G Ninja
+$ ctest --build-and-test ${PWD} -VV
+$ cpack -G TGZ
+```
+
+## Standard Configuration Variables
 
 - `pyctest.PROJECT_NAME`
 - `pyctest.SOURCE_DIRECTORY`
@@ -188,8 +202,8 @@ pyctest.run(pyctest.ARGUMENTS, pyctest.BINARY_DIRECTORY)
 
 ### Examples
 
-- [Basic example](examples/Basic/README.md)
-- [Advanced example](examples/TomoPy/README.md)
+- [Basic example](https://github.com/jrmadsen/pyctest/blob/master/examples/Basic/README.md)
+- [Advanced example](https://github.com/jrmadsen/pyctest/blob/master/examples/TomoPy/README.md)
   - includes submission to CDash dashboard
 
 ### CDash Integration Example
@@ -290,4 +304,67 @@ Total Test time (real) =   0.01 sec
 -- [[Darwin macOS 10.13.6 x86_64] [Python 3.6.7]] Skipping CTEST_MEMCHECK stage...
 -- [[Darwin macOS 10.13.6 x86_64] [Python 3.6.7]] Skipping CTEST_SUBMIT stage...
 -- [[Darwin macOS 10.13.6 x86_64] [Python 3.6.7]] Finished Continuous Stages (Start;Update;Configure;Build;Test;Coverage;MemCheck)
+```
+
+## Command Line Interface
+
+```shell
+PyCTest args: ['--help']
+  CTest args: []
+  CMake args: []
+usage: pyctest-runner.py [-h] [-F] [-S] [-A] [-j <INT>] [-m <TYPE>] [-b <NAME>] [-i <PATH>] [-o <PATH>] [-M <TYPE>] [-H <SITE>] [-P <EXE>] [-N <NAME>]
+                         [-C <PATH> [<PATH> ...]] [-L <LABEL> [<LABEL> ...]] [-T [<TYPE> [<TYPE> ...]]] [-fc <EXE>] [-cc <EXE>] [-cxx <EXE>]
+                         [--pyctest-token <TOKEN>] [--pyctest-token-file <FILE>] [--pyctest-vcs-type <TYPE>] [--pyctest-build-type <TYPE>]
+                         [--pyctest-trigger <TYPE>] [--pyctest-use-launchers <BOOL>] [--pyctest-ctest-args [<ARG> [<ARG> ...]]] [--pyctest-cdash-version <STR>]
+                         [--pyctest-submit-retry-count <INT>] [--pyctest-submit-retry-delay <INT>] [--pyctest-curl-options <LIST>]
+                         [--pyctest-drop-location <STR>] [--pyctest-drop-method <STR>] [--pyctest-drop-site <STR>] [--pyctest-drop-site-password <STR>]
+                         [--pyctest-drop-site-user <STR>] [--pyctest-nightly-start-time <STR>] [--pyctest-update-version-only]
+
+PyCTest argparse. Arguments after first '--' are passed directly to CTest, arguments after second '--' are passed directly to CMake
+
+optional arguments:
+  -h, --help                                                                   show this help message and exit
+  -F, --pyctest-clean-first                                                    Remove standard PyCTest files and binary directory (if not source directory)
+  -S, --pyctest-submit                                                         Enable submission to dashboard
+  -A, --pyctest-append                                                         Append to last invocation of CTest
+  -j <INT>, --pyctest-jobs <INT>                                               number of concurrent jobs
+  -m <TYPE>, --pyctest-mode <TYPE>                                             Run specific stage. Choices:
+                                                                               [Start,Update,Configure,Build,Test,Coverage,MemCheck,Submit,Stages]
+  -b <NAME>, --pyctest-build-name <NAME>                                       Build name for identification
+  -i <PATH>, --pyctest-source-dir <PATH>                                       Source directory
+  -o <PATH>, --pyctest-binary-dir <PATH>                                       Binary/build/working directory
+  -M <TYPE>, --pyctest-model <TYPE>                                            CTest submission model (track). Choices: [Nightly,Continuous,Experimental]
+  -H <SITE>, --pyctest-site <SITE>                                             CTest submission site
+  -P <EXE>, --pyctest-python-exe <EXE>                                         Python executable to use. This can be absolue, relative, or CMake path
+  -N <NAME>, --pyctest-project-name <NAME>                                     Name of project using PyCTest
+  -C <PATH> [<PATH> ...], --pyctest-cleanup <PATH> [<PATH> ...]                Remove standard PyCTest files and binary directory (if not source directory) and
+                                                                               exit
+  -L <LABEL> [<LABEL> ...], --pyctest-subproject-labels <LABEL> [<LABEL> ...]  Add labels for subproject
+  -T [<TYPE> [<TYPE> ...]], --pyctest-stages [<TYPE> [<TYPE> ...]]             Run multiple stages. Choices:
+                                                                               [Start,Update,Configure,Build,Test,Coverage,MemCheck,Submit]
+  -fc <EXE>, --pyctest-fortran-compiler <EXE>                                  Specify Fortan compiler (if needed)
+  -cc <EXE>, --pyctest-c-compiler <EXE>                                        Specify the C compiler (if needed)
+  -cxx <EXE>, --pyctest-cxx-compiler <EXE>                                     Specify C++ compiler (if needed)
+  --pyctest-token <TOKEN>                                                      CTest site token for submission
+  --pyctest-token-file <FILE>                                                  Path to file for CTest site token for submission
+  --pyctest-vcs-type <TYPE>                                                    Set to enable revision ID discovery during the Update stage. Choices:
+                                                                               [bzr,cvs,git,hg,p4,svn]
+  --pyctest-build-type <TYPE>                                                  Specify CMAKE_BUILD_TYPE (if using CMake). Choices:
+                                                                               [Release,RelWithDebInfo,Debug,MinSizeRel]
+  --pyctest-trigger <TYPE>                                                     DEPRECATED
+  --pyctest-use-launchers <BOOL>                                               Enable launchers
+  --pyctest-ctest-args [<ARG> [<ARG> ...]]                                     CTest arguments
+  --pyctest-cdash-version <STR>                                                Set CTest variable: 'CTEST_CDASH_VERSION'
+  --pyctest-submit-retry-count <INT>                                           Set CTest variable: 'CTEST_SUBMIT_RETRY_COUNT'
+  --pyctest-submit-retry-delay <INT>                                           Set CTest variable: 'CTEST_SUBMIT_RETRY_DELAY'
+  --pyctest-curl-options <LIST>                                                Set CTest variable: 'CTEST_CURL_OPTIONS'
+  --pyctest-drop-location <STR>                                                Set CTest variable: 'CTEST_DROP_LOCATION'
+  --pyctest-drop-method <STR>                                                  Set CTest variable: 'CTEST_DROP_METHOD'
+  --pyctest-drop-site <STR>                                                    Set CTest variable: 'CTEST_DROP_SITE'
+  --pyctest-drop-site-password <STR>                                           Set CTest variable: 'CTEST_DROP_SITE_PASSWORD'
+  --pyctest-drop-site-user <STR>                                               Set CTest variable: 'CTEST_DROP_SITE_USER'
+  --pyctest-nightly-start-time <STR>                                           Set CTest variable: 'CTEST_NIGHTLY_START_TIME'
+  --pyctest-update-version-only                                                Specify that you want the version control update command to only discover the
+                                                                               current version that is checked out, and not to update to a different version
+
 ```

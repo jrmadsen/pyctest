@@ -116,7 +116,8 @@ banner = '''
 #  ) __/ )  /( (__   )(   ) _) \___ \  )(   #
 # (__)  (__/  \___) (__) (____)(____/ (__)  #
 #                                           #
-#############################################\n'''
+#############################################
+'''
 
 def print_display():
     '''Prints the PyCTest banner at first import
@@ -132,19 +133,19 @@ def print_display():
         verbose = 1
         os.environ["PYCTEST_VERBOSE"] = "{}".format(verbose)
 
-    banner = os.environ.get("PYCTEST_BANNER")
-    if banner is None:
-        banner = True if verbose > 0 else False
+    show_banner = os.environ.get("PYCTEST_BANNER")
+    if show_banner is None:
+        show_banner = True if verbose > 0 else False
     else:
-        banner.lower()
-        if banner == "on" or banner == "true":
-            banner = True
-        elif banner == "off" or banner == "false":
-            banner = False
+        show_banner.lower()
+        if show_banner == "on" or show_banner == "true":
+            show_banner = True
+        elif show_banner == "off" or show_banner == "false":
+            show_banner = False
         else:
-            banner = bool(int(banner))
+            show_banner = bool(int(show_banner))
 
-    if banner:
+    if show_banner:
         print("{}".format(banner))
 
 if os.environ.get("PYCTEST_NO_DISPLAY") is None:

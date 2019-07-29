@@ -385,7 +385,8 @@ pycm::do_build(int ac, char const* const* av)
         {
             nativeOptions.push_back(av[i]);
         }
-        else if((strcmp(av[i], "-j") == 0) || (strcmp(av[i], "--parallel") == 0))
+        else if((strcmp(av[i], "-j") == 0) ||
+                (strcmp(av[i], "--parallel") == 0))
         {
             jobs = cmake::DEFAULT_BUILD_PARALLEL_LEVEL;
             /* does the next argument start with a number? */

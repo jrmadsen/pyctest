@@ -438,7 +438,8 @@ cmcmd::HandleCoCompileCommands(std::vector<std::string>& args)
                 }
                 else if(cmHasLiteralPrefix(arg, "--launcher="))
                 {
-                    cmSystemTools::ExpandListArgument(arg.substr(11), launchers, true);
+                    cmSystemTools::ExpandListArgument(arg.substr(11), launchers,
+                                                      true);
                 }
                 else
                 {

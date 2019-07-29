@@ -978,14 +978,13 @@ PYBIND11_MODULE(pyctest, ct)
         if(working_dir.empty())
             working_dir = binary_dir;
 
-        auto locals =
-            py::dict("binary_dir"_a = binary_dir, "working_dir"_a = working_dir);
+        auto locals = py::dict("binary_dir"_a  = binary_dir,
+                               "working_dir"_a = working_dir);
 
         generate_ctest_config(working_dir);
         generate_custom_config(working_dir);
         copy_cdash(working_dir);
-        if(working_dir != ct.attr("BINARY_DIRECTORY").cast<string_t>())
-            generate_test_file(working_dir);
+        generate_test_file(working_dir);
 
         charvec_t cargs;
         // pyctest.ARGUMENTS attributes

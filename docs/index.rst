@@ -19,14 +19,30 @@ Build Status
 .. image:: https://ci.appveyor.com/api/projects/status/p7m76ovx7sg781pf/branch/master?svg=true
    :target: https://ci.appveyor.com/project/jrmadsen/pyctest/branch/master
 
-########
-Anaconda
-########
+######################
+Anaconda (conda-forge)
+######################
 
-.. image:: https://anaconda.org/jrmadsen/pyctest/badges/version.svg
+.. image:: https://img.shields.io/badge/recipe-pyctest-green.svg
+   :target: https://anaconda.org/conda-forge/pyctest
+
+.. image:: https://img.shields.io/conda/vn/conda-forge/pyctest.svg
+   :target: https://anaconda.org/conda-forge/pyctest
+
+.. image:: https://img.shields.io/conda/pn/conda-forge/pyctest.svg
+   :target: https://anaconda.org/conda-forge/pyctest
+
+.. image:: https://img.shields.io/conda/dn/conda-forge/pyctest.svg
+   :target: https://anaconda.org/conda-forge/pyctest
+
+###################
+Anaconda (jrmadsen)
+###################
+
+.. image:: https://img.shields.io/badge/recipe-pyctest-green.svg
    :target: https://anaconda.org/jrmadsen/pyctest
 
-.. image:: https://anaconda.org/jrmadsen/pyctest/badges/latest_release_date.svg
+.. image:: https://anaconda.org/jrmadsen/pyctest/badges/version.svg
    :target: https://anaconda.org/jrmadsen/pyctest
 
 .. image:: https://anaconda.org/jrmadsen/pyctest/badges/platforms.svg

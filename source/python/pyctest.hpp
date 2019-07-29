@@ -979,7 +979,8 @@ generate_test_file(string_t dir = "")
     auto test_list = get_test_list();
     if(!test_list || (test_list && test_list->size() == 0))
     {
-        std::cerr << __FUNCTION__ << ":: Warning! No tests to generate!!!" << std::endl;
+        std::cerr << __FUNCTION__ << ":: Warning! No tests to generate!!!"
+                  << std::endl;
     }
     else
     {

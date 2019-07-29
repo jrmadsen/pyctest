@@ -132,8 +132,9 @@ pycmConfigureFileCommand::InitialPass(std::vector<std::string> const& args,
         {
             /* Ignore legacy option.  */
         }
-        else if(args[i] == "NEWLINE_STYLE" || args[i] == "LF" || args[i] == "UNIX" ||
-                args[i] == "CRLF" || args[i] == "WIN32" || args[i] == "DOS")
+        else if(args[i] == "NEWLINE_STYLE" || args[i] == "LF" ||
+                args[i] == "UNIX" || args[i] == "CRLF" || args[i] == "WIN32" ||
+                args[i] == "DOS")
         {
             /* Options handled by NewLineStyle member above.  */
         }

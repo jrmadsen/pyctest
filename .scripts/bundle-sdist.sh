@@ -11,4 +11,4 @@ python setup.py sdist
 cd dist
 gpg --detach-sign -a *
 twine upload *
-
+sha256sum pyctest*.tar.gz
