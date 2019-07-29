@@ -56,8 +56,7 @@ pycmExecuteProcessCommandFixText(std::vector<char>& output,
     while(in_index < output.size())
     {
         char c = output[in_index++];
-        if((c != '\r' ||
-            !(in_index < output.size() && output[in_index] == '\n')) &&
+        if((c != '\r' || !(in_index < output.size() && output[in_index] == '\n')) &&
            c != '\0')
         {
             output[out_index++] = c;
@@ -84,8 +83,7 @@ pycmExecuteProcessCommandFixText(std::vector<char>& output,
 //============================================================================//
 
 void
-pycmExecuteProcessCommandAppend(std::vector<char>& output, const char* data,
-                                int length)
+pycmExecuteProcessCommandAppend(std::vector<char>& output, const char* data, int length)
 {
 #if defined(__APPLE__)
     // HACK on Apple to work around bug with inserting at the
@@ -222,8 +220,7 @@ pycmExecuteProcessCommand::operator()()
     {
         if(sscanf(timeout_string.c_str(), "%lg", &timeout) != 1)
         {
-            this->SetError(
-                " called with TIMEOUT value that could not be parsed.");
+            this->SetError(" called with TIMEOUT value that could not be parsed.");
             return false;
         }
     }
@@ -247,13 +244,11 @@ pycmExecuteProcessCommand::operator()()
 
     // if input file, pipe in stdin
     if(!input_file.empty())
-        cmsysProcess_SetPipeFile(cp, cmsysProcess_Pipe_STDIN,
-                                 input_file.c_str());
+        cmsysProcess_SetPipeFile(cp, cmsysProcess_Pipe_STDIN, input_file.c_str());
 
     // if no output file specified, use stdout
     if(!output_file.empty())
-        cmsysProcess_SetPipeFile(cp, cmsysProcess_Pipe_STDOUT,
-                                 output_file.c_str());
+        cmsysProcess_SetPipeFile(cp, cmsysProcess_Pipe_STDOUT, output_file.c_str());
 
     // if no error file specified, use stderr
     if(!error_file.empty())
@@ -261,8 +256,7 @@ pycmExecuteProcessCommand::operator()()
         if(error_file == output_file)
             merge_output = true;
         else
-            cmsysProcess_SetPipeFile(cp, cmsysProcess_Pipe_STDERR,
-                                     error_file.c_str());
+            cmsysProcess_SetPipeFile(cp, cmsysProcess_Pipe_STDERR, error_file.c_str());
     }
 
     // only used when output_file == error_file
@@ -312,10 +306,8 @@ pycmExecuteProcessCommand::operator()()
     processOutput.DecodeText(tempError, tempError);
 
     // Fix the text in the output strings.
-    pycmExecuteProcessCommandFixText(tempOutput,
-                                     output_strip_trailing_whitespace);
-    pycmExecuteProcessCommandFixText(tempError,
-                                     error_strip_trailing_whitespace);
+    pycmExecuteProcessCommandFixText(tempOutput, output_strip_trailing_whitespace);
+    pycmExecuteProcessCommandFixText(tempError, error_strip_trailing_whitespace);
 
     // Store the output obtained.
     if(!tempOutput.empty())
@@ -358,8 +350,8 @@ pycmExecuteProcessCommand::operator()()
                 {
                     case kwsysProcess_StateByIndex_Exited:
                     {
-                        int exitCode = cmsysProcess_GetExitValueByIndex(
-                            cp, static_cast<int>(i));
+                        int exitCode =
+                            cmsysProcess_GetExitValueByIndex(cp, static_cast<int>(i));
                         char buf[16];
                         sprintf(buf, "%d", exitCode);
                         res.push_back(buf);
@@ -370,9 +362,7 @@ pycmExecuteProcessCommand::operator()()
                             cp, static_cast<int>(i)));
                         break;
                     case kwsysProcess_StateByIndex_Error:
-                    default:
-                        res.push_back("Error getting the child return code");
-                        break;
+                    default: res.push_back("Error getting the child return code"); break;
                 }
             }
             m_results = cmJoin(res, ";");
@@ -381,9 +371,7 @@ pycmExecuteProcessCommand::operator()()
         case cmsysProcess_State_Exception:
             m_results = cmsysProcess_GetExceptionString(cp);
             break;
-        case cmsysProcess_State_Error:
-            m_results = cmsysProcess_GetErrorString(cp);
-            break;
+        case cmsysProcess_State_Error: m_results = cmsysProcess_GetErrorString(cp); break;
         case cmsysProcess_State_Expired:
             m_results = "Process terminated due to timeout";
             break;

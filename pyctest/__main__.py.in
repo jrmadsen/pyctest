@@ -61,9 +61,9 @@ if __name__ == "__main__":
     ret = 0
     try:
         if len(_cmake) > 0:
-            _pycmake.exec(_cmake)
+            _pycmake.execute(_cmake)
         if len(_ctest) > 0:
-            _pyctest.exec(_ctest)
+            _pyctest.execute(_ctest)
     except Exception as e:
         print('Exception occurred: {}'.format(e))
         ret = 1

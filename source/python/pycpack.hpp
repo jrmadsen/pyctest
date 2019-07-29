@@ -115,8 +115,7 @@ cpackUnknownArgument(const char* /*unused*/, void* /*unused*/);
 
 //----------------------------------------------------------------------------//
 int
-cpackDefinitionArgument(const char* argument, const char* cValue,
-                        void* call_data);
+cpackDefinitionArgument(const char* argument, const char* cValue, void* call_data);
 
 //----------------------------------------------------------------------------//
 int

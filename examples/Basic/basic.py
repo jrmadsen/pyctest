@@ -24,13 +24,10 @@ if __name__ == "__main__":
     # set explicitly
     pyctest.MODEL = "Continuous"
     pyctest.SITE = platform.node()
-
+    
     # create a Test object
-    test = pyctest.test()
-    test.SetName("list_directory")
-    test.SetCommand(["ls", directory])
-    test.SetProperty("WORKING_DIRECTORY", os.getcwd())
-    test.SetProperty("LABELS", "shutil")
+    pyctest.test("list_directory", ["ls", directory], {
+                 "WORKING_DIRECTORY": os.getcwd(), "LABELS" : "shutil"})
 
     # create a second test with direct initialization
     pyctest.test("hostname", ["hostname"],

@@ -58,8 +58,7 @@ public:
      * This is called when the command is first encountered in
      * the input file.
      */
-    bool InitialPass(std::vector<std::string> const& args,
-                     cmExecutionStatus&) override;
+    bool InitialPass(std::vector<std::string> const& args, cmExecutionStatus&) override;
 
     void AddDefinition(const std::string& key, const std::string& val)
     {
@@ -67,11 +66,17 @@ public:
     }
 
 private:
-    int  ConfigureFile();
-    int  ConfigureFile(const char* infile, const char* outfile, bool copyonly,
-                       bool atOnly, bool escapeQuotes, cmNewLineStyle newLine);
-    void ConfigureString(const std::string& input, std::string& output,
-                         bool atOnly, bool escapeQuotes) const;
+    int         ConfigureFile();
+    int         ConfigureFile(const char*    infile,
+                              const char*    outfile,
+                              bool           copyonly,
+                              bool           atOnly,
+                              bool           escapeQuotes,
+                              cmNewLineStyle newLine);
+    void        ConfigureString(const std::string& input,
+                                std::string&       output,
+                                bool               atOnly,
+                                bool               escapeQuotes) const;
     const char* GetDefinition(const std::string& key);
 
     cmNewLineStyle NewLineStyle;

@@ -91,7 +91,7 @@ public:
 
     cmCommand* Clone() override { return new pycmExecuteProcessCommand; }
     bool       InvokeInitialPass(const std::vector<cmListFileArgument>& args,
-                                 cmExecutionStatus& status) override
+                                 cmExecutionStatus&                     status) override
     {
         strvec_t expandedArgs;
         for(const auto& itr : args)
@@ -108,8 +108,8 @@ public:
 //------------------------------------------------------------------------//
 //      variables that can be get and set
 //------------------------------------------------------------------------//
-#define STANDARD_GET_SET(type, func, var)                                      \
-    const type& func() const { return var; }                                   \
+#define STANDARD_GET_SET(type, func, var)    \
+    const type& func() const { return var; } \
     void        func(type val) { var = val; }
 
     STANDARD_GET_SET(string_t, working_directory, m_working_directory)
@@ -129,7 +129,7 @@ public:
 //------------------------------------------------------------------------//
 //      variables that can be get
 //------------------------------------------------------------------------//
-#define STANDARD_GET(type, func, var)                                          \
+#define STANDARD_GET(type, func, var) \
     const type& func() const { return var; }
 
     STANDARD_GET(string_t, result, m_result)

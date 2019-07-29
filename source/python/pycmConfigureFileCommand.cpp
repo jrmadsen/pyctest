@@ -132,9 +132,8 @@ pycmConfigureFileCommand::InitialPass(std::vector<std::string> const& args,
         {
             /* Ignore legacy option.  */
         }
-        else if(args[i] == "NEWLINE_STYLE" || args[i] == "LF" ||
-                args[i] == "UNIX" || args[i] == "CRLF" || args[i] == "WIN32" ||
-                args[i] == "DOS")
+        else if(args[i] == "NEWLINE_STYLE" || args[i] == "LF" || args[i] == "UNIX" ||
+                args[i] == "CRLF" || args[i] == "WIN32" || args[i] == "DOS")
         {
             /* Options handled by NewLineStyle member above.  */
         }
@@ -167,14 +166,16 @@ int
 pycmConfigureFileCommand::ConfigureFile()
 {
     this->cmDefineRegex.compile("#([ \t]*)cmakedefine[ \t]+([A-Za-z_0-9]*)");
-    this->cmDefine01Regex.compile(
-        "#([ \t]*)cmakedefine01[ \t]+([A-Za-z_0-9]*)");
+    this->cmDefine01Regex.compile("#([ \t]*)cmakedefine01[ \t]+([A-Za-z_0-9]*)");
     this->cmAtVarRegex.compile("(@[A-Za-z_0-9/.+-]+@)");
     this->cmNamedCurly.compile("^[A-Za-z0-9/_.+-]+{");
 
-    return this->Makefile->ConfigureFile(
-        this->InputFile.c_str(), this->OutputFile.c_str(), this->CopyOnly,
-        this->AtOnly, this->EscapeQuotes, this->NewLineStyle);
+    return this->Makefile->ConfigureFile(this->InputFile.c_str(),
+                                         this->OutputFile.c_str(),
+                                         this->CopyOnly,
+                                         this->AtOnly,
+                                         this->EscapeQuotes,
+                                         this->NewLineStyle);
 }
 
 //============================================================================//
@@ -191,8 +192,9 @@ pycmConfigureFileCommand::GetDefinition(const std::string& key)
 
 void
 pycmConfigureFileCommand::ConfigureString(const std::string& input,
-                                          std::string& output, bool atOnly,
-                                          bool escapeQuotes) const
+                                          std::string&       output,
+                                          bool               atOnly,
+                                          bool               escapeQuotes) const
 {
     // Split input to handle one line at a time.
     std::string::const_iterator lineStart = input.begin();
@@ -233,11 +235,9 @@ pycmConfigureFileCommand::ConfigureString(const std::string& input,
         else if(this->cmDefine01Regex.find(line))
         {
             const std::string indentation = this->cmDefine01Regex.match(1);
-            const char*       def =
-                this->GetDefinition(this->cmDefine01Regex.match(2));
-            cmSystemTools::ReplaceString(line,
-                                         "#" + indentation + "cmakedefine01",
-                                         "#" + indentation + "define");
+            const char*       def = this->GetDefinition(this->cmDefine01Regex.match(2));
+            cmSystemTools::ReplaceString(
+                line, "#" + indentation + "cmakedefine01", "#" + indentation + "define");
             output += line;
             if(!cmSystemTools::IsOff(def))
                 output += " 1";
@@ -255,13 +255,15 @@ pycmConfigureFileCommand::ConfigureString(const std::string& input,
     }
 
     // Perform variable replacements.
-    this->ExpandVariablesInString(output, escapeQuotes, true, atOnly, nullptr,
-                                  -1, true, true);
+    this->ExpandVariablesInString(
+        output, escapeQuotes, true, atOnly, nullptr, -1, true, true);
 }
 
 int
-pycmConfigureFileCommand::ConfigureFile(const char* infile, const char* outfile,
-                                        bool copyonly, bool atOnly,
+pycmConfigureFileCommand::ConfigureFile(const char*    infile,
+                                        const char*    outfile,
+                                        bool           copyonly,
+                                        bool           atOnly,
                                         bool           escapeQuotes,
                                         cmNewLineStyle newLine)
 {
@@ -286,8 +288,7 @@ pycmConfigureFileCommand::ConfigureFile(const char* infile, const char* outfile,
 
     if(copyonly)
     {
-        if(!cmSystemTools::CopyFileIfDifferent(sinfile.c_str(),
-                                               soutfile.c_str()))
+        if(!cmSystemTools::CopyFileIfDifferent(sinfile.c_str(), soutfile.c_str()))
             return 0;
     }
     else
@@ -308,18 +309,16 @@ pycmConfigureFileCommand::ConfigureFile(const char* infile, const char* outfile,
         cmsys::ofstream fout(tempOutputFile.c_str(), omode);
         if(!fout)
         {
-            cmSystemTools::Error(
-                "Could not open file for write in copy operation ",
-                tempOutputFile.c_str());
+            cmSystemTools::Error("Could not open file for write in copy operation ",
+                                 tempOutputFile.c_str());
             cmSystemTools::ReportLastSystemError("");
             return 0;
         }
         cmsys::ifstream fin(sinfile.c_str());
         if(!fin)
         {
-            cmSystemTools::Error(
-                "Could not open file for read in copy operation ",
-                sinfile.c_str());
+            cmSystemTools::Error("Could not open file for read in copy operation ",
+                                 sinfile.c_str());
             return 0;
         }
 
@@ -327,8 +326,7 @@ pycmConfigureFileCommand::ConfigureFile(const char* infile, const char* outfile,
         if(bom != cmsys::FStream::BOM_None && bom != cmsys::FStream::BOM_UTF8)
         {
             std::ostringstream e;
-            e << "File starts with a Byte-Order-Mark that is not UTF-8:\n  "
-              << sinfile;
+            e << "File starts with a Byte-Order-Mark that is not UTF-8:\n  " << sinfile;
             this->IssueMessage(cmake::FATAL_ERROR, e.str());
             return 0;
         }
@@ -348,8 +346,7 @@ pycmConfigureFileCommand::ConfigureFile(const char* infile, const char* outfile,
         // close the files before attempting to copy
         fin.close();
         fout.close();
-        if(!cmSystemTools::CopyFileIfDifferent(tempOutputFile.c_str(),
-                                               soutfile.c_str()))
+        if(!cmSystemTools::CopyFileIfDifferent(tempOutputFile.c_str(), soutfile.c_str()))
         {
             res = 0;
         }

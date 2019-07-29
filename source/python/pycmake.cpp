@@ -27,8 +27,7 @@
 //============================================================================//
 
 // define helper macros
-#define pyobj_cast(_var, _type, _pyobject)                                     \
-    _type* _var = _pyobject.cast<_type*>()
+#define pyobj_cast(_var, _type, _pyobject) _type* _var = _pyobject.cast<_type*>()
 
 //============================================================================//
 
@@ -47,8 +46,9 @@ static const char* cmDocumentationName[][2] = {
 //============================================================================//
 
 static const char* cmDocumentationUsage[][2] = {
-    { nullptr, "  cmake [options] <path-to-source>\n"
-               "  cmake [options] <path-to-existing-build>" },
+    { nullptr,
+      "  cmake [options] <path-to-source>\n"
+      "  cmake [options] <path-to-existing-build>" },
     { nullptr,
       "Specify a source directory to (re-)generate a build system for "
       "it in the current working directory.  Specify an existing build "
@@ -65,22 +65,22 @@ static const char* cmDocumentationUsageNote[][2] = {
 
 //============================================================================//
 
-#define CMAKE_BUILD_OPTIONS                                                    \
-    "  <dir>          = Project binary directory to be built.\n"               \
-    "  -j [<jobs>] --parallel [<jobs>] = Build in parallel using\n"            \
-    "                   the given number of jobs. If <jobs> is omitted\n"      \
-    "                   the native build tool's default number is used.\n"     \
-    "                   The CMAKE_BUILD_PARALLEL_LEVEL environment "           \
-    "variable\n"                                                               \
-    "                   specifies a default parallel level when this "         \
-    "option\n"                                                                 \
-    "                   is not given.\n"                                       \
-    "  --target <tgt> = Build <tgt> instead of default targets.\n"             \
-    "                   May only be specified once.\n"                         \
-    "  --config <cfg> = For multi-configuration tools, choose <cfg>.\n"        \
-    "  --clean-first  = Build target 'clean' first, then build.\n"             \
-    "                   (To clean only, use --target 'clean'.)\n"              \
-    "  --use-stderr   = Ignored.  Behavior is default in CMake >= 3.0.\n"      \
+#define CMAKE_BUILD_OPTIONS                                                \
+    "  <dir>          = Project binary directory to be built.\n"           \
+    "  -j [<jobs>] --parallel [<jobs>] = Build in parallel using\n"        \
+    "                   the given number of jobs. If <jobs> is omitted\n"  \
+    "                   the native build tool's default number is used.\n" \
+    "                   The CMAKE_BUILD_PARALLEL_LEVEL environment "       \
+    "variable\n"                                                           \
+    "                   specifies a default parallel level when this "     \
+    "option\n"                                                             \
+    "                   is not given.\n"                                   \
+    "  --target <tgt> = Build <tgt> instead of default targets.\n"         \
+    "                   May only be specified once.\n"                     \
+    "  --config <cfg> = For multi-configuration tools, choose <cfg>.\n"    \
+    "  --clean-first  = Build target 'clean' first, then build.\n"         \
+    "                   (To clean only, use --target 'clean'.)\n"          \
+    "  --use-stderr   = Ignored.  Behavior is default in CMake >= 3.0.\n"  \
     "  --             = Pass remaining options to the native tool.\n"
 
 //============================================================================//
@@ -94,11 +94,13 @@ static const char* cmDocumentationOptions[][2] = {
     { "-N", "View mode only." },
     { "-P <file>", "Process script mode." },
     { "--find-package", "Run in pkg-config like mode." },
-    { "--graphviz=[file]", "Generate graphviz of dependencies, see "
-                           "CMakeGraphVizOptions.cmake for more." },
+    { "--graphviz=[file]",
+      "Generate graphviz of dependencies, see "
+      "CMakeGraphVizOptions.cmake for more." },
     { "--system-information [file]", "Dump information about this system." },
-    { "--debug-trycompile", "Do not delete the try_compile build tree. Only "
-                            "useful on one try_compile at a time." },
+    { "--debug-trycompile",
+      "Do not delete the try_compile build tree. Only "
+      "useful on one try_compile at a time." },
     { "--debug-output", "Put cmake in a debug mode." },
     { "--trace", "Put cmake in trace mode." },
     { "--trace-expand", "Put cmake in trace mode with variable expansion." },
@@ -107,8 +109,9 @@ static const char* cmDocumentationOptions[][2] = {
     { "--warn-uninitialized", "Warn about uninitialized values." },
     { "--warn-unused-vars", "Warn about unused variables." },
     { "--no-warn-unused-cli", "Don't warn about command line options." },
-    { "--check-system-vars", "Find problems with variable usage in system "
-                             "files." },
+    { "--check-system-vars",
+      "Find problems with variable usage in system "
+      "files." },
     { nullptr, nullptr }
 };
 
@@ -163,8 +166,10 @@ pycm::cmakemainGetStack(void* clientdata)
 //============================================================================//
 
 void
-pycm::cmakemainMessageCallback(const char* m, const char* /*unused*/,
-                               bool& /*unused*/, void* clientdata)
+pycm::cmakemainMessageCallback(const char* m,
+                               const char* /*unused*/,
+                               bool& /*unused*/,
+                               void* clientdata)
 {
     std::cerr << m << cmakemainGetStack(clientdata) << std::endl << std::flush;
 }
@@ -189,8 +194,7 @@ pycm::cmakemainProgressCallback(const char* m, float prog, void* clientdata)
 
     if((prog < 0) || (!dir.empty()))
     {
-        std::cout << "-- " << m << dir << cmakemainGetStack(clientdata)
-                  << std::endl;
+        std::cout << "-- " << m << dir << cmakemainGetStack(clientdata) << std::endl;
     }
 
     std::cout.flush();
@@ -203,8 +207,7 @@ pycm::do_cmake(int ac, char const* const* av)
 {
     if(cmSystemTools::GetCurrentWorkingDirectory().empty())
     {
-        std::cerr << "Current working directory cannot be established."
-                  << std::endl;
+        std::cerr << "Current working directory cannot be established." << std::endl;
         return 1;
     }
 
@@ -304,9 +307,8 @@ pycm::do_cmake(int ac, char const* const* av)
         int ret = cm.GetSystemInformation(args);
         return ret;
     }
-    cmake::Role const role = workingMode == cmake::SCRIPT_MODE
-                                 ? cmake::RoleScript
-                                 : cmake::RoleProject;
+    cmake::Role const role =
+        workingMode == cmake::SCRIPT_MODE ? cmake::RoleScript : cmake::RoleProject;
     pycm::cmake_role() = role;
     cmake& cm          = *pycm::cmake_instance();
 
@@ -323,8 +325,7 @@ pycm::do_cmake(int ac, char const* const* av)
         std::vector<std::string> keys = cm.GetState()->GetCacheEntryKeys();
         for(std::string const& k : keys)
         {
-            cmStateEnums::CacheEntryType t =
-                cm.GetState()->GetCacheEntryType(k);
+            cmStateEnums::CacheEntryType t = cm.GetState()->GetCacheEntryType(k);
             if(t != cmStateEnums::INTERNAL && t != cmStateEnums::STATIC &&
                t != cmStateEnums::UNINITIALIZED)
             {
@@ -335,13 +336,11 @@ pycm::do_cmake(int ac, char const* const* av)
                     if(list_help)
                     {
                         std::cout << "// "
-                                  << cm.GetState()->GetCacheEntryProperty(
-                                         k, "HELPSTRING")
+                                  << cm.GetState()->GetCacheEntryProperty(k, "HELPSTRING")
                                   << std::endl;
                     }
-                    std::cout << k << ":" << cmState::CacheEntryTypeToString(t)
-                              << "=" << cm.GetState()->GetCacheEntryValue(k)
-                              << std::endl;
+                    std::cout << k << ":" << cmState::CacheEntryTypeToString(t) << "="
+                              << cm.GetState()->GetCacheEntryValue(k) << std::endl;
                     if(list_help)
                     {
                         std::cout << std::endl;
@@ -386,8 +385,7 @@ pycm::do_build(int ac, char const* const* av)
         {
             nativeOptions.push_back(av[i]);
         }
-        else if((strcmp(av[i], "-j") == 0) ||
-                (strcmp(av[i], "--parallel") == 0))
+        else if((strcmp(av[i], "-j") == 0) || (strcmp(av[i], "--parallel") == 0))
         {
             jobs = cmake::DEFAULT_BUILD_PARALLEL_LEVEL;
             /* does the next argument start with a number? */
@@ -405,8 +403,7 @@ pycm::do_build(int ac, char const* const* av)
             }
             else
             {
-                std::cerr
-                    << "'--target' may not be specified more than once.\n\n";
+                std::cerr << "'--target' may not be specified more than once.\n\n";
                 dir.clear();
                 break;
             }
@@ -442,8 +439,8 @@ pycm::do_build(int ac, char const* const* av)
                     }
                     else
                     {
-                        std::cerr << "'" << av[i - 1] << "' invalid number '"
-                                  << av[i] << "' given.\n\n";
+                        std::cerr << "'" << av[i - 1] << "' invalid number '" << av[i]
+                                  << "' given.\n\n";
                         dir.clear();
                         break;
                     }
@@ -487,9 +484,8 @@ pycm::do_build(int ac, char const* const* av)
                 }
                 else
                 {
-                    std::cerr
-                        << "'CMAKE_BUILD_PARALLEL_LEVEL' environment variable\n"
-                        << "invalid number '" << parallel << "' given.\n\n";
+                    std::cerr << "'CMAKE_BUILD_PARALLEL_LEVEL' environment variable\n"
+                              << "invalid number '" << parallel << "' given.\n\n";
                     dir.clear();
                 }
             }
@@ -614,7 +610,8 @@ PYBIND11_MODULE(pycmake, cm)
                  if not os.path.exists(_cmake_path):
                      print("Warning! Executable not found @ '{}'".format(_cmake_path))
                  )",
-                 py::globals(), locals);
+                 py::globals(),
+                 locals);
         return locals["_cmake_path"].cast<std::string>();
     };
     //------------------------------------------------------------------------//
@@ -625,7 +622,7 @@ PYBIND11_MODULE(pycmake, cm)
         return pc;
     };
     //------------------------------------------------------------------------//
-    auto exec = [=](std::vector<std::string> pargs) {
+    auto execute = [=](std::vector<std::string> pargs) {
         // convert list elements to char*
         charvec_t cargs;
         for(auto itr : pargs)
@@ -659,8 +656,7 @@ PYBIND11_MODULE(pycmake, cm)
             cargs.push_back(str2char_convert(itr));
 
         // add the source directory
-        cargs.push_back(
-            str2char_convert(cm.attr("SOURCE_DIR").cast<string_t>()));
+        cargs.push_back(str2char_convert(cm.attr("SOURCE_DIR").cast<string_t>()));
 
         // structures passed
         int    argc = pargs.size() + 1;
@@ -685,7 +681,8 @@ PYBIND11_MODULE(pycmake, cm)
                          os.makedirs(binary_dir)
                      os.chdir(binary_dir)
                  )",
-                 py::globals(), locals);
+                 py::globals(),
+                 locals);
 
         std::string _cwd = locals["_cwd"].cast<std::string>();
         int         ret  = pycm::cmake_main_driver(argc, argv);
@@ -695,22 +692,23 @@ PYBIND11_MODULE(pycmake, cm)
                  import os
                  os.chdir(binary_dir)
                  )",
-                 py::globals(), locals);
+                 py::globals(),
+                 locals);
 
         if(ret > 0)
             std::cerr << "Error! Non-zero exit code: " << ret << std::endl;
     };
     //------------------------------------------------------------------------//
     // create a new test and add to test list
-    auto cmake_init = [=](std::string source_dir, std::string binary_dir,
-                          std::string prjname) {
-        // change working directory
-        auto locals =
-            py::dict("source_dir"_a = source_dir, "binary_dir"_a = binary_dir,
-                     "project_name"_a = prjname);
-        cm.attr("SOURCE_DIR") = source_dir;
-        cm.attr("BINARY_DIR") = binary_dir;
-        py::exec(R"(
+    auto cmake_init =
+        [=](std::string source_dir, std::string binary_dir, std::string prjname) {
+            // change working directory
+            auto locals           = py::dict("source_dir"_a   = source_dir,
+                                   "binary_dir"_a   = binary_dir,
+                                   "project_name"_a = prjname);
+            cm.attr("SOURCE_DIR") = source_dir;
+            cm.attr("BINARY_DIR") = binary_dir;
+            py::exec(R"(
                  import os
 
                  _cwd = os.getcwd()
@@ -732,27 +730,29 @@ PYBIND11_MODULE(pycmake, cm)
                      f.write(contents)
                      f.close()
                  )",
-                 py::globals(), locals);
+                     py::globals(),
+                     locals);
 
-        std::string _cwd = locals["_cwd"].cast<std::string>();
-        int         argc = 2;
-        char**      argv = new char*[argc];
-        auto        _exe = exe_path();
-        argv[0]          = str2char_convert(_exe);
-        argv[1]          = str2char_convert(".");
-        pycm::cmake_main_driver(argc, argv);
-        cmake* _cmake = pycm::cmake_instance(false);
+            std::string _cwd = locals["_cwd"].cast<std::string>();
+            int         argc = 2;
+            char**      argv = new char*[argc];
+            auto        _exe = exe_path();
+            argv[0]          = str2char_convert(_exe);
+            argv[1]          = str2char_convert(".");
+            pycm::cmake_main_driver(argc, argv);
+            cmake* _cmake = pycm::cmake_instance(false);
 
-        locals = py::dict("binary_dir"_a = _cwd);
-        py::exec(R"(
+            locals = py::dict("binary_dir"_a = _cwd);
+            py::exec(R"(
                  import os
 
                  os.chdir(binary_dir)
                  )",
-                 py::globals(), locals);
+                     py::globals(),
+                     locals);
 
-        return new pycm::cmakeWrapper(_cmake);
-    };
+            return new pycm::cmakeWrapper(_cmake);
+        };
     //------------------------------------------------------------------------//
 
     py::class_<pycm::cmakeWrapper> _cmake(cm, "cmake");
@@ -761,13 +761,19 @@ PYBIND11_MODULE(pycmake, cm)
     cm.attr("SOURCE_DIR") = ".";
     cm.attr("BINARY_DIR") = ".";
 
-    _cmake.def(py::init(cmake_init), "Initialize CMake", py::arg("source_dir"),
-               py::arg("binary_dir"), py::arg("project_name") = "PyCMake");
+    _cmake.def(py::init(cmake_init),
+               "Initialize CMake",
+               py::arg("source_dir"),
+               py::arg("binary_dir"),
+               py::arg("project_name") = "PyCMake");
 
     cm.def("exe_path", exe_path, "Path to cmake executable");
-    cm.def("run", run, "Run CMake", py::arg("args") = cm.attr("ARGUMENTS"),
+    cm.def("run",
+           run,
+           "Run CMake",
+           py::arg("args")       = cm.attr("ARGUMENTS"),
            py::arg("binary_dir") = cm.attr("BINARY_DIR"));
-    cm.def("exec", exec, "Directly run cmake", py::arg("args") = py::list());
+    cm.def("execute", execute, "Directly run cmake", py::arg("args") = py::list());
 }
 
 //============================================================================//
