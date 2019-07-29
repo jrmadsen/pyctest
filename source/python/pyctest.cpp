@@ -841,6 +841,10 @@ PYBIND11_MODULE(pyctest, ct)
     };
     //------------------------------------------------------------------------//
     auto generate_ctest_config = [=](string_t dir) {
+        if(ct.attr("__GENERATED_CTEST_CONFIG"))
+            return;
+        ct.attr("__GENERATED_CTEST_CONFIG") = true;
+
         string_t fname = "CTestConfig.cmake";
         if(dir.empty())
             dir = ct.attr("BINARY_DIRECTORY").cast<string_t>();
@@ -872,6 +876,10 @@ PYBIND11_MODULE(pyctest, ct)
     };
     //------------------------------------------------------------------------//
     auto generate_custom_config = [=](string_t dir) {
+        if(ct.attr("__GENERATED_CTEST_CUSTOM"))
+            return;
+        ct.attr("__GENERATED_CTEST_CUSTOM") = true;
+
         string_t fname = "CTestCustom.cmake";
         if(dir.empty())
             dir = ct.attr("BINARY_DIRECTORY").cast<string_t>();
@@ -934,6 +942,10 @@ PYBIND11_MODULE(pyctest, ct)
     };
     //------------------------------------------------------------------------//
     auto generate_test_file = [=](string_t dir) {
+        if(ct.attr("__GENERATED_CTEST_TESTFILE"))
+            return;
+        ct.attr("__GENERATED_CTEST_TESTFILE") = true;
+
         if(dir.empty())
             dir = ct.attr("BINARY_DIRECTORY").cast<string_t>();
         pyct::generate_test_file(dir);
@@ -973,7 +985,7 @@ PYBIND11_MODULE(pyctest, ct)
         generate_custom_config(working_dir);
         copy_cdash(working_dir);
         if(working_dir != ct.attr("BINARY_DIRECTORY").cast<string_t>())
-        generate_test_file(working_dir);
+            generate_test_file(working_dir);
 
         charvec_t cargs;
         // pyctest.ARGUMENTS attributes
@@ -1191,15 +1203,18 @@ PYBIND11_MODULE(pyctest, ct)
         .value("ANSI", cmProcessOutput::Encoding::ANSI)
         .value("OEM", cmProcessOutput::Encoding::OEM);
 
-    ct.attr("ARGUMENTS")           = py::list();
-    ct.attr("PROJECT_NAME")        = "";
-    ct.attr("NIGHTLY_START_TIME")  = "01:00:00 UTC";
-    ct.attr("DROP_METHOD")         = "https";
-    ct.attr("DROP_SITE")           = "cdash.nersc.gov";
-    ct.attr("DROP_LOCATION")       = "/submit.php?project=${CTEST_PROJECT_NAME}";
-    ct.attr("CDASH_VERSION")       = "1.6";
-    ct.attr("CDASH_QUERY_VERSION") = "TRUE";
-    ct.attr("TIMEOUT")             = "7200";
+    ct.attr("ARGUMENTS")                  = py::list();
+    ct.attr("PROJECT_NAME")               = "";
+    ct.attr("NIGHTLY_START_TIME")         = "01:00:00 UTC";
+    ct.attr("DROP_METHOD")                = "https";
+    ct.attr("DROP_SITE")                  = "cdash.nersc.gov";
+    ct.attr("DROP_LOCATION")              = "/submit.php?project=${CTEST_PROJECT_NAME}";
+    ct.attr("CDASH_VERSION")              = "1.6";
+    ct.attr("CDASH_QUERY_VERSION")        = "TRUE";
+    ct.attr("TIMEOUT")                    = "7200";
+    ct.attr("__GENERATED_CTEST_CONFIG")   = false;
+    ct.attr("__GENERATED_CTEST_CUSTOM")   = false;
+    ct.attr("__GENERATED_CTEST_TESTFILE") = false;
 
     for(const auto& itr : blank_attr)
         ct.attr(upperstr(itr).c_str()) = "";
