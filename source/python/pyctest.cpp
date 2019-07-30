@@ -841,7 +841,7 @@ PYBIND11_MODULE(pyctest, ct)
     };
     //------------------------------------------------------------------------//
     auto generate_ctest_config = [=](string_t dir) {
-        if(ct.attr("__GENERATED_CTEST_CONFIG"))
+        if(pybind11::getattr(ct, "__GENERATED_CTEST_CONFIG").cast<bool>())
             return;
         ct.attr("__GENERATED_CTEST_CONFIG") = true;
 
@@ -876,7 +876,7 @@ PYBIND11_MODULE(pyctest, ct)
     };
     //------------------------------------------------------------------------//
     auto generate_custom_config = [=](string_t dir) {
-        if(ct.attr("__GENERATED_CTEST_CUSTOM"))
+        if(pybind11::getattr(ct, "__GENERATED_CTEST_CUSTOM").cast<bool>())
             return;
         ct.attr("__GENERATED_CTEST_CUSTOM") = true;
 
@@ -942,7 +942,7 @@ PYBIND11_MODULE(pyctest, ct)
     };
     //------------------------------------------------------------------------//
     auto generate_test_file = [=](string_t dir) {
-        if(ct.attr("__GENERATED_CTEST_TESTFILE"))
+        if(pybind11::getattr(ct, "__GENERATED_CTEST_TESTFILE").cast<bool>())
             return;
         ct.attr("__GENERATED_CTEST_TESTFILE") = true;
 
@@ -978,8 +978,8 @@ PYBIND11_MODULE(pyctest, ct)
         if(working_dir.empty())
             working_dir = binary_dir;
 
-        auto locals = py::dict("binary_dir"_a  = binary_dir,
-                               "working_dir"_a = working_dir);
+        auto locals =
+            py::dict("binary_dir"_a = binary_dir, "working_dir"_a = working_dir);
 
         generate_ctest_config(working_dir);
         generate_custom_config(working_dir);
