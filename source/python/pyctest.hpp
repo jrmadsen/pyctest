@@ -273,7 +273,8 @@ protected:
     _Tp* m_obj;
 };
 //----------------------------------------------------------------------------//
-template <typename _Cp, typename _Tp> class pycmSingletonWrapper : public pycmWrapper<_Cp>
+template <typename _Cp, typename _Tp>
+class pycmSingletonWrapper : public pycmWrapper<_Cp>
 {
 public:
     pycmSingletonWrapper(_Cp* _type)
