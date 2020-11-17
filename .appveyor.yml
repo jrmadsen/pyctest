@@ -52,7 +52,8 @@ install:
   - echo PATH %PATH%
   - conda config --set always_yes yes
   - conda config --set anaconda_upload no
-  - conda install -n root conda-build anaconda-client --no-pin
+  # - conda install -n root conda-build anaconda-client --no-pin
+  - conda install -n root -c defaults -c conda-forge scikit-build --no-pin
   - "%CONDA_ROOT%\\Scripts\\activate root"
 
 build_script:
@@ -60,6 +61,7 @@ build_script:
   - echo CONDA_PREFIX %CONDA_PREFIX%
   - echo PATH %PATH%
   - conda info -a
-  - python update-conda-yaml.py
-  - cp recipe/meta.yaml ./
-  - conda-build --python="%PYTHON_VERSION%" .
+  - python setup.py install
+  # - python update-conda-yaml.py
+  # - cp recipe/meta.yaml ./
+  # - conda-build --python="%PYTHON_VERSION%" .
