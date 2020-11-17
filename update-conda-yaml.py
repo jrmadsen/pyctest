@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
         git_rev = ""
         if len(sys.argv) < 2:
-            process = sp.Popen(['git', 'rev-parse', 'HEAD'], stdout=sp.PIPE)
+            process = sp.Popen(["git", "rev-parse", "HEAD"], stdout=sp.PIPE)
             out, err = process.communicate()
             git_rev = "{}".format(out.decode("utf-8").strip())
         else:
@@ -48,7 +48,7 @@ if __name__ == "__main__":
         main(git_rev)
 
     except Exception as e:
-        print ('Error running pyctest - {}'.format(e))
+        print("Error running pyctest - {}".format(e))
         exc_type, exc_value, exc_trback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_trback, limit=10)
         sys.exit(1)

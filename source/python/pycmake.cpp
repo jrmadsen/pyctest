@@ -699,6 +699,7 @@ PYBIND11_MODULE(pycmake, cm)
 
         if(ret > 0)
             std::cerr << "Error! Non-zero exit code: " << ret << std::endl;
+        return (ret == 0);
     };
     //------------------------------------------------------------------------//
     // create a new test and add to test list
