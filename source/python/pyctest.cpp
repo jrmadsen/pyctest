@@ -862,6 +862,7 @@ PYBIND11_MODULE(pyctest, ct)
 
         if(ret > 0)
             std::cerr << "Error! Non-zero exit code: " << ret << std::endl;
+        return (ret == 0);
     };
     //------------------------------------------------------------------------//
     auto copy_files = [=](py::list files, string_t from_dir,

@@ -34,8 +34,15 @@ __version__ = "@PROJECT_VERSION@"
 __maintainer__ = "Jonathan Madsen"
 __email__ = "jonrobm.programming@gmail.com"
 __status__ = "Development"
-__all__ = ['Conda', 'FindExePath', 'RemovePath', 'Cleanup', 'GetHomePath',
-           'GetSystemVersionInfo', 'ArgumentParser']
+__all__ = [
+    "Conda",
+    "FindExePath",
+    "RemovePath",
+    "Cleanup",
+    "GetHomePath",
+    "GetSystemVersionInfo",
+    "ArgumentParser",
+]
 
 
 import os
@@ -51,7 +58,7 @@ from . import pyctest
 from . import pycmake
 
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 #
 class Conda(object):
 
@@ -66,15 +73,20 @@ class Conda(object):
 
     def __str__(self):
         return "{}={};{}={};{}={};{}={};{}={}".format(
-            "CONDA_PREFIX", self.prefix,
-            "CONDA_ENVIRONMENT", self.environ,
-            "CONDA_PYTHON_EXE", self.python,
-            "CONDA_DEFAULT_ENV", self.default_env,
-            "CONDA_SHLVL", self.shlvl)
+            "CONDA_PREFIX",
+            self.prefix,
+            "CONDA_ENVIRONMENT",
+            self.environ,
+            "CONDA_PYTHON_EXE",
+            self.python,
+            "CONDA_DEFAULT_ENV",
+            self.default_env,
+            "CONDA_SHLVL",
+            self.shlvl,
+        )
 
 
-
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 #
 def FindExePath(name, path=None):
 
@@ -82,6 +94,7 @@ def FindExePath(name, path=None):
 
     try:
         from shutil import which
+
         exepath = which(name, path=path)
         if exepath is not None:
             return exepath
@@ -90,6 +103,7 @@ def FindExePath(name, path=None):
 
     try:
         from distutils.spawn import find_executable
+
         return find_executable(name, path=path)
     except:
         pass
@@ -97,7 +111,7 @@ def FindExePath(name, path=None):
     return None
 
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 #
 def RemovePath(path):
 
@@ -105,6 +119,7 @@ def RemovePath(path):
 
     try:
         import shutil
+
         if path is not None and os.path.exists(path):
             if os.path.isdir(path) and path != os.getcwd():
                 shutil.rmtree(path)
@@ -114,12 +129,10 @@ def RemovePath(path):
         print("non-fatal exception on '{}': {}".format(path, e))
 
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 #
 def Cleanup(path=None, extra=[], exclude=[]):
-
-    """
-    This function removes PyCTest files/folders that are copied into or
+    """This function removes PyCTest files/folders that are copied into or
     generated in the given path during running PyCTest
 
     Parameters
@@ -131,13 +144,21 @@ def Cleanup(path=None, extra=[], exclude=[]):
     exclude : list, optional
         use this to exclude deleting files/folders
     """
-    filelist = ["CTestConfig.cmake", "CTestCustom.cmake",
-                "CTestTestfile.cmake",
-                "DartConfiguration.tcl",
-                "Init.cmake", "Stages.cmake", "Utilities.cmake",
-                "Makefile", "Testing",
-                "cmake_install.cmake", "__pycache__",
-                "CMakeFiles", "CMakeCache.txt"]
+    filelist = [
+        "CTestConfig.cmake",
+        "CTestCustom.cmake",
+        "CTestTestfile.cmake",
+        "DartConfiguration.tcl",
+        "Init.cmake",
+        "Stages.cmake",
+        "Utilities.cmake",
+        "Makefile",
+        "Testing",
+        "cmake_install.cmake",
+        "__pycache__",
+        "CMakeFiles",
+        "CMakeCache.txt",
+    ]
 
     if len(extra) > 0:
         filelist.extend(extra)
@@ -153,10 +174,9 @@ def Cleanup(path=None, extra=[], exclude=[]):
         RemovePath(os.path.join(path, f))
 
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 #
 def GetHomePath():
-
     """Get the user's home drive for the operating system"""
 
     home = os.environ.get("HOME")
@@ -168,30 +188,30 @@ def GetHomePath():
     return home
 
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 #
 def GetSystemVersionInfo():
-
     """Version info for operating system"""
-
     version_info = "{}".format(platform.system())
-    if platform.system() == "Windows":
-        version_info = "Windows {}".format(platform.version())
-    if platform.system() == 'Darwin':
-        version_info = "macOS {}".format(platform.mac_ver()[0])
-    elif platform.system() == 'Linux':
-        version_info = "{} {}".format(platform.linux_distribution()[0],
-                                    platform.linux_distribution()[1])
+    try:
+        version_info = "{}".format(platform.platform(aliased=1, terse=1))
+        if platform.system() == "Linux":
+            version_info = "{} {}".format(
+                platform.linux_distribution()[0],
+                platform.linux_distribution()[1],
+            )
+    except AttributeError:
+        pass
     return version_info
 
 
-#-------------------------------------------------------------------------#
+# -------------------------------------------------------------------------#
 #
 def _get_verbosity():
-    '''Determine the verbosity
+    """Determine the verbosity
 
     Default: 1
-    '''
+    """
     verbose = os.environ.get("PYCTEST_VERBOSE")
     if verbose is not None:
         verbose = int(verbose)
@@ -200,13 +220,13 @@ def _get_verbosity():
     return verbose
 
 
-#-------------------------------------------------------------------------#
+# -------------------------------------------------------------------------#
 #
 def _get_verbosity_flag():
-    '''Determine the initial verbosity flag based verbose setting
+    """Determine the initial verbosity flag based verbose setting
 
     Default: "-V"
-    '''
+    """
     verbose = _get_verbosity()
     if verbose < 1:
         return ""
@@ -218,23 +238,26 @@ def _get_verbosity_flag():
         return "--debug"
 
 
-
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 #
 class LineWrapRawTextHelpFormatter(argparse.RawDescriptionHelpFormatter):
-
-    def __init__(self, prog, indent_increment=2, max_help_position=80, width=160):
+    def __init__(
+        self, prog, indent_increment=2, max_help_position=80, width=160
+    ):
         super(argparse.RawDescriptionHelpFormatter, self).__init__(
-            prog=prog, indent_increment=indent_increment,
-            max_help_position=max_help_position, width=width)
+            prog=prog,
+            indent_increment=indent_increment,
+            max_help_position=max_help_position,
+            width=width,
+        )
 
     def _split_lines(self, text, width):
-        #print("Splitting lines...\n\tTEXT: {}\n\tWIDTH:{}\n".format(text, width))
-        #text = self._whitespace_matcher.sub(' ', text).strip()
+        # print("Splitting lines...\n\tTEXT: {}\n\tWIDTH:{}\n".format(text, width))
+        # text = self._whitespace_matcher.sub(' ', text).strip()
         return _textwrap.wrap(text, width)
 
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 #
 class ArgumentParser(argparse.ArgumentParser):
 
@@ -324,69 +347,81 @@ class ArgumentParser(argparse.ArgumentParser):
             version-control systems so the setting is ignored.
     """
 
-
-    #-------------------------------------------------------------------------#
+    # -------------------------------------------------------------------------#
     #
-    def __init__(self,
-                project_name,
-                source_dir,
-                binary_dir,
-                vcs_type=None,
-                cleanup_extra=[],
-                cleanup_exclude=[],
-                drop_method="https",
-                drop_site="cdash.nersc.gov",
-                drop_location="/submit.php?project=${CTEST_PROJECT_NAME}",
-                drop_site_user=None,
-                drop_site_password=None,
-                use_launchers=False,
-                submit_retry_count=1,
-                submit_retry_delay=30,
-                curl_options=None,
-                cdash_version=None,
-                nightly_start_time="01:00:00 UTC",
-                jobs=1,
-                submit=False,
-                stages=["Start", "Update", "Configure", "Build", "Test", "Coverage", "MemCheck"],
-                trigger="None",
-                site=socket.gethostname().strip('.local'),
-                ctest_args=[_get_verbosity_flag()],
-                mode="Stages",
-                checkout_command=None,
-                update_command=None,
-                configure_command=None,
-                build_command=None,
-                coverage_command=None,
-                memcheck_command=None,
-                python_exe=sys.executable,
-                build_type=None,
-                model="Continuous",
-                build_choices=["Release", "RelWithDebInfo", "Debug", "MinSizeRel"],
-                # standard argparse.ArgumentParser arguments
-                prog=None,
-                usage=None,
-                description="PyCTest argparse. Arguments after first '--' are passed directly " \
-"to CTest, arguments after second '--' are passed directly to CMake",
-                epilog=None,
-                parents=[],
-                formatter_class=LineWrapRawTextHelpFormatter,
-                prefix_chars='-',
-                fromfile_prefix_chars=None,
-                argument_default=None,
-                conflict_handler='resolve',
-                add_help=True):
+    def __init__(
+        self,
+        project_name,
+        source_dir,
+        binary_dir,
+        vcs_type=None,
+        cleanup_extra=[],
+        cleanup_exclude=[],
+        drop_method="https",
+        drop_site="cdash.nersc.gov",
+        drop_location="/submit.php?project=${CTEST_PROJECT_NAME}",
+        drop_site_user=None,
+        drop_site_password=None,
+        use_launchers=False,
+        submit_retry_count=1,
+        submit_retry_delay=30,
+        curl_options=None,
+        cdash_version=None,
+        nightly_start_time="01:00:00 UTC",
+        jobs=1,
+        submit=False,
+        stages=[
+            "Start",
+            "Update",
+            "Configure",
+            "Build",
+            "Test",
+            "Coverage",
+            "MemCheck",
+        ],
+        trigger="None",
+        site=socket.gethostname().strip(".local"),
+        ctest_args=[_get_verbosity_flag()],
+        mode="Stages",
+        checkout_command=None,
+        update_command=None,
+        configure_command=None,
+        build_command=None,
+        coverage_command=None,
+        memcheck_command=None,
+        python_exe=sys.executable,
+        build_type=None,
+        model="Continuous",
+        build_choices=["Release", "RelWithDebInfo", "Debug", "MinSizeRel"],
+        # standard argparse.ArgumentParser arguments
+        prog=None,
+        usage=None,
+        description="PyCTest argparse. Arguments after first '--' are passed directly "
+        "to CTest, arguments after second '--' are passed directly to CMake",
+        epilog=None,
+        parents=[],
+        formatter_class=LineWrapRawTextHelpFormatter,
+        prefix_chars="-",
+        fromfile_prefix_chars=None,
+        argument_default=None,
+        conflict_handler="resolve",
+        add_help=True,
+    ):
 
         # initilize parent
-        super(ArgumentParser, self).__init__(prog=prog,
-                                             usage=usage,
-                                             description=description,
-                                             epilog=epilog, parents=parents,
-                                             formatter_class=formatter_class,
-                                             prefix_chars=prefix_chars,
-                                             fromfile_prefix_chars=fromfile_prefix_chars,
-                                             argument_default=argument_default,
-                                             conflict_handler=conflict_handler,
-                                             add_help=add_help)
+        super(ArgumentParser, self).__init__(
+            prog=prog,
+            usage=usage,
+            description=description,
+            epilog=epilog,
+            parents=parents,
+            formatter_class=formatter_class,
+            prefix_chars=prefix_chars,
+            fromfile_prefix_chars=fromfile_prefix_chars,
+            argument_default=argument_default,
+            conflict_handler=conflict_handler,
+            add_help=add_help,
+        )
 
         self.checkout_command = checkout_command
         self.update_command = checkout_command
@@ -416,11 +451,28 @@ class ArgumentParser(argparse.ArgumentParser):
             pyctest.MEMORYCHECK_COMMAND = "{}".format(memcheck_command)
 
         # limit the mode choices
-        mode_choices = ["Start", "Update", "Configure", "Build",
-                        "Test", "Coverage", "MemCheck", "Submit", "Stages"]
+        mode_choices = [
+            "Start",
+            "Update",
+            "Configure",
+            "Build",
+            "Test",
+            "Coverage",
+            "MemCheck",
+            "Submit",
+            "Stages",
+        ]
         # stage choices
-        stage_choices = ["Start", "Update", "Configure", "Build",
-                         "Test", "Coverage", "MemCheck", "Submit"]
+        stage_choices = [
+            "Start",
+            "Update",
+            "Configure",
+            "Build",
+            "Test",
+            "Coverage",
+            "MemCheck",
+            "Submit",
+        ]
         # choices for submission model
         model_choices = ["Nightly", "Continuous", "Experimental"]
         # choices for submit trigger
@@ -429,199 +481,261 @@ class ArgumentParser(argparse.ArgumentParser):
         # version control options
         vcs_choices = ["bzr", "cvs", "git", "hg", "p4", "svn"]
 
-        #---------------------------------------------------------------------#
+        # ---------------------------------------------------------------------#
 
-        self.add_argument("-F",                             # clean [F]irst
-                          "--pyctest-clean-first",
-                          help="Remove standard PyCTest files and binary directory (if not source directory)",
-                          action="store_true")
+        self.add_argument(
+            "-F",  # clean [F]irst
+            "--pyctest-clean-first",
+            help="Remove standard PyCTest files and binary directory (if not source directory)",
+            action="store_true",
+        )
 
-        self.add_argument("-S",                             # [S]ubmit
-                          "--pyctest-submit",
-                          help="Enable submission to dashboard",
-                          action='store_true',
-                          default=submit)
+        self.add_argument(
+            "-S",  # [S]ubmit
+            "--pyctest-submit",
+            help="Enable submission to dashboard",
+            action="store_true",
+            default=submit,
+        )
 
-        self.add_argument("-A",                             # [A]ppend
-                          "--pyctest-append",
-                          help="Append to last invocation of CTest",
-                          action='store_true')
+        self.add_argument(
+            "-A",  # [A]ppend
+            "--pyctest-append",
+            help="Append to last invocation of CTest",
+            action="store_true",
+        )
 
-        #---------------------------------------------------------------------#
+        # ---------------------------------------------------------------------#
 
-        self.add_argument("-j",                             # [J]obs
-                          "--pyctest-jobs",
-                          help="number of concurrent jobs",
-                          type=int,
-                          metavar='<INT>',
-                          default=jobs)
+        self.add_argument(
+            "-j",  # [J]obs
+            "--pyctest-jobs",
+            help="number of concurrent jobs",
+            type=int,
+            metavar="<INT>",
+            default=jobs,
+        )
 
-        self.add_argument("-m",                             # [M]ode
-                          "--pyctest-mode",
-                          help="Run specific stage. Choices: [{}]".format(",".join(mode_choices)),
-                          type=str,
-                          choices=mode_choices,
-                          metavar='<TYPE>',
-                          default=mode)
+        self.add_argument(
+            "-m",  # [M]ode
+            "--pyctest-mode",
+            help="Run specific stage. Choices: [{}]".format(
+                ",".join(mode_choices)
+            ),
+            type=str,
+            choices=mode_choices,
+            metavar="<TYPE>",
+            default=mode,
+        )
 
-        self.add_argument("-b",                             # [B]uild name
-                          "--pyctest-build-name",
-                          type=str,
-                          default=None,
-                          metavar='<NAME>',
-                          help="Build name for identification")
+        self.add_argument(
+            "-b",  # [B]uild name
+            "--pyctest-build-name",
+            type=str,
+            default=None,
+            metavar="<NAME>",
+            help="Build name for identification",
+        )
 
-        self.add_argument("-i",                             # source -> [I]nput
-                          "--pyctest-source-dir",
-                          help="Source directory",
-                          type=str,
-                          metavar="<PATH>",
-                          default=source_dir)
+        self.add_argument(
+            "-i",  # source -> [I]nput
+            "--pyctest-source-dir",
+            help="Source directory",
+            type=str,
+            metavar="<PATH>",
+            default=source_dir,
+        )
 
-        self.add_argument("-o",                             # binary -> [O]utput
-                          "--pyctest-binary-dir",
-                          help="Binary/build/working directory",
-                          type=str,
-                          metavar="<PATH>",
-                          default=binary_dir)
+        self.add_argument(
+            "-o",  # binary -> [O]utput
+            "--pyctest-binary-dir",
+            help="Binary/build/working directory",
+            type=str,
+            metavar="<PATH>",
+            default=binary_dir,
+        )
 
-        #---------------------------------------------------------------------#
+        # ---------------------------------------------------------------------#
 
-        self.add_argument("-M",                             # [M]odel
-                          "--pyctest-model",
-                          help="CTest submission model (track). Choices: [{}]".format(",".join(model_choices)),
-                          type=str,
-                          metavar='<TYPE>',
-                          choices=model_choices,
-                          default=model)
+        self.add_argument(
+            "-M",  # [M]odel
+            "--pyctest-model",
+            help="CTest submission model (track). Choices: [{}]".format(
+                ",".join(model_choices)
+            ),
+            type=str,
+            metavar="<TYPE>",
+            choices=model_choices,
+            default=model,
+        )
 
-        self.add_argument("-H",                             # [H]ost
-                          "--pyctest-site",
-                          help="CTest submission site",
-                          type=str,
-                          metavar='<SITE>',
-                          default=site)
+        self.add_argument(
+            "-H",  # [H]ost
+            "--pyctest-site",
+            help="CTest submission site",
+            type=str,
+            metavar="<SITE>",
+            default=site,
+        )
 
-        self.add_argument("-P",                             # [P]ython exe
-                          "--pyctest-python-exe",
-                          help="Python executable to use. This can be absolue, relative, or CMake path",
-                          type=str,
-                          metavar='<EXE>',
-                          default=python_exe)
+        self.add_argument(
+            "-P",  # [P]ython exe
+            "--pyctest-python-exe",
+            help="Python executable to use. This can be absolue, relative, or CMake path",
+            type=str,
+            metavar="<EXE>",
+            default=python_exe,
+        )
 
-        self.add_argument("-N",                             # [N]ame
-                          "--pyctest-project-name",
-                          help="Name of project using PyCTest",
-                          type=str,
-                          metavar='<NAME>',
-                          default=project_name)
+        self.add_argument(
+            "-N",  # [N]ame
+            "--pyctest-project-name",
+            help="Name of project using PyCTest",
+            type=str,
+            metavar="<NAME>",
+            default=project_name,
+        )
 
-        #---------------------------------------------------------------------#
+        # ---------------------------------------------------------------------#
 
-        self.add_argument("-C",                             # [C]lean
-                          "--pyctest-cleanup",
-                          help="Remove standard PyCTest files and binary directory (if not source directory) and exit",
-                          nargs='+',
-                          metavar='<PATH>',
-                          type=str)
+        self.add_argument(
+            "-C",  # [C]lean
+            "--pyctest-cleanup",
+            help="Remove standard PyCTest files and binary directory (if not source directory) and exit",
+            nargs="+",
+            metavar="<PATH>",
+            type=str,
+        )
 
-        self.add_argument("-L",                             # [L]abels
-                          "--pyctest-subproject-labels",
-                          help="Add labels for subproject",
-                          metavar='<LABEL>',
-                          nargs='+',
-                          type=str)
+        self.add_argument(
+            "-L",  # [L]abels
+            "--pyctest-subproject-labels",
+            help="Add labels for subproject",
+            metavar="<LABEL>",
+            nargs="+",
+            type=str,
+        )
 
-        self.add_argument("-T",                             # [T]est-action
-                          "--pyctest-stages",
-                          help="Run multiple stages. Choices: [{}]".format(",".join(stage_choices)),
-                          type=str,
-                          choices=stage_choices,
-                          default=stages,
-                          metavar="<TYPE>",
-                          nargs='*')
+        self.add_argument(
+            "-T",  # [T]est-action
+            "--pyctest-stages",
+            help="Run multiple stages. Choices: [{}]".format(
+                ",".join(stage_choices)
+            ),
+            type=str,
+            choices=stage_choices,
+            default=stages,
+            metavar="<TYPE>",
+            nargs="*",
+        )
 
-        #---------------------------------------------------------------------#
+        # ---------------------------------------------------------------------#
 
-        self.add_argument("-fc",                             # [F]ortran compiler
-                          "--pyctest-fortran-compiler",
-                          help="Specify Fortan compiler (if needed)",
-                          default=os.environ.get("FC"),
-                          metavar='<EXE>',
-                          type=str)
+        self.add_argument(
+            "-fc",  # [F]ortran compiler
+            "--pyctest-fortran-compiler",
+            help="Specify Fortan compiler (if needed)",
+            default=os.environ.get("FC"),
+            metavar="<EXE>",
+            type=str,
+        )
 
-        self.add_argument("-cc",                             # [CC] compiler
-                          "--pyctest-c-compiler",
-                          help="Specify the C compiler (if needed)",
-                          default=os.environ.get("CC"),
-                          metavar='<EXE>',
-                          type=str)
+        self.add_argument(
+            "-cc",  # [CC] compiler
+            "--pyctest-c-compiler",
+            help="Specify the C compiler (if needed)",
+            default=os.environ.get("CC"),
+            metavar="<EXE>",
+            type=str,
+        )
 
-        self.add_argument("-cxx",                             # [CXX] compiler
-                          "--pyctest-cxx-compiler",
-                          help="Specify C++ compiler (if needed)",
-                          default=os.environ.get("CXX"),
-                          metavar='<EXE>',
-                          type=str)
+        self.add_argument(
+            "-cxx",  # [CXX] compiler
+            "--pyctest-cxx-compiler",
+            help="Specify C++ compiler (if needed)",
+            default=os.environ.get("CXX"),
+            metavar="<EXE>",
+            type=str,
+        )
 
-        #---------------------------------------------------------------------#
+        # ---------------------------------------------------------------------#
 
-        self.add_argument("--pyctest-token",
-                          help="CTest site token for submission",
-                          metavar='<TOKEN>',
-                          type=str)
+        self.add_argument(
+            "--pyctest-token",
+            help="CTest site token for submission",
+            metavar="<TOKEN>",
+            type=str,
+        )
 
-        self.add_argument("--pyctest-token-file",
-                          help="Path to file for CTest site token for submission",
-                          metavar='<FILE>',
-                          type=str)
+        self.add_argument(
+            "--pyctest-token-file",
+            help="Path to file for CTest site token for submission",
+            metavar="<FILE>",
+            type=str,
+        )
 
-        self.add_argument("--pyctest-vcs-type",
-                          help="""Set to enable revision ID discovery during the Update stage. Choices: [{}]""".format(",".join(vcs_choices)),
-                          default=vcs_type,
-                          type=str,
-                          metavar="<TYPE>",
-                          choices=vcs_choices)
+        self.add_argument(
+            "--pyctest-vcs-type",
+            help="""Set to enable revision ID discovery during the Update stage. Choices: [{}]""".format(
+                ",".join(vcs_choices)
+            ),
+            default=vcs_type,
+            type=str,
+            metavar="<TYPE>",
+            choices=vcs_choices,
+        )
 
-        self.add_argument("--pyctest-build-type",
-                          help="""Specify CMAKE_BUILD_TYPE (if using CMake). Choices: [{}]""".format(",".join(build_choices)),
-                          default=build_type,
-                          type=str,
-                          metavar='<TYPE>',
-                          choices=build_choices)
+        self.add_argument(
+            "--pyctest-build-type",
+            help="""Specify CMAKE_BUILD_TYPE (if using CMake). Choices: [{}]""".format(
+                ",".join(build_choices)
+            ),
+            default=build_type,
+            type=str,
+            metavar="<TYPE>",
+            choices=build_choices,
+        )
 
-        self.add_argument("--pyctest-trigger",
-                          help="DEPRECATED",
-                          metavar='<TYPE>',
-                          type=str,
-                          choices=trigger_choices,
-                          default=trigger)
+        self.add_argument(
+            "--pyctest-trigger",
+            help="DEPRECATED",
+            metavar="<TYPE>",
+            type=str,
+            choices=trigger_choices,
+            default=trigger,
+        )
 
-        self.add_argument("--pyctest-use-launchers",
-                          default=use_launchers,
-                          metavar='<BOOL>',
-                          help="Enable launchers")
+        self.add_argument(
+            "--pyctest-use-launchers",
+            default=use_launchers,
+            metavar="<BOOL>",
+            help="Enable launchers",
+        )
 
-        self.add_argument("--pyctest-ctest-args",
-                          help="CTest arguments",
-                          type=str,
-                          default=ctest_args,
-                          metavar='<ARG>',
-                          nargs='*')
+        self.add_argument(
+            "--pyctest-ctest-args",
+            help="CTest arguments",
+            type=str,
+            default=ctest_args,
+            metavar="<ARG>",
+            nargs="*",
+        )
 
-        #---------------------------------------------------------------------#
+        # ---------------------------------------------------------------------#
 
         def _add_argument(option_name, option_type, option_default):
             ctest_var = "CTEST_" + option_name.upper()
             web = "https://cmake.org/cmake/help/latest/variable/"
             web = "{0}/{1}.html#variable:{1}".format(web, ctest_var)
-            option_name = option_name.lower().replace('_', '-')
-            self.add_argument("--pyctest-{}".format(option_name.lower()),
-                              help="Set CTest variable: '{}'".format(ctest_var),
-                              type=option_type,
-                              metavar="<{}>".format(option_type.__name__.upper()),
-                              #metavar="<{}>".format(option_name.upper().replace('-', '_')),
-                              default=option_default)
+            option_name = option_name.lower().replace("_", "-")
+            self.add_argument(
+                "--pyctest-{}".format(option_name.lower()),
+                help="Set CTest variable: '{}'".format(ctest_var),
+                type=option_type,
+                metavar="<{}>".format(option_type.__name__.upper()),
+                # metavar="<{}>".format(option_name.upper().replace('-', '_')),
+                default=option_default,
+            )
 
         _add_argument("cdash_version", str, cdash_version)
         _add_argument("submit_retry_count", int, submit_retry_count)
@@ -634,12 +748,13 @@ class ArgumentParser(argparse.ArgumentParser):
         _add_argument("drop_site_user", str, drop_site_user)
         _add_argument("nightly_start_time", str, nightly_start_time)
 
-        self.add_argument("--pyctest-update-version-only",
-                          help="""Specify that you want the version control update command to only discover the current version that is checked out, and not to update to a different version""",
-                          action='store_true')
+        self.add_argument(
+            "--pyctest-update-version-only",
+            help="""Specify that you want the version control update command to only discover the current version that is checked out, and not to update to a different version""",
+            action="store_true",
+        )
 
-
-    #-------------------------------------------------------------------------#
+    # -------------------------------------------------------------------------#
     #
     def process_args(self, args):
         """Process PyCTest args"""
@@ -692,14 +807,18 @@ class ArgumentParser(argparse.ArgumentParser):
 
         # site of CDash submission
         pyctest.SITE = args.pyctest_site
-        if (args.pyctest_site == platform.node() and
-            os.environ.get("CTEST_SITE") is not None):
+        if (
+            args.pyctest_site == platform.node()
+            and os.environ.get("CTEST_SITE") is not None
+        ):
             pyctest.SITE = os.environ.get("CTEST_SITE")
 
         # build type
         if args.pyctest_build_type is not None:
             pyctest.set("BUILD_TYPE", "{}".format(args.pyctest_build_type))
-            pyctest.set("CTEST_CONFIGURATION_TYPE", "{}".format(args.pyctest_build_type))
+            pyctest.set(
+                "CTEST_CONFIGURATION_TYPE", "{}".format(args.pyctest_build_type)
+            )
 
         # build name for CDash
         if args.pyctest_build_name is None:
@@ -707,7 +826,8 @@ class ArgumentParser(argparse.ArgumentParser):
                 platform.uname()[0],
                 GetSystemVersionInfo(),
                 platform.uname()[4],
-                platform.python_version())
+                platform.python_version(),
+            )
         else:
             pyctest.BUILD_NAME = "{}".format(args.pyctest_build_name)
 
@@ -747,14 +867,17 @@ class ArgumentParser(argparse.ArgumentParser):
                 relpath = os.path.join(".tokens", pyctest.PROJECT_NAME)
                 token_path = os.path.join(home, relpath)
                 if os.path.exists(token_path):
-                    print("Setting CTEST_TOKEN_FILE to '{}'...".format(token_path))
+                    print(
+                        "Setting CTEST_TOKEN_FILE to '{}'...".format(token_path)
+                    )
                     pyctest.set("CTEST_TOKEN_FILE", token_path)
             if os.environ.get("CTEST_TOKEN") is not None:
                 pyctest.set("CTEST_TOKEN", os.environ.get("CTEST_TOKEN"))
 
         # append the stages to the CTest args
         args.pyctest_ctest_args.append(
-            "-DSTAGES={}".format(";".join(args.pyctest_stages)))
+            "-DSTAGES={}".format(";".join(args.pyctest_stages))
+        )
 
         # instruct to execute Stages.cmake
         args.pyctest_ctest_args.extend(["-S", "Stages.cmake"])
@@ -769,7 +892,10 @@ class ArgumentParser(argparse.ArgumentParser):
 
         # add subproject labels
         if args.pyctest_subproject_labels:
-            pyctest.set("CTEST_LABELS_FOR_SUBPROJECTS", ";".join(args.pyctest_subproject_labels))
+            pyctest.set(
+                "CTEST_LABELS_FOR_SUBPROJECTS",
+                ";".join(args.pyctest_subproject_labels),
+            )
 
         # if the arguments were provided
         if len(args.pyctest_ctest_args) > 0:
@@ -784,8 +910,7 @@ class ArgumentParser(argparse.ArgumentParser):
             if val is not None:
                 if isinstance(val, list):
                     val = ";".join(val)
-                pyctest.set("CTEST_{}".format(var.upper()),
-                            "{}".format(val))
+                pyctest.set("CTEST_{}".format(var.upper()), "{}".format(val))
 
         _process_argument("cdash_version", args.pyctest_cdash_version)
         _process_argument("submit_retry_count", args.pyctest_submit_retry_count)
@@ -798,10 +923,13 @@ class ArgumentParser(argparse.ArgumentParser):
         _process_argument("drop_site_user", args.pyctest_drop_site_user)
         _process_argument("nightly_start_time", args.pyctest_nightly_start_time)
 
-        print("CTest arguments (default): '{}'".format(" ".join(pyctest.ARGUMENTS)))
+        print(
+            "CTest arguments (default): '{}'".format(
+                " ".join(pyctest.ARGUMENTS)
+            )
+        )
 
-
-    #-------------------------------------------------------------------------#
+    # -------------------------------------------------------------------------#
     def parse_args(self, *args, **kwargs):
         """Parse the arguments
 
@@ -817,16 +945,18 @@ class ArgumentParser(argparse.ArgumentParser):
         _cmake = []
         _argsets = [_argv, _ctest, _cmake]
         _i = 0
-        _separator = '--'
+        _separator = "--"
 
         for _arg in sys.argv[1:]:
             if _arg == _separator:
                 _i += 1
                 if _i >= len(_argsets):
                     sys.exit(
-                        "ERROR: Too many \"{}\" separators provided "
-                        "(expected at most {}).".format(_separator,
-                                                        len(_argsets) - 1))
+                        'ERROR: Too many "{}" separators provided '
+                        "(expected at most {}).".format(
+                            _separator, len(_argsets) - 1
+                        )
+                    )
             else:
                 _argsets[_i].append(_arg)
 

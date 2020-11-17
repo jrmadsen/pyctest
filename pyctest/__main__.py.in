@@ -29,26 +29,28 @@ import pyctest.pycmake as _pycmake
 
 if __name__ == "__main__":
 
-    #_msg = "#   Running '{}'...    #".format(__file__)
-    #_brk = "#{}#".format("#" * (len(_msg)-2))
-    #_emp = "#{}#".format(" " * (len(_msg)-2))
-    #print("{0}\n{1}\n{2}\n{1}\n{0}".format(_brk, _emp, _msg))
+    # _msg = "#   Running '{}'...    #".format(__file__)
+    # _brk = "#{}#".format("#" * (len(_msg)-2))
+    # _emp = "#{}#".format(" " * (len(_msg)-2))
+    # print("{0}\n{1}\n{2}\n{1}\n{0}".format(_brk, _emp, _msg))
 
     _argv = []
     _ctest = []
     _cmake = []
     _argsets = [_argv, _ctest, _cmake]
     _i = 0
-    _separator = '--'
+    _separator = "--"
 
     for _arg in sys.argv[1:]:
         if _arg == _separator:
             _i += 1
             if _i >= len(_argsets):
                 sys.exit(
-                    "ERROR: Too many \"{}\" separators provided "
-                    "(expected at most {}).".format(_separator,
-                                                    len(_argsets) - 1))
+                    'ERROR: Too many "{}" separators provided '
+                    "(expected at most {}).".format(
+                        _separator, len(_argsets) - 1
+                    )
+                )
         else:
             _argsets[_i].append(_arg)
 
@@ -65,7 +67,7 @@ if __name__ == "__main__":
         if len(_ctest) > 0:
             _pyctest.execute(_ctest)
     except Exception as e:
-        print('Exception occurred: {}'.format(e))
+        print("Exception occurred: {}".format(e))
         ret = 1
 
     if ret == 0:

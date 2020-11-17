@@ -32,11 +32,11 @@ elif platform.system() == "Linux":
         os.environ["CXX"] = "/usr/bin/g++"
     # make sure we don't use clang
     if os.environ.get("CC") is not None:
-        if re.search(r'clang', os.environ.get("CC")) is not None:
+        if re.search(r"clang", os.environ.get("CC")) is not None:
             os.environ["CC"] = "/usr/bin/gcc"
     # make sure we don't use clang++
     if os.environ.get("CXX") is not None:
-        if re.search(r'clang', os.environ.get("CXX")) is not None:
+        if re.search(r"clang", os.environ.get("CXX")) is not None:
             os.environ["CC"] = "/usr/bin/g++"
 
 
@@ -44,15 +44,15 @@ elif platform.system() == "Linux":
 #   work around to avoid using disttools.LooseVersion
 #
 def get_integer_version(version_string):
-    version_array = version_string.split('.')
+    version_array = version_string.split(".")
     # if more than 3 version numbers
     while len(version_array) > 3:
         version_array.pop()
     # if less than 3 version numbers
     while len(version_array) < 3:
-        version_array.append('0')
+        version_array.append("0")
     integer_version = 0
-    factors = [ 100000, 1000, 1 ]
+    factors = [100000, 1000, 1]
     for i in range(0, len(factors)):
         integer_version += factors[i] * int(version_array[i])
     return integer_version
@@ -72,8 +72,8 @@ def get_string_version(version_integer):
 #
 def get_project_version():
     # open "VERSION"
-    with open(os.path.join(__thisdir__, 'VERSION'), 'r') as f:
-        data = f.read().replace('\n', '')
+    with open(os.path.join(__thisdir__, "VERSION"), "r") as f:
+        data = f.read().replace("\n", "")
     # make sure is string
     if isinstance(data, list) or isinstance(data, tuple):
         return data[0]
@@ -84,8 +84,7 @@ def get_project_version():
 # ---------------------------------------------------------------------------- #
 #
 class CMakeExtension(Extension):
-
-    def __init__(self, name, sourcedir=''):
+    def __init__(self, name, sourcedir=""):
         Extension.__init__(self, name, sources=[])
         self.sourcedir = os.path.abspath(sourcedir)
 
@@ -94,25 +93,23 @@ class CMakeExtension(Extension):
 #
 class CMakeConfigure(build_ext, Command):
 
-    cmake_version = get_integer_version('2.7.12')
-    cmake_min_version = get_integer_version('2.8.12')
-    build_type = 'Release'
+    cmake_version = get_integer_version("2.7.12")
+    cmake_min_version = get_integer_version("2.8.12")
+    build_type = "Release"
     cxx_standard = 11
-    cmake_prefix_path = ''
-    cmake_include_path = ''
-    cmake_library_path = ''
-    pybind11_install = 'OFF'
-    devel_install = 'ON'
+    cmake_prefix_path = ""
+    cmake_include_path = ""
+    cmake_library_path = ""
+    pybind11_install = "OFF"
+    devel_install = "ON"
 
-
-    #--------------------------------------------------------------------------#
+    # --------------------------------------------------------------------------#
     # init
     def __init__(self, *args, **kwargs):
         build_ext.__init__(self, *args, **kwargs)
         Command.__init__(self, *args, **kwargs)
 
-
-    #--------------------------------------------------------------------------#
+    # --------------------------------------------------------------------------#
     def check_env(self, var, key):
         ret = var
         try:
@@ -121,67 +118,76 @@ class CMakeConfigure(build_ext, Command):
             pass
         return ret
 
-
-    #--------------------------------------------------------------------------#
+    # --------------------------------------------------------------------------#
     def cmake_version_error(self):
         """
         Raise exception about CMake
         """
-        ma = 'Error finding/putting cmake in path. Either no CMake found or no cmake module.'
+        ma = "Error finding/putting cmake in path. Either no CMake found or no cmake module."
         mb = 'This error can commonly be resolved with "{}"'.format(
-            "pip install -U pip cmake")
-        mc = 'CMake version found: {}'.format(
-            get_string_version(CMakeConfigure.cmake_version))
-        md = "CMake must be installed to build the following extensions: " + \
-            ", ".join(e.name for e in self.extensions)
-        mt = '\n\n\t{}\n\t{}\n\t{}\n\t{}\n\n'.format(ma, mb, mc, md)
+            "pip install -U pip cmake"
+        )
+        mc = "CMake version found: {}".format(
+            get_string_version(CMakeConfigure.cmake_version)
+        )
+        md = (
+            "CMake must be installed to build the following extensions: "
+            + ", ".join(e.name for e in self.extensions)
+        )
+        mt = "\n\n\t{}\n\t{}\n\t{}\n\t{}\n\n".format(ma, mb, mc, md)
         raise RuntimeError(mt)
 
-
-    #--------------------------------------------------------------------------#
+    # --------------------------------------------------------------------------#
     def init_cmake(self):
         """
         Ensure cmake is in PATH
         """
         try:
-            out = subprocess.check_output(['cmake', '--version'])
+            out = subprocess.check_output(["cmake", "--version"])
             CMakeConfigure.cmake_version = get_integer_version(
-                re.search(r'version\s*([\d.]+)', out.decode()).group(1))
+                re.search(r"version\s*([\d.]+)", out.decode()).group(1)
+            )
         except OSError:
             # if fail, try the module
             try:
                 import cmake
+
                 if not cmake.CMAKE_BIN_DIR in sys.path:
                     sys.path.append(cmake.CMAKE_BIN_DIR)
                 if platform.system() != "Windows":
-                    curr_path = os.environ['PATH']
+                    curr_path = os.environ["PATH"]
                     if not cmake.CMAKE_BIN_DIR in curr_path:
-                        os.environ['PATH'] = "{}:{}".format(
-                            curr_path, cmake.CMAKE_BIN_DIR)
+                        os.environ["PATH"] = "{}:{}".format(
+                            curr_path, cmake.CMAKE_BIN_DIR
+                        )
 
-                CMakeConfigure.cmake_version = cmake.sys.version.split(' ')[0]
+                CMakeConfigure.cmake_version = cmake.sys.version.split(" ")[0]
             except:
                 self.cmake_version_error()
 
-    #--------------------------------------------------------------------------#
+    # --------------------------------------------------------------------------#
     # run
     def run(self):
         self.init_cmake()
 
-        print('Using CMake version {}...'.format(
-            get_string_version(CMakeBuild.cmake_version)))
+        print(
+            "Using CMake version {}...".format(
+                get_string_version(CMakeBuild.cmake_version)
+            )
+        )
 
         if CMakeConfigure.cmake_version < CMakeConfigure.cmake_min_version:
-            raise RuntimeError("CMake >= {} is required. Found CMake version {}".format(
-                               get_string_version(
-                                   CMakeConfigure.cmake_min_version),
-                               get_string_version(CMakeConfigure.cmake_version)))
+            raise RuntimeError(
+                "CMake >= {} is required. Found CMake version {}".format(
+                    get_string_version(CMakeConfigure.cmake_min_version),
+                    get_string_version(CMakeConfigure.cmake_version),
+                )
+            )
 
         for ext in self.extensions:
             self.build_extension(ext)
 
-
-    #--------------------------------------------------------------------------#
+    # --------------------------------------------------------------------------#
     # build extension
     def build_extension(self, ext):
 
@@ -196,87 +202,99 @@ class CMakeConfigure(build_ext, Command):
         # allow environment to over-ride setup.cfg
         # options are prefixed with PYCTEST_ if not already
         def compose(str):
-            return 'PYCTEST_{}'.format(str.upper())
+            return "PYCTEST_{}".format(str.upper())
 
         extdir = os.path.abspath(
-            os.path.dirname(self.get_ext_fullpath(ext.name)))
+            os.path.dirname(self.get_ext_fullpath(ext.name))
+        )
 
         # Always the same
-        cmake_args = ['-DPYTHON_EXECUTABLE=' + sys.executable,
-                      '-DPYCTEST_SETUP_PY=ON',
-                      ]
+        cmake_args = [
+            "-DPYTHON_EXECUTABLE=" + sys.executable,
+            "-DPYCTEST_SETUP_PY=ON",
+        ]
 
-        #----------------------------------------------------------------------#
+        # ----------------------------------------------------------------------#
         #
         #   Process options
         #
-        #----------------------------------------------------------------------#
-        self.build_type = self.check_env(
-            self.build_type, compose("build_type"))
+        # ----------------------------------------------------------------------#
+        self.build_type = self.check_env(self.build_type, compose("build_type"))
         self.cxx_standard = self.check_env(
-            self.cxx_standard, compose("cxx_standard"))
+            self.cxx_standard, compose("cxx_standard")
+        )
         self.cmake_prefix_path = self.check_env(
-            self.cmake_prefix_path, compose("cmake_prefix_path"))
+            self.cmake_prefix_path, compose("cmake_prefix_path")
+        )
         self.cmake_include_path = self.check_env(
-            self.cmake_include_path, compose("cmake_include_path"))
+            self.cmake_include_path, compose("cmake_include_path")
+        )
         self.cmake_library_path = self.check_env(
-            self.cmake_library_path, compose("cmake_library_path"))
+            self.cmake_library_path, compose("cmake_library_path")
+        )
         self.pybind11_install = self.check_env(
-            self.pybind11_install, compose("pybind11_install"))
+            self.pybind11_install, compose("pybind11_install")
+        )
         self.devel_install = self.check_env(
-            self.devel_install, compose("devel_install"))
+            self.devel_install, compose("devel_install")
+        )
 
         _valid_type = False
-        for _type in ['Release', 'Debug', 'RelWithDebInfo', 'MinSizeRel']:
+        for _type in ["Release", "Debug", "RelWithDebInfo", "MinSizeRel"]:
             if _type == self.build_type:
                 _valid_type = True
                 break
 
         if not _valid_type:
-            self.build_type = 'Release'
+            self.build_type = "Release"
 
-        cmake_args += ['-DCMAKE_BUILD_TYPE={}'.format(self.build_type)]
-        cmake_args += ['-DBUILD_SHARED_LIBS=OFF']
+        cmake_args += ["-DCMAKE_BUILD_TYPE={}".format(self.build_type)]
+        cmake_args += ["-DBUILD_SHARED_LIBS=OFF"]
 
         _cxxstd = int(self.cxx_standard)
         if _cxxstd < 14 and platform.system() == "Windows":
             # unique_ptr support
             _cxxstd = 14
-            self.cxx_standard = '{}'.format(_cxxstd)
+            self.cxx_standard = "{}".format(_cxxstd)
 
         if _cxxstd == 11 or _cxxstd == 14 or _cxxstd == 17:
-            cmake_args += ['-DCMAKE_CXX_STANDARD={}'.format(self.cxx_standard)]
+            cmake_args += ["-DCMAKE_CXX_STANDARD={}".format(self.cxx_standard)]
 
         if valid_string(self.cmake_prefix_path):
-            cmake_args += ['-DCMAKE_PREFIX_PATH={}'.format(
-                self.cmake_prefix_path)]
+            cmake_args += [
+                "-DCMAKE_PREFIX_PATH={}".format(self.cmake_prefix_path)
+            ]
 
         if valid_string(self.cmake_library_path):
-            cmake_args += ['-DCMAKE_LIBRARY_PATH={}'.format(
-                self.cmake_library_path)]
+            cmake_args += [
+                "-DCMAKE_LIBRARY_PATH={}".format(self.cmake_library_path)
+            ]
 
         if valid_string(self.cmake_include_path):
-            cmake_args += ['-DCMAKE_INCLUDE_PATH={}'.format(
-                self.cmake_include_path)]
+            cmake_args += [
+                "-DCMAKE_INCLUDE_PATH={}".format(self.cmake_include_path)
+            ]
 
-        cmake_args += ['-DCMAKE_INSTALL_PREFIX={}'.format(
-            os.path.join(extdir, "pyctest"))]
-        cmake_args += ['-DPYBIND11_INSTALL={}'.format(
-            str.upper(self.pybind11_install))]
+        cmake_args += [
+            "-DCMAKE_INSTALL_PREFIX={}".format(os.path.join(extdir, "pyctest"))
+        ]
+        cmake_args += [
+            "-DPYBIND11_INSTALL={}".format(str.upper(self.pybind11_install))
+        ]
 
         env_arch = os.environ.get("PYTHON_ARCH")
         if platform.system() == "Windows":
-            if platform.architecture()[0] == '64bit':
-                cmake_args += ['-A', 'x64']
+            if platform.architecture()[0] == "64bit":
+                cmake_args += ["-A", "x64"]
             elif env_arch is None:
-                if sys.maxsize > 2**32:
-                    cmake_args += ['-A', 'x64']
+                if sys.maxsize > 2 ** 32:
+                    cmake_args += ["-A", "x64"]
             elif env_arch is not None and env_arch == "64":
-                cmake_args += ['-A', 'x64']
-            cmake_args += ['-DCMake_MSVC_PARALLEL=ON']
+                cmake_args += ["-A", "x64"]
+            cmake_args += ["-DCMake_MSVC_PARALLEL=ON"]
 
         env = os.environ.copy()
-        env['CXXFLAGS'] = '{}'.format(env.get('CXXFLAGS', ''))
+        env["CXXFLAGS"] = "{}".format(env.get("CXXFLAGS", ""))
 
         # make directory if not exist
         if not os.path.exists(self.build_temp):
@@ -286,11 +304,14 @@ class CMakeConfigure(build_ext, Command):
         self.build_temp = os.path.abspath(self.build_temp)
 
         # print the CMake args
-        print('CMake args: {}'.format(cmake_args))
+        print("CMake args: {}".format(cmake_args))
 
         # configure the project
-        subprocess.check_call(['cmake'] + cmake_args + [ext.sourcedir],
-                              cwd=self.build_temp, env=env)
+        subprocess.check_call(
+            ["cmake"] + cmake_args + [ext.sourcedir],
+            cwd=self.build_temp,
+            env=env,
+        )
 
         print()  # Add an empty line for cleaner output
 
@@ -299,30 +320,34 @@ class CMakeConfigure(build_ext, Command):
 #
 class CMakeBuild(CMakeConfigure):
 
-    #--------------------------------------------------------------------------#
+    # --------------------------------------------------------------------------#
     # init
     def __init__(self, *args, **kwargs):
         CMakeConfigure.__init__(self, *args, **kwargs)
 
-
-    #--------------------------------------------------------------------------#
+    # --------------------------------------------------------------------------#
     # run
     def run(self):
         self.init_cmake()
 
-        print('Using CMake version {}...'.format(
-            get_string_version(CMakeBuild.cmake_version)))
+        print(
+            "Using CMake version {}...".format(
+                get_string_version(CMakeBuild.cmake_version)
+            )
+        )
 
         if CMakeBuild.cmake_version < CMakeBuild.cmake_min_version:
-            raise RuntimeError("CMake >= {} is required. Found CMake version {}".format(
-                               get_string_version(CMakeBuild.cmake_min_version),
-                               get_string_version(CMakeBuild.cmake_version)))
+            raise RuntimeError(
+                "CMake >= {} is required. Found CMake version {}".format(
+                    get_string_version(CMakeBuild.cmake_min_version),
+                    get_string_version(CMakeBuild.cmake_version),
+                )
+            )
 
         for ext in self.extensions:
             self.build_extension(ext)
 
-
-    #--------------------------------------------------------------------------#
+    # --------------------------------------------------------------------------#
     # build extension
     def build_extension(self, ext):
 
@@ -331,93 +356,117 @@ class CMakeBuild(CMakeConfigure):
         # allow environment to over-ride setup.cfg
         # options are prefixed with PYCTEST_ if not already
         def compose(str):
-            return 'PYCTEST_{}'.format(str.upper())
+            return "PYCTEST_{}".format(str.upper())
 
         extdir = os.path.abspath(
-            os.path.dirname(self.get_ext_fullpath(ext.name)))
+            os.path.dirname(self.get_ext_fullpath(ext.name))
+        )
 
         cache_file = os.path.join(extdir, "CMakeCache.txt")
         if not os.path.exists(extdir) or not os.path.exists(cache_file):
             CMakeConfigure.build_extension(self, ext)
 
-        #----------------------------------------------------------------------#
+        # ----------------------------------------------------------------------#
         #
         #   Process options
         #
-        #----------------------------------------------------------------------#
+        # ----------------------------------------------------------------------#
         self.build_type = self.check_env(self.build_type, compose("build_type"))
 
         _valid_type = False
-        for _type in [ 'Release', 'Debug', 'RelWithDebInfo', 'MinSizeRel' ]:
+        for _type in ["Release", "Debug", "RelWithDebInfo", "MinSizeRel"]:
             if _type == self.build_type:
                 _valid_type = True
                 break
 
         if not _valid_type:
-            self.build_type = 'Release'
+            self.build_type = "Release"
 
-        build_args = [ '--config', self.build_type ]
-        install_args = [ '-DBUILD_TYPE={}'.format(self.build_type),
-                         '-P', 'cmake_install.cmake' ]
+        build_args = ["--config", self.build_type]
+        install_args = [
+            "-DBUILD_TYPE={}".format(self.build_type),
+            "-P",
+            "cmake_install.cmake",
+        ]
 
         if platform.system() == "Windows":
-            build_args += ['--target', 'ALL_BUILD', '--', '/m' ]
+            build_args += ["--target", "ALL_BUILD", "--", "/m"]
         else:
-            nproc = '-j4'
+            nproc = "-j4"
             try:
                 import multiprocessing as mp
+
                 ncpu = mp.cpu_count()
                 if ncpu > 8:
                     ncpu = 8
-                nproc = '-j{}'.format(ncpu+1)
+                nproc = "-j{}".format(ncpu + 1)
             except:
                 pass
-            build_args += [ '--', nproc ]
+            build_args += ["--", nproc]
 
         env = os.environ.copy()
-        env['CXXFLAGS'] = '{}'.format(env.get('CXXFLAGS', ''))
+        env["CXXFLAGS"] = "{}".format(env.get("CXXFLAGS", ""))
 
         # make directory if not exist
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
 
         # set to absolute path
-        self.build_temp=os.path.abspath(self.build_temp)
+        self.build_temp = os.path.abspath(self.build_temp)
 
         # print the build_args
-        print('Build args: {}'.format(build_args))
+        print("Build args: {}".format(build_args))
         # print the install args
-        print('Install args: {}'.format(install_args))
+        print("Install args: {}".format(install_args))
 
         # build the project
         try:
-            subprocess.check_call(['cmake', '--build', self.build_temp] + build_args,
-                                  cwd=self.build_temp, env=env)
+            subprocess.check_call(
+                ["cmake", "--build", self.build_temp] + build_args,
+                cwd=self.build_temp,
+                env=env,
+            )
         except Exception as e:
             # for building docs, sometimes we run out of memory causing internal
             # compiler error
-            print('Exception occurred: {}.\nTrying build with one process'.format(e))
+            print(
+                "Exception occurred: {}.\nTrying build with one process".format(
+                    e
+                )
+            )
             _new_build_args = []
             for arg in build_args:
-                if re.search(r'^-j',arg) is not None:
-                    _new_build_args.append('-j1')
+                if re.search(r"^-j", arg) is not None:
+                    _new_build_args.append("-j1")
                 else:
                     _new_build_args.append(arg)
             build_args = _new_build_args
-            subprocess.check_call(['cmake', '--build', self.build_temp] + build_args,
-                                  cwd=self.build_temp, env=env)
+            subprocess.check_call(
+                ["cmake", "--build", self.build_temp] + build_args,
+                cwd=self.build_temp,
+                env=env,
+            )
 
         # build the project (second time)
-        subprocess.check_call(['cmake', '--build', self.build_temp] + build_args,
-                              cwd=self.build_temp, env=env)
+        subprocess.check_call(
+            ["cmake", "--build", self.build_temp] + build_args,
+            cwd=self.build_temp,
+            env=env,
+        )
 
         # install the CMake build
-        subprocess.check_call(['cmake', '-DCOMPONENT=python' ] + install_args,
-                              cwd=self.build_temp, env=env)
+        subprocess.check_call(
+            ["cmake", "-DCOMPONENT=python"] + install_args,
+            cwd=self.build_temp,
+            env=env,
+        )
 
         # install the development
-        subprocess.check_call(['cmake', '-DCOMPONENT=development' ] + install_args,
-                              cwd=self.build_temp, env=env)
+        subprocess.check_call(
+            ["cmake", "-DCOMPONENT=development"] + install_args,
+            cwd=self.build_temp,
+            env=env,
+        )
 
         CMakeInstallEggInfo.dirs[self.build_temp] = extdir
 
@@ -445,40 +494,42 @@ class CMakeInstallEggInfo(install_egg_info):
     dirs = {}
     files = []
 
-    #--------------------------------------------------------------------------#
+    # --------------------------------------------------------------------------#
     def run(self):
         install_egg_info.run(self)
 
         for f in CMakeInstallEggInfo.files:
-            print ('Adding "{}"...'.format(f))
+            print('Adding "{}"...'.format(f))
             self.outputs.append(f)
 
         # read the install manifest from CMake
         for tmpdir, libdir in CMakeInstallEggInfo.dirs.items():
-            for manifest in [ 'install_manifest.txt',
-                              'install_manifest_development.txt',
-                              'install_manifest_python.txt' ]:
+            for manifest in [
+                "install_manifest.txt",
+                "install_manifest_development.txt",
+                "install_manifest_python.txt",
+            ]:
                 fname = os.path.join(tmpdir, manifest)
                 if not os.path.exists(fname):
                     continue
-                f = open(fname, 'r')
-                if libdir[len(libdir)-1] != '/':
-                    libdir += '/'
+                f = open(fname, "r")
+                if libdir[len(libdir) - 1] != "/":
+                    libdir += "/"
                 for l in f.read().splitlines():
-                    b = l.replace(libdir, '')
+                    b = l.replace(libdir, "")
                     f = os.path.join(self.install_dir, b)
-                    #print ('Adding "{}"...'.format(f))
+                    # print ('Adding "{}"...'.format(f))
                     self.outputs.append(f)
 
 
 # ---------------------------------------------------------------------------- #
 #
 def get_long_description():
-    long_descript = ''
+    long_descript = ""
     try:
-        long_descript = open('README.md').read()
+        long_descript = open("README.md").read()
     except:
-        long_descript = ''
+        long_descript = ""
     return long_descript
 
 
@@ -493,43 +544,44 @@ def get_short_description():
 # ---------------------------------------------------------------------------- #
 #
 def get_keywords():
-    return [ 'cmake', 'ctest', 'pybind11' ]
+    return ["cmake", "ctest", "pybind11"]
 
 
 # ---------------------------------------------------------------------------- #
 #
 def get_classifiers():
     return [
-        'Development Status :: 4 - Beta',
-        'Intended Audience :: Developers',
-        'Topic :: Utilities',
-        'Natural Language :: English',
-        'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: Implementation :: CPython',
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "Topic :: Utilities",
+        "Natural Language :: English",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: Implementation :: CPython",
     ]
 
 
 # ---------------------------------------------------------------------------- #
 #
 def get_name():
-    return 'Jonathan R. Madsen'
+    return "Jonathan R. Madsen"
 
 
 # ---------------------------------------------------------------------------- #
 #
 def get_email():
-    return 'jonrobm.programming@gmail.com'
+    return "jonrobm.programming@gmail.com"
 
 
 # ---------------------------------------------------------------------------- #
 # calls the setup and declare package
 #
-setup(name='pyctest',
+setup(
+    name="pyctest",
     version=get_project_version(),
     author=get_name(),
     author_email=get_email(),
@@ -539,22 +591,23 @@ setup(name='pyctest',
     contact_email=get_email(),
     description=get_short_description(),
     long_description=get_long_description(),
-    long_description_content_type='text/markdown',
-    url='https://github.com/jrmadsen/pyctest.git',
-    license='MIT',
+    long_description_content_type="text/markdown",
+    url="https://github.com/jrmadsen/pyctest.git",
+    license="MIT",
     # add extension module
-    ext_modules=[CMakeExtension('pyctest')],
+    ext_modules=[CMakeExtension("pyctest")],
     # add custom build_ext command
-    cmdclass=dict(configure=CMakeConfigure,
-                  build_ext=CMakeBuild,
-                  install_egg_info=CMakeInstallEggInfo),
+    cmdclass=dict(
+        configure=CMakeConfigure,
+        build_ext=CMakeBuild,
+        install_egg_info=CMakeInstallEggInfo,
+    ),
     zip_safe=False,
     # extra
-    install_requires=[ ],
-    setup_requires=[ ],
-    #packages=[ 'pyctest' ],
+    install_requires=[],
+    setup_requires=[],
+    # packages=[ 'pyctest' ],
     keywords=get_keywords(),
     classifiers=get_classifiers(),
-    python_requires='>=2.6',
+    python_requires=">=2.6",
 )
-
