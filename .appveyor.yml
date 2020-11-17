@@ -27,11 +27,7 @@ environment:
 install:
   - ps: |
       # CMake generator
-      if ($env:APPVEYOR_JOB_NAME -like "*Visual Studio 2017*") {
-        $env:CMAKE_GENERATOR = "Visual Studio 15 2017"
-      } else {
-        $env:CMAKE_GENERATOR = "Visual Studio 16 2019"
-      }
+      $env:CMAKE_GENERATOR = "Visual Studio 15 2017"
 
       # Python environment
       if ($env:PLATFORM -eq "x64") {
@@ -53,15 +49,15 @@ install:
   - conda config --set always_yes yes
   - conda config --set anaconda_upload no
   # - conda install -n root conda-build anaconda-client --no-pin
-  - conda install -n root -c defaults -c conda-forge scikit-build --no-pin
-  - "%CONDA_ROOT%\\Scripts\\activate root"
+  - conda install -n appveyor -c defaults -c conda-forge python="%PYTHON_VERSION%" scikit-build --no-pin
+  - "%CONDA_ROOT%\\Scripts\\activate appveyor"
 
 build_script:
   - echo CONDA_ROOT %CONDA_ROOT%
   - echo CONDA_PREFIX %CONDA_PREFIX%
   - echo PATH %PATH%
   - conda info -a
-  - python setup.py install
+  - python setup.py install -- -G "%CMAKE_GENERATOR%" -A "%CMAKE_ARCH%"
   # - python update-conda-yaml.py
   # - cp recipe/meta.yaml ./
   # - conda-build --python="%PYTHON_VERSION%" .
