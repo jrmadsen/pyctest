@@ -1,7 +1,7 @@
 version: 1.0.{build}
 
 image:
-- Visual Studio 2017
+  - Visual Studio 2017
 
 test: off
 
@@ -9,7 +9,7 @@ build:
   parallel: true
 
 platform:
-- x64
+  - x64
 
 environment:
   global:
@@ -19,21 +19,34 @@ environment:
   matrix:
     - PYTHON_VERSION: "3.6"
       PYTHON_ARCH: "64"
-      BASE_PYTHON_VERSION: "36"
     - PYTHON_VERSION: "3.7"
       PYTHON_ARCH: "64"
-      BASE_PYTHON_VERSION: "36"
     - PYTHON_VERSION: "3.8"
       PYTHON_ARCH: "64"
-      BASE_PYTHON_VERSION: "36"
 
 install:
+  - ps: |
+      # CMake generator
+      if ($env:APPVEYOR_JOB_NAME -like "*Visual Studio 2017*") {
+        $env:CMAKE_GENERATOR = "Visual Studio 15 2017"
+      } else {
+        $env:CMAKE_GENERATOR = "Visual Studio 16 2019"
+      }
+
+      # Python environment
+      if ($env:PLATFORM -eq "x64") {
+        $env:PATH = "C:\Miniconda$env:CONDA-x64;C:\Miniconda$env:CONDA-x64\Scripts;$env:PATH"
+        $env:CMAKE_PREFIX_PATH = "C:\Miniconda$env:CONDA-x64;C:\Miniconda$env:CONDA-x64\Scripts"
+        $env:PYTHONHOME = "C:\Miniconda$env:CONDA-x64"
+        $env:PYTHON_EXE = "C:\Miniconda$env:CONDA-x64\python.exe"
+      } else {
+        $env:PATH = "C:\Miniconda$env:CONDA;C:\Miniconda$env:CONDA\Scripts;$env:PATH"
+        $env:CMAKE_PREFIX_PATH = "C:\Miniconda$env:CONDA;C:\Miniconda$env:CONDA\Scripts"
+        $env:PYTHONHOME = "C:\Miniconda$env:CONDA"
+        $env:PYTHON_EXE = "C:\Miniconda$env:CONDA\python.exe"
+      }
   - if "%PYTHON_ARCH%" == "64" set "ARCH_LABEL=-x64"
   - if "%PYTHON_ARCH%" == "64" set "CMAKE_ARCH=x%PYTHON_ARCH%"
-  - set "CONDA_ROOT=C:\Miniconda%BASE_PYTHON_VERSION%%ARCH_LABEL%"
-  - set "PATH=%CONDA_ROOT%;%CONDA_ROOT%\Scripts;%CONDA_ROOT%\Library\bin;%PATH%"
-  - echo CONDA_ROOT %CONDA_ROOT%
-  - echo CONDA_PREFIX %CONDA_PREFIX%
   - echo PATH %PATH%
   - conda config --set always_yes yes
   - conda config --set anaconda_upload no
