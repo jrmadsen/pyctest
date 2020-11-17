@@ -102,10 +102,10 @@ install:
   - conda config --set always_yes yes --set changeps1 no ;
   - conda update -q conda ;
   - conda info -a ;
-  - conda install -n travis -c defaults -c conda-forge -c jrmadsen python=${TRAVIS_PYTHON_VERSION} pyctest ;
+  - conda create -n travis -c defaults -c conda-forge -c jrmadsen python=${TRAVIS_PYTHON_VERSION} pyctest ;
   - source activate ;
-  - conda activate travis
-  - python ./pyctest-runner.py --pyctest-submit --pyctest-site=Travis
+  - conda activate travis ;
+  - python ./pyctest-runner.py --pyctest-submit --pyctest-site=Travis ;
 
 script:
   #

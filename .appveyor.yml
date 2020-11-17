@@ -30,24 +30,17 @@ install:
       $env:CMAKE_GENERATOR = "Visual Studio 15 2017"
 
       # Python environment
-      if ($env:PLATFORM -eq "x64") {
-        $env:PATH = "C:\Miniconda$env:CONDA-x64;C:\Miniconda$env:CONDA-x64\Scripts;$env:PATH"
-        $env:CMAKE_PREFIX_PATH = "C:\Miniconda$env:CONDA-x64;C:\Miniconda$env:CONDA-x64\Scripts"
-        $env:PYTHONHOME = "C:\Miniconda$env:CONDA-x64"
-        $env:CONDA_ROOT = "C:\Miniconda$env:CONDA-x64"
-        $env:PYTHON_EXE = "C:\Miniconda$env:CONDA-x64\python.exe"
-      } else {
-        $env:PATH = "C:\Miniconda$env:CONDA;C:\Miniconda$env:CONDA\Scripts;$env:PATH"
-        $env:CMAKE_PREFIX_PATH = "C:\Miniconda$env:CONDA;C:\Miniconda$env:CONDA\Scripts"
-        $env:PYTHONHOME = "C:\Miniconda$env:CONDA"
-        $env:CONDA_ROOT = "C:\Miniconda$env:CONDA"
-        $env:PYTHON_EXE = "C:\Miniconda$env:CONDA\python.exe"
-      }
-  - if "%PYTHON_ARCH%" == "64" set "ARCH_LABEL=-x64"
-  - if "%PYTHON_ARCH%" == "64" set "CMAKE_ARCH=x%PYTHON_ARCH%"
+      $env:PATH = "C:\Miniconda$env:CONDA-x64;C:\Miniconda$env:CONDA-x64\Scripts;$env:PATH"
+      $env:CMAKE_PREFIX_PATH = "C:\Miniconda$env:CONDA-x64;C:\Miniconda$env:CONDA-x64\Scripts"
+      $env:PYTHONHOME = "C:\Miniconda$env:CONDA-x64"
+      $env:CONDA_ROOT = "C:\Miniconda$env:CONDA-x64"
+      $env:PYTHON_EXE = "C:\Miniconda$env:CONDA-x64\python.exe"
+      if "%PYTHON_ARCH%" == "64" set "ARCH_LABEL=-x64"
+      if "%PYTHON_ARCH%" == "64" set "CMAKE_ARCH=x%PYTHON_ARCH%"
   - echo PATH %PATH%
   - conda config --set always_yes yes
   - conda config --set anaconda_upload no
+  - conda update -y -q -n base conda
   # - conda install -n root conda-build anaconda-client --no-pin
   - conda create -n appveyor -c defaults -c conda-forge python="%PYTHON_VERSION%" scikit-build --no-pin
   - "%CONDA_ROOT%\\Scripts\\activate appveyor"
