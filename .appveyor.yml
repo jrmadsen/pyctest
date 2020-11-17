@@ -30,11 +30,11 @@ install:
       $env:CMAKE_GENERATOR = "Visual Studio 15 2017"
 
       # Python environment
-      $env:PATH = "C:\Miniconda$env:CONDA-x64;C:\Miniconda$env:CONDA-x64\Scripts;$env:PATH"
-      $env:CMAKE_PREFIX_PATH = "C:\Miniconda$env:CONDA-x64;C:\Miniconda$env:CONDA-x64\Scripts"
-      $env:PYTHONHOME = "C:\Miniconda$env:CONDA-x64"
-      $env:CONDA_ROOT = "C:\Miniconda$env:CONDA-x64"
-      $env:PYTHON_EXE = "C:\Miniconda$env:CONDA-x64\python.exe"
+      $env:PATH = "C:\Miniconda36-x64;C:\Miniconda36-x64\Scripts;$env:PATH"
+      $env:CMAKE_PREFIX_PATH = "C:\Miniconda36-x64;C:\Miniconda36-x64\Scripts"
+      $env:PYTHONHOME = "C:\Miniconda36-x64"
+      $env:CONDA_ROOT = "C:\Miniconda36-x64"
+      $env:PYTHON_EXE = "C:\Miniconda36-x64\python.exe"
   - echo PATH %PATH%
   - conda config --set always_yes yes
   - conda config --set anaconda_upload no
