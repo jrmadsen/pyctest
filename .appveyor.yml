@@ -35,8 +35,6 @@ install:
       $env:PYTHONHOME = "C:\Miniconda$env:CONDA-x64"
       $env:CONDA_ROOT = "C:\Miniconda$env:CONDA-x64"
       $env:PYTHON_EXE = "C:\Miniconda$env:CONDA-x64\python.exe"
-      if "%PYTHON_ARCH%" == "64" set "ARCH_LABEL=-x64"
-      if "%PYTHON_ARCH%" == "64" set "CMAKE_ARCH=x%PYTHON_ARCH%"
   - echo PATH %PATH%
   - conda config --set always_yes yes
   - conda config --set anaconda_upload no
@@ -46,11 +44,8 @@ install:
   - "%CONDA_ROOT%\\Scripts\\activate appveyor"
 
 build_script:
-  - echo CONDA_ROOT %CONDA_ROOT%
-  - echo CONDA_PREFIX %CONDA_PREFIX%
-  - echo PATH %PATH%
   - conda info -a
-  - python setup.py install -- -G "%CMAKE_GENERATOR%" -A "%CMAKE_ARCH%"
+  - python setup.py install -- -G "%CMAKE_GENERATOR%" -A "x64"
   # - python update-conda-yaml.py
   # - cp recipe/meta.yaml ./
   # - conda-build --python="%PYTHON_VERSION%" .
