@@ -1,6 +1,6 @@
 package:
   name: pyctest
-  version: '0.0.12'
+  version: '0.0.13'
 
 build:
   number: 0
@@ -12,7 +12,7 @@ build:
   include_recipe: False
 
 source:
-  git_rev: a92f0a1f1f993c2b804cfbded939492b751675b9
+  git_rev: 7712c973239614c013fbabb657547704b2bf2cee
   git_url: https://github.com/jrmadsen/pyctest.git
 
 requirements:
