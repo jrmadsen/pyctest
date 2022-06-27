@@ -73,5 +73,5 @@ jobs:
           python basic.py -- -VV
           popd
           pushd examples/TomoPy
-          python pyctest_tomopy.py --pyctest-stages State Configure Build -- -VV
+          python pyctest_tomopy.py --pyctest-stages Start Configure Build -- -VV
           popd
