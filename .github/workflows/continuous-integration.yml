@@ -6,17 +6,6 @@ on:
   pull_request:
     branches: [ master, develop ]
 
-# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
-
-name: python-package
-
-on:
-  push:
-    branches: [ master, develop ]
-  pull_request:
-    branches: [ master, develop ]
-
 jobs:
   linting:
     runs-on: ubuntu-latest
