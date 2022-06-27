@@ -73,5 +73,6 @@ jobs:
           python basic.py -- -VV
           popd
           pushd examples/TomoPy
+          python -m pip install nose coverage
           python pyctest_tomopy.py --pyctest-stages Start Configure Build -- -VV
           popd
