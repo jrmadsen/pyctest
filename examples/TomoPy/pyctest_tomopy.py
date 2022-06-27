@@ -71,8 +71,8 @@ def run_pyctest():
         pyct.SOURCE_DIRECTORY, pyct.BINARY_DIRECTORY
     )
     # Set the build command
-    pyct.BUILD_COMMAND = "{} -m pip install -e".format(
-        pyct.PYTHON_EXECUTABLE
+    pyct.BUILD_COMMAND = "{} -m pip install -e {}".format(
+        pyct.PYTHON_EXECUTABLE, pyct.SOURCE_DIRECTORY
     )
 
     # create a CTest that wraps "nosetest"
