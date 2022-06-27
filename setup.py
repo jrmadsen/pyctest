@@ -3,15 +3,12 @@
 import os
 import re
 import sys
-import sysconfig
 import platform
 import subprocess
-import shutil
 
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 from setuptools import Command
-from setuptools.command.test import test as TestCommand
 from setuptools.command.install_egg_info import install_egg_info
 
 __thisdir__ = os.path.dirname(__file__)
@@ -114,7 +111,7 @@ class CMakeConfigure(build_ext, Command):
         ret = var
         try:
             ret = os.environ[key]
-        except:
+        except KeyError:
             pass
         return ret
 
@@ -123,7 +120,10 @@ class CMakeConfigure(build_ext, Command):
         """
         Raise exception about CMake
         """
-        ma = "Error finding/putting cmake in path. Either no CMake found or no cmake module."
+        ma = "{}. {}.".format(
+            "Error finding/putting cmake in path",
+            "Either no CMake found or no cmake module",
+        )
         mb = 'This error can commonly be resolved with "{}"'.format(
             "pip install -U pip cmake"
         )
@@ -152,17 +152,17 @@ class CMakeConfigure(build_ext, Command):
             try:
                 import cmake
 
-                if not cmake.CMAKE_BIN_DIR in sys.path:
+                if cmake.CMAKE_BIN_DIR not in sys.path:
                     sys.path.append(cmake.CMAKE_BIN_DIR)
                 if platform.system() != "Windows":
                     curr_path = os.environ["PATH"]
-                    if not cmake.CMAKE_BIN_DIR in curr_path:
+                    if cmake.CMAKE_BIN_DIR not in curr_path:
                         os.environ["PATH"] = "{}:{}".format(
                             curr_path, cmake.CMAKE_BIN_DIR
                         )
 
                 CMakeConfigure.cmake_version = cmake.sys.version.split(" ")[0]
-            except:
+            except ImportError:
                 self.cmake_version_error()
 
     # --------------------------------------------------------------------------#
@@ -287,11 +287,15 @@ class CMakeConfigure(build_ext, Command):
             if platform.architecture()[0] == "64bit":
                 cmake_args += ["-A", "x64"]
             elif env_arch is None:
-                if sys.maxsize > 2 ** 32:
+                if sys.maxsize > 2**32:
                     cmake_args += ["-A", "x64"]
             elif env_arch is not None and env_arch == "64":
                 cmake_args += ["-A", "x64"]
             cmake_args += ["-DCMake_MSVC_PARALLEL=ON"]
+
+        _generator = os.environ.get("CMAKE_GENERATOR", None)
+        if _generator is not None:
+            cmake_args += ["-G", _generator]
 
         env = os.environ.copy()
         env["CXXFLAGS"] = "{}".format(env.get("CXXFLAGS", ""))
@@ -400,7 +404,7 @@ class CMakeBuild(CMakeConfigure):
                 if ncpu > 8:
                     ncpu = 8
                 nproc = "-j{}".format(ncpu + 1)
-            except:
+            except ImportError:
                 pass
             build_args += ["--", nproc]
 
@@ -515,8 +519,8 @@ class CMakeInstallEggInfo(install_egg_info):
                 f = open(fname, "r")
                 if libdir[len(libdir) - 1] != "/":
                     libdir += "/"
-                for l in f.read().splitlines():
-                    b = l.replace(libdir, "")
+                for itr in f.read().splitlines():
+                    b = itr.replace(libdir, "")
                     f = os.path.join(self.install_dir, b)
                     # print ('Adding "{}"...'.format(f))
                     self.outputs.append(f)
@@ -528,7 +532,7 @@ def get_long_description():
     long_descript = ""
     try:
         long_descript = open("README.md").read()
-    except:
+    except IOError:
         long_descript = ""
     return long_descript
 

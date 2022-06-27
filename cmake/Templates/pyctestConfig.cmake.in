@@ -3,9 +3,9 @@ include(${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@ConfigVersion.cmake)
 
 @PACKAGE_INIT@
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 #   Settings
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 set(@PROJECT_NAME@_C_FLAGS "@CMAKE_C_FLAGS@")
 set(@PROJECT_NAME@_CXX_FLAGS "@CMAKE_CXX_FLAGS@ -std=c++${CMAKE_CXX_STANDARD}")
 set(PYCTEST_USE_MPI @MPI_FOUND@)
@@ -13,9 +13,9 @@ set(PYCTEST_EXCEPTIONS @PYCTEST_EXCEPTIONS@)
 set(PYCTEST_PYTHON_BINDINGS @PYCTEST_USE_PYTHON_BINDING@)
 set(PYCTEST_DYNAMIC_LINK @BUILD_SHARED_LIBS@)
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 #   Determine install tree or build tree
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 if("${CMAKE_SOURCE_DIR}" STREQUAL "@CMAKE_SOURCE_DIR@")
     # in the build tree
     set(_PYCTEST_BUILD_TREE ON)
@@ -110,9 +110,9 @@ foreach(_DIR ${@PROJECT_NAME@_EXTERNAL_INCLUDE_DIRS})
     list(APPEND @PROJECT_NAME@_INCLUDE_DIRS SYSTEM ${_DIR})
 endforeach(_DIR ${@PROJECT_NAME@_EXTERNAL_INCLUDE_DIRS})
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 #   CXX standard
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 if(DEFINED CMAKE_CXX_STANDARD)
     if("${CMAKE_CXX_STANDARD}" VERSION_LESS 11 OR
         "${CMAKE_CXX_STANDARD}" VERSION_GREATER 17)
@@ -125,23 +125,23 @@ else(DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif(DEFINED CMAKE_CXX_STANDARD)
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 #   Linking type
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 if(NOT PYCTEST_DYNAMIC_LINK AND WIN32)
     add_definitions(-D_PYCTEST_ARCHIVE)
 endif(NOT PYCTEST_DYNAMIC_LINK AND WIN32)
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 #   pyctest link target
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 set(@PROJECT_NAME@_C_LIBRARIES @LIBNAME@-c-library)
 set(@PROJECT_NAME@_CXX_LIBRARIES @LIBNAME@-cxx-library)
 set(@PROJECT_NAME@_LIBRARIES @LIBNAME@-cxx-library)
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 #   Definitions
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 if(PYCTEST_EXCEPTIONS)
     add_definitions(-DPYCTEST_EXCEPTIONS)
 endif(PYCTEST_EXCEPTIONS)
@@ -150,9 +150,9 @@ if(PYCTEST_USE_MPI)
     add_definitions(-DPYCTEST_USE_MPI)
 endif(PYCTEST_USE_MPI)
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 #   find_package variables
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set UnitTest++_FOUND to TRUE
 # if all listed variables are TRUE

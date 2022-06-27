@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
-import os, sys, traceback, subprocess as sp
+import os
+import sys
+import traceback
+import subprocess as sp
 
 
 def read_file(fname):
@@ -19,15 +22,15 @@ def main(new_git_rev):
 
     fm = open(meta_file, "w")
     old_git_rev = ""
-    for l in content:
-        lstrip = l.strip().strip("-").strip("\t")
+    for itr in content:
+        lstrip = itr.strip().strip("-").strip("\t")
         entries = lstrip.split()
         if len(entries) > 1:
             if entries[0] == "git_rev:":
                 old_git_rev = entries[1]
-                l = l.replace(old_git_rev, new_git_rev)
-        fm.write("{}\n".format(l))
-        print("{}".format(l))
+                itr = itr.replace(old_git_rev, new_git_rev)
+        fm.write("{}\n".format(itr))
+        print("{}".format(itr))
 
     fm.close()
     print("\nOld git revision: {}".format(old_git_rev))

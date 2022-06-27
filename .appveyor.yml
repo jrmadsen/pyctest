@@ -1,7 +1,7 @@
 version: 1.0.{build}
 
 image:
-  - Visual Studio 2017
+  - Visual Studio 2019
 
 test: off
 
@@ -17,35 +17,30 @@ environment:
     CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\ci-helpers\\appveyor\\windows_sdk.cmd"
 
   matrix:
-    - PYTHON_VERSION: "3.6"
+    - PYTHON_VERSION: "36"
       PYTHON_ARCH: "64"
-    - PYTHON_VERSION: "3.7"
+    - PYTHON_VERSION: "37"
       PYTHON_ARCH: "64"
-    - PYTHON_VERSION: "3.8"
+    - PYTHON_VERSION: "38"
       PYTHON_ARCH: "64"
 
 install:
   - ps: |
       # CMake generator
-      $env:CMAKE_GENERATOR = "Visual Studio 15 2017"
+      $env:CMAKE_GENERATOR = "Visual Studio 16 2019"
 
       # Python environment
-      $env:PATH = "C:\Miniconda36-x64;C:\Miniconda36-x64\Scripts;$env:PATH"
-      $env:CMAKE_PREFIX_PATH = "C:\Miniconda36-x64;C:\Miniconda36-x64\Scripts"
-      $env:PYTHONHOME = "C:\Miniconda36-x64"
-      $env:CONDA_ROOT = "C:\Miniconda36-x64"
-      $env:PYTHON_EXE = "C:\Miniconda36-x64\python.exe"
+      $env:PATH = "C:\Miniconda$env:PYTHON_VERSION-x64;C:\Miniconda$env:PYTHON_VERSION-x64\Scripts;$env:PATH"
+      $env:CMAKE_PREFIX_PATH = "C:\Miniconda$env:PYTHON_VERSION-x64;C:\Miniconda$env:PYTHON_VERSION-x64\Scripts"
+      $env:PYTHONHOME = "C:\Miniconda$env:PYTHON_VERSION-x64"
+      $env:CONDA_ROOT = "C:\Miniconda$env:PYTHON_VERSION-x64"
+      $env:PYTHON_EXE = "C:\Miniconda$env:PYTHON_VERSION-x64\python.exe"
   - echo PATH %PATH%
-  - conda config --set always_yes yes
-  - conda config --set anaconda_upload no
-  - conda update -y -q -n base conda
-  # - conda install -n root conda-build anaconda-client --no-pin
-  - conda create -n appveyor -c defaults -c conda-forge python="%PYTHON_VERSION%" scikit-build --no-pin
   - "%CONDA_ROOT%\\Scripts\\activate appveyor"
 
 build_script:
   - conda info -a
-  - python setup.py install -- -G "%CMAKE_GENERATOR%" -A "x64"
+  - "%PYTHON_EXE% setup.py install"
   # - python update-conda-yaml.py
   # - cp recipe/meta.yaml ./
   # - conda-build --python="%PYTHON_VERSION%" .
