@@ -1,7 +1,7 @@
 version: 1.0.{build}
 
 image:
-  - Visual Studio 2019
+  - Visual Studio 2017
 
 test: off
 
@@ -27,7 +27,7 @@ environment:
 install:
   - ps: |
       # CMake generator
-      $env:CMAKE_GENERATOR = "Visual Studio 16 2019"
+      $env:CMAKE_GENERATOR = "Visual Studio 15 2017"
 
       # Python environment
       $env:PATH = "C:\Miniconda$env:PYTHON_VERSION-x64;C:\Miniconda$env:PYTHON_VERSION-x64\Scripts;$env:PATH"
