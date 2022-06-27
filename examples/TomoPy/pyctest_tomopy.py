@@ -87,17 +87,18 @@ def run_pyctest():
         },
     )
 
-    pyct.run()
+    return pyct.run()
 
 
 if __name__ == "__main__":
 
+    ret = 0
     try:
-        run_pyctest()
+        ret = run_pyctest()
     except Exception as e:
         print("Error running pyctest - {}".format(e))
         exc_type, exc_value, exc_trback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_trback, limit=10)
-        sys.exit(1)
+        ret = 1
 
-    sys.exit(0)
+    sys.exit(ret)

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import sys
 import platform
 import pyctest.pyctest as pyct
 import pyctest.helpers as helpers
@@ -40,4 +41,6 @@ if __name__ == "__main__":
     )
 
     # run CTest -- e.g. ctest -VV ${PWD}/pycm-test
-    pyct.run()
+    ret = pyct.run()
+
+    sys.exit(ret)
