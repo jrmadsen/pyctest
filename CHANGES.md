@@ -1,5 +1,14 @@
 # pyctest
 
+Release: pyctest 0.0.13
+----------------------
+
+- Author: Jonathan R. Madsen
+- Date: Tue Nov 17 2020
+
+  - Fixed support for Python 3.8+
+  - pyctest.{pycmake,pyctest}.run returns True/False for success
+
 Release: pyctest 0.0.3
 ----------------------
 

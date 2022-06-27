@@ -490,7 +490,7 @@ function(ADD_FEATURE _var _description)
   set_property(GLOBAL PROPERTY ${_var}_DESCRIPTION "${_description}${EXTRA_DESC}")
 endfunction()
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 # function add_subfeature(<ROOT_OPTION> <NAME> <DOCSTRING>)
 #          Add a subfeature, whose activation is specified by the
 #          existence of the variable <NAME>, to the list of enabled/disabled
@@ -512,7 +512,7 @@ function(ADD_SUBFEATURE _root _var _description)
 endfunction()
 
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 # function add_option(<OPTION_NAME> <DOCSRING> <DEFAULT_SETTING> [NO_FEATURE])
 #          Add an option and add as a feature if NO_FEATURE is not provided
 #
@@ -527,7 +527,7 @@ MACRO(ADD_OPTION _NAME _MESSAGE _DEFAULT)
 ENDMACRO(ADD_OPTION _NAME _MESSAGE _DEFAULT)
 
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 # function add_dependent_option(<OPTION_NAME> <DOCSRING>
 #                               <CONDITION_TRUE_SETTING> <CONDITION>
 #                               <DEFAULT_SETTING> [NO_FEATURE])
@@ -550,7 +550,7 @@ MACRO(ADD_DEPENDENT_OPTION _NAME _MESSAGE _COND_SETTING _COND _DEFAULT)
 ENDMACRO(ADD_DEPENDENT_OPTION _NAME _MESSAGE _DEFAULT _COND _COND_SETTING)
 
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 # function print_enabled_features()
 #          Print enabled  features plus their docstrings.
 #
@@ -649,7 +649,7 @@ function(print_enabled_features)
 endfunction()
 
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 # function print_disabled_features()
 #          Print disabled features plus their docstrings.
 #
@@ -679,7 +679,7 @@ function(print_disabled_features)
     endif()
 endfunction()
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 # function print_features()
 #          Print all features plus their docstrings.
 #
@@ -690,7 +690,7 @@ function(print_features)
 endfunction()
 
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 macro(DETERMINE_LIBDIR_DEFAULT VAR)
     set(_LIBDIR_DEFAULT "lib")
     # Override this default 'lib' with 'lib64' iff:
@@ -756,7 +756,7 @@ macro(DETERMINE_LIBDIR_DEFAULT VAR)
 endmacro()
 
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 # macro CACHE_VARIABLES_FOR_REFERENCE(...)
 #           Provide a list of variables that will be stored in the cache
 #               as {variable_name}_REF for later reference
@@ -769,7 +769,7 @@ macro(CACHE_VARIABLES_FOR_REFERENCE)
 endmacro()
 
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 # macro CACHE_VARIABLES_FOR_REFERENCE(...)
 #           Provide a list of variables that will be stored in the cache
 #              as {variable_name}_REF for later reference
@@ -783,7 +783,7 @@ macro(UPDATE_REFERENCE_CACHE_VARIABLES)
 endmacro()
 
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 # macro GET_HOSTNAME(<VAR>)
 #
 function(GET_HOSTNAME VAR)
@@ -796,7 +796,7 @@ function(GET_HOSTNAME VAR)
 endfunction(GET_HOSTNAME VAR)
 
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 # macro CHECKOUT_SUBMODULE()
 #
 #   Run "git submodule update" if a file in a submodule does not exist
@@ -873,16 +873,15 @@ macro(CHECKOUT_CMAKE_SUBMODULE)
 endmacro(CHECKOUT_CMAKE_SUBMODULE)
 
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 # always determine the default lib directory
 DETERMINE_LIBDIR_DEFAULT(LIBDIR_DEFAULT)
 
 
-#------------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 # get the hostname
 get_hostname(HOSTNAME)
 string(REPLACE ".local" "" HOSTNAME "${HOSTNAME}")
 
 
 cmake_policy(POP)
-
