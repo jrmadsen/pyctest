@@ -21,8 +21,6 @@ environment:
       PYTHON_ARCH: "64"
     - PYTHON_VERSION: "37"
       PYTHON_ARCH: "64"
-    - PYTHON_VERSION: "38"
-      PYTHON_ARCH: "64"
 
 install:
   - ps: |
