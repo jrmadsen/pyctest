@@ -47,36 +47,42 @@ __status__ = "Development"
 __all__ = ["CPack"]
 
 
-#-----------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 # versioning
 #
-sys.modules[__name__].__setattr__("version_info",
-                                  (@PYCTEST_VERSION_MAJOR@,
-                                   @PYCTEST_VERSION_MINOR@,
-                                   @PYCTEST_VERSION_PATCH@) )
-sys.modules[__name__].__setattr__("version", "@PYCTEST_VERSION@" )
+sys.modules[__name__].__setattr__(
+    "version_info",
+    (
+        int("@PYCTEST_VERSION_MAJOR@"),
+        int("@PYCTEST_VERSION_MINOR@"),
+        int("@PYCTEST_VERSION_PATCH@"),
+    ),
+)
+sys.modules[__name__].__setattr__("version", "@PYCTEST_VERSION@")
 sys.modules[__name__].__setattr__(
     "build_info",
-    { "date" : "@PYCTEST_INSTALL_DATE@",
-      "library_architecture" : "@CMAKE_SYSTEM_PROCESSOR@",
-      "system_name" : "@CMAKE_SYSTEM_NAME@",
-      "system_version" : "@CMAKE_SYSTEM_VERSION@",
-      "build_type" : "@CMAKE_BUILD_TYPE@",
-      "compiler" : "@CMAKE_CXX_COMPILER@",
-      "compiler_id" : "@CMAKE_CXX_COMPILER_ID@",
-      "compiler_version" : "@CMAKE_CXX_COMPILER_VERSION@"
-    } )
+    {
+        "date": "@PYCTEST_INSTALL_DATE@",
+        "library_architecture": "@CMAKE_SYSTEM_PROCESSOR@",
+        "system_name": "@CMAKE_SYSTEM_NAME@",
+        "system_version": "@CMAKE_SYSTEM_VERSION@",
+        "build_type": "@CMAKE_BUILD_TYPE@",
+        "compiler": "@CMAKE_CXX_COMPILER@",
+        "compiler_id": "@CMAKE_CXX_COMPILER_ID@",
+        "compiler_version": "@CMAKE_CXX_COMPILER_VERSION@",
+    },
+)
 version_info = sys.modules[__name__].__getattribute__("version_info")
 build_info = sys.modules[__name__].__getattribute__("build_info")
 version = sys.modules[__name__].__getattribute__("version")
-__all__ += [ 'version_info', 'version', 'build_info' ]
+__all__ += ["version_info", "version", "build_info"]
 
 
-#-----------------------------------------------------------------------------#
+# -------------------------------------------------------------------------------------- #
 # provide a function to run CPack
 #
 def CPack(*args, **kwargs):
-    '''Function for direct access to CPack
+    """Function for direct access to CPack
 
     Parameters
     ----------
@@ -99,7 +105,7 @@ def CPack(*args, **kwargs):
         _kwargs['CPACK_PACKAGE_VERSION'] = '@PYCTEST_VERSION@'
         _args = [ '-G', 'TGZ' ]
         pyctest.cpack.CPack(_args, _kwargs)
-    '''
+    """
 
     import pyctest as _pyctest
     import subprocess as sp
@@ -112,9 +118,9 @@ def CPack(*args, **kwargs):
 
     # process list of arguments (assumes proper ordering)
     for entry in args:
-        exe_args.append("{}".format(entry)) # convert to string
+        exe_args.append("{}".format(entry))  # convert to string
 
     try:
         sp.check_call([_pyctest.cpack_executable] + exe_args)
     except Exception as e:
-        print('Exception occurred: {}'.format(e))
+        print("Exception occurred: {}".format(e))

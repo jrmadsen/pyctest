@@ -30,6 +30,6 @@ if __name__ == "__main__":
     try:
         sp.check_call([_pyctest.cpack_executable] + sys.argv[1:])
     except Exception as e:
-        print('Exception occurred: {}'.format(e))
+        print("Exception occurred: {}".format(e))
         sys.exit(1)
     sys.exit(0)
